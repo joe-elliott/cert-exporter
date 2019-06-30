@@ -24,8 +24,6 @@ func (p *PeriodicCertChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
 
 	for {
-		<-periodChannel
-
 		klog.Info("Begin periodic check")
 
 		for _, match := range p.getMatches() {
@@ -36,6 +34,8 @@ func (p *PeriodicCertChecker) StartChecking() {
 
 			klog.Infof("Publishing metrics for %v", match)
 		}
+
+		<-periodChannel
 	}
 }
 
