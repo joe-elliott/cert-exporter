@@ -16,6 +16,8 @@ type PeriodicCertChecker struct {
 func NewCertChecker(period time.Duration, includeGlobs []string, excludeGlobs []string) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
 		period : period,
+		includeGlobs : includeGlobs,
+		excludeGlobs : excludeGlobs,
 	}
 }
 
