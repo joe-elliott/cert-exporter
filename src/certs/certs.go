@@ -42,7 +42,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 }
 
 func (p *PeriodicCertChecker) getMatches() []string {
-	ret := make([]string, 1)
+	ret := make([]string, 0)
 
 	for _, includeGlob := range p.includeGlobs {
 
