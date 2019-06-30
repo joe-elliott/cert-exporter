@@ -26,13 +26,15 @@ func (p *PeriodicCertChecker) StartChecking() {
 	for {
 		<-periodChannel
 
+		klog.Info("Begin periodic check")
+
 		for _, match := range p.getMatches() {
 
 			if !p.includeFile(match) {
 				continue
 			}
 
-			klog.Info("Publishing metrics for %v", match)
+			klog.Infof("Publishing metrics for %v", match)
 		}
 	}
 }
@@ -45,7 +47,7 @@ func (p *PeriodicCertChecker) getMatches() []string {
 		matches, err := filepath.Glob(includeGlob)
 
 		if err != nil {
-			klog.Error("Glob failed on %v: %v", includeGlob, err)
+			klog.Errorf("Glob failed on %v: %v", includeGlob, err)
 			continue
 		}
 
@@ -61,7 +63,7 @@ func (p *PeriodicCertChecker) includeFile(file string) bool {
 		exclude, err := filepath.Match(excludeGlob, file)
 
 		if err != nil {
-			klog.Error("Match failed on %v,%v: %v", excludeGlob, file, err)
+			klog.Errorf("Match failed on %v,%v: %v", excludeGlob, file, err)
 			return false
 		}
 
