@@ -1,4 +1,4 @@
-package certs
+package checkers
 
 import (
 	"time"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/joe-elliott/cert-exporter/src/certs"
+	"github.com/joe-elliott/cert-exporter/src/checkers"
 	"github.com/joe-elliott/cert-exporter/src/args"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 
@@ -42,10 +42,10 @@ func main() {
 
 	flag.Parse()
 
-	certChecker := certs.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
+	certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
 	go certChecker.StartChecking()
 
-	configChecker := certs.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, &exporters.KubeConfigExporter{})
+	configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, &exporters.KubeConfigExporter{})
 	go configChecker.StartChecking()
 
 	http.Handle(prometheusPath, promhttp.Handler())
