@@ -9,15 +9,15 @@ import (
 
 type PeriodicCertChecker struct {
 	period time.Duration
-	includeGlobs []string
-	excludeGlobs []string
+	includeCertGlobs []string
+	excludeCertGlobs []string
 }
 
-func NewCertChecker(period time.Duration, includeGlobs []string, excludeGlobs []string) *PeriodicCertChecker {
+func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
 		period : period,
-		includeGlobs : includeGlobs,
-		excludeGlobs : excludeGlobs,
+		includeCertGlobs : includeCertGlobs,
+		excludeCertGlobs : excludeCertGlobs,
 	}
 }
 
@@ -44,7 +44,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 func (p *PeriodicCertChecker) getMatches() []string {
 	ret := make([]string, 0)
 
-	for _, includeGlob := range p.includeGlobs {
+	for _, includeGlob := range p.includeCertGlobs {
 
 		matches, err := filepath.Glob(includeGlob)
 
@@ -61,7 +61,7 @@ func (p *PeriodicCertChecker) getMatches() []string {
 
 func (p *PeriodicCertChecker) includeFile(file string) bool {
 
-	for _, excludeGlob := range p.excludeGlobs {
+	for _, excludeGlob := range p.excludeCertGlobs {
 		exclude, err := filepath.Match(excludeGlob, file)
 
 		if err != nil {

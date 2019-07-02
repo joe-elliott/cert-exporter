@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	includeGlobs            globargs.Args
-	excludeGlobs            globargs.Args
+	includeCertGlobs            globargs.Args
+	excludeCertGlobs            globargs.Args
 	prometheusListenAddress string
 	prometheusPath          string
 	pollingPeriod           time.Duration
@@ -23,8 +23,8 @@ var (
 
 func init() {
 
-	flag.Var(&includeGlobs, "include-glob", "File globs to include when looking for certs.")
-	flag.Var(&excludeGlobs, "exclude-glob", "File globs to exclude when looking for certs.")
+	flag.Var(&includeCertGlobs, "include-cert-glob", "File globs to include when looking for certs.")
+	flag.Var(&excludeCertGlobs, "exclude-cert-glob", "File globs to exclude when looking for certs.")
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
@@ -37,7 +37,7 @@ func main() {
 
 	flag.Parse()
 
-	c := certs.NewCertChecker(pollingPeriod, includeGlobs, excludeGlobs)
+	c := certs.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs)
 	go c.StartChecking()
 
 	http.Handle(prometheusPath, promhttp.Handler())
