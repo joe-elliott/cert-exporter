@@ -1,6 +1,6 @@
-package globargs
+package args
 
-type Args []string
+type GlobArgs []string
 
 func (i *Args) String() string {
     return "test"

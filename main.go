@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/joe-elliott/cert-exporter/src/certs"
-	"github.com/joe-elliott/cert-exporter/src/globargs"
+	"github.com/joe-elliott/cert-exporter/src/args"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog"
 )
 
 var (
-	includeCertGlobs            globargs.Args
-	excludeCertGlobs            globargs.Args
+	includeCertGlobs        args.GlobArgs
+	excludeCertGlobs        args.GlobArgs
 	prometheusListenAddress string
 	prometheusPath          string
 	pollingPeriod           time.Duration
