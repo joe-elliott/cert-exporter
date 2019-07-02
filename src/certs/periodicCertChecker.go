@@ -5,19 +5,22 @@ import (
 	"path/filepath"
 
 	"k8s.io/klog"
+	"github.com/joe-elliott/cert-exporter/src/exporters"
 )
 
 type PeriodicCertChecker struct {
 	period time.Duration
 	includeCertGlobs []string
 	excludeCertGlobs []string
+	exporter exporters.Exporter
 }
 
-func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string) *PeriodicCertChecker {
+func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string, e exporters.Exporter) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
 		period : period,
 		includeCertGlobs : includeCertGlobs,
 		excludeCertGlobs : excludeCertGlobs,
+		exporter : e,
 	}
 }
 
@@ -35,6 +38,12 @@ func (p *PeriodicCertChecker) StartChecking() {
 			}
 
 			klog.Infof("Publishing metrics for %v", match)
+
+			err := p.exporter.ExportMetrics(match)
+
+			if err != nil {
+				klog.Errorf("Error on %v: %v", match, err)
+			}
 		}
 
 		<-periodChannel

@@ -8,6 +8,7 @@ import (
 
 	"github.com/joe-elliott/cert-exporter/src/certs"
 	"github.com/joe-elliott/cert-exporter/src/args"
+	"github.com/joe-elliott/cert-exporter/src/exporters"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog"
@@ -37,7 +38,7 @@ func main() {
 
 	flag.Parse()
 
-	c := certs.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs)
+	c := certs.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
 	go c.StartChecking()
 
 	http.Handle(prometheusPath, promhttp.Handler())
