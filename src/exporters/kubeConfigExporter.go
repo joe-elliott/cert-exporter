@@ -2,8 +2,14 @@ package exporters
 
 import (
 	"fmt"
+	"time"
+
+	"crypto/x509"
+	"encoding/pem"
+	"encoding/base64"
 
 	"github.com/joe-elliott/cert-exporter/src/kubeconfig"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 
@@ -18,17 +24,46 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 		return err
 	}
 
-	for c := range k.Clusters {
-		fmt.Printf("%v\n", c)
+	for _, c := range k.Clusters {
+		if c.Cluster.CertificateAuthorityData != "" {
+			err = exportCertAsBase64String(c.Cluster.CertificateAuthorityData, file, "cluster", c.Name)
+
+			if err != nil {
+				return err
+			}
+		} else if c.Cluster.CertificateAuthority != "" { 
+		} else {
+
+		}
 	}
 
-	for u := range k.Users {
-		fmt.Printf("%v\n", u)
+	for _, u := range k.Users {
+		if u.User.ClientCertificateData != "" {
+			err = exportCertAsBase64String(u.User.ClientCertificateData, file, "user", u.Name)
+
+			if err != nil {
+				return err
+			}
+		} else if u.User.ClientCertificate != "" { 
+		} else {
+
+		}
 	}
 
-	/*block, _ := pem.Decode(certBytes)
+
+
+	return nil
+}
+
+func exportCertAsBase64String(s string, filename string, configObject string, name string) error {
+	certBytes, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return err
+	}
+
+	block, _ := pem.Decode(certBytes)
 	if block == nil {
-		return fmt.Errorf("Failed to parse %v as a pem", file)
+		return fmt.Errorf("Failed to parse as a pem")
 	}
 
 	cert, err := x509.ParseCertificate(block.Bytes)
@@ -37,8 +72,7 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 	}
 
 	durationUntilExpiry := time.Until(cert.NotAfter)
-	metrics.CertExpirySeconds.WithLabelValues(file).Set(durationUntilExpiry.Seconds())*/
-
+	metrics.KubeConfigExpirySeconds.WithLabelValues(filename, configObject, name).Set(durationUntilExpiry.Seconds())
 	return nil
 }
 
