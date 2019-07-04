@@ -23,9 +23,19 @@ var (
 		},
 		[]string{"filename"},
 	)
+
+	KubeConfigExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "kubeconfig_expires_in_seconds",
+			Help:      "Number of seconds til the cert in kubeconfig expires.",
+		},
+		[]string{"filename", "type", "name"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(ErrorTotal)
 	prometheus.MustRegister(CertExpirySeconds)
+	prometheus.MustRegister(KubeConfigExpirySeconds)
 }

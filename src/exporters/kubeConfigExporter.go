@@ -18,7 +18,13 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 		return err
 	}
 
-	fmt.Printf("%v", k)
+	for c := range k.Clusters {
+		fmt.Printf("%v\n", c)
+	}
+
+	for u := range k.Users {
+		fmt.Printf("%v\n", u)
+	}
 
 	/*block, _ := pem.Decode(certBytes)
 	if block == nil {
