@@ -3,7 +3,9 @@ package exporters
 import (
 	"fmt"
 	"time"
+	"path"
 
+	"io/ioutil"
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/base64"
@@ -32,8 +34,13 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 				return err
 			}
 		} else if c.Cluster.CertificateAuthority != "" { 
-		} else {
+			err = exportCertAsFile(c.Cluster.CertificateAuthority, file, "cluster", c.Name)
 
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Cluster %v does not have CertAuthority or CertAuthorityData", c.Name)
 		}
 	}
 
@@ -44,23 +51,42 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 			if err != nil {
 				return err
 			}
-		} else if u.User.ClientCertificate != "" { 
-		} else {
+		} else if u.User.ClientCertificate != "" {
+			err = exportCertAsFile(u.User.ClientCertificate, file, "user", u.Name)
 
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("User %v does not have ClientCert or ClientCertData", u.Name)
 		}
 	}
-
-
 
 	return nil
 }
 
-func exportCertAsBase64String(s string, filename string, configObject string, name string) error {
+func exportCertAsFile(file string, kubeConfigFile string, configObject string, name string) error {
+	kubeConfigPath := path.Dir(kubeConfigFile)
+	file = path.Join(kubeConfigPath, file)
+
+	certBytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	return exportCertAsBytes(certBytes, kubeConfigFile, configObject, name)
+}
+
+func exportCertAsBase64String(s string, kubeConfigFile string, configObject string, name string) error {
 	certBytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return err
 	}
 
+	return exportCertAsBytes(certBytes, kubeConfigFile, configObject, name)
+}
+
+func exportCertAsBytes(certBytes []byte, kubeConfigFile string, configObject string, name string) error {
 	block, _ := pem.Decode(certBytes)
 	if block == nil {
 		return fmt.Errorf("Failed to parse as a pem")
@@ -72,8 +98,6 @@ func exportCertAsBase64String(s string, filename string, configObject string, na
 	}
 
 	durationUntilExpiry := time.Until(cert.NotAfter)
-	metrics.KubeConfigExpirySeconds.WithLabelValues(filename, configObject, name).Set(durationUntilExpiry.Seconds())
+	metrics.KubeConfigExpirySeconds.WithLabelValues(kubeConfigFile, configObject, name).Set(durationUntilExpiry.Seconds())
 	return nil
 }
-
-
