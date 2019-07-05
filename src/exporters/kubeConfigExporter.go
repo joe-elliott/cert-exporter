@@ -66,9 +66,11 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 }
 
 func exportCertAsFile(file string, kubeConfigFile string, configObject string, name string) error {
-	kubeConfigPath := path.Dir(kubeConfigFile)
-
-	file = path.Join(kubeConfigPath, file)
+	
+	if !path.IsAbs(file) {
+		kubeConfigPath := path.Dir(kubeConfigFile)
+		file = path.Join(kubeConfigPath, file)	
+	}
 
 	certBytes, err := ioutil.ReadFile(file)
 	if err != nil {
