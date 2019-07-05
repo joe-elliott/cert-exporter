@@ -44,7 +44,7 @@ mkdir certs
 # run exporter
 ./main -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
 
-sleep 5
+sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
@@ -72,7 +72,7 @@ mkdir kubeConfigSibling
 # run exporter
 ./main -include-cert-glob=certsSibling/*.crt  -include-kubeconfig-glob=kubeConfigSibling/kubeconfig &
 
-sleep 5
+sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
@@ -87,4 +87,17 @@ validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfi
 
 # kill exporter
 kill $!
+
+#
+# confirm error metric works
+#
+echo "** Testing Error metric increments"
+echo 'asdfasdf' > certs/client.crt
+
+# run exporter
+./main -include-cert-glob=certs/client.crt &
+
+sleep 2
+
+curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 1'
 

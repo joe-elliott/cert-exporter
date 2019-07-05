@@ -6,6 +6,7 @@ import (
 
 	"k8s.io/klog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 type PeriodicCertChecker struct {
@@ -42,6 +43,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 			err := p.exporter.ExportMetrics(match)
 
 			if err != nil {
+				metrics.ErrorTotal.Inc()
 				klog.Errorf("Error on %v: %v", match, err)
 			}
 		}
