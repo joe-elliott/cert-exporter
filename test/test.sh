@@ -3,7 +3,7 @@ set -e
 # cleanup certs
 rm -rf certs
 mkdir certs
-rm main
+rm -f main
 
 # build
 go build ../main.go
