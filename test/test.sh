@@ -1,10 +1,15 @@
-set -e
-
 validateMetrics() {
     metrics=$1
     expectedVal=$2    
 
     raw=$(curl --silent http://localhost:8080/metrics | grep "$metrics")
+
+    if [ "$raw" == "" ]; then
+      echo "TEST FAILURE: $metrics" 
+      echo "  Unable to find metrics string"
+      return 0
+    fi
+
     val=${raw#* }
     valInDays=$(awk "BEGIN {print $val / (24 * 60 * 60)}")
 
@@ -28,8 +33,11 @@ chmod +x main
 
 days=${1:-100}
 
+#
+# certs and kubeconfig in the same dir
+#
 ./genCerts.sh certs $days
-./genKubeConfig.sh certs ./
+./genKubeConfig.sh certs 
 
 # run exporter
 ./main -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
@@ -49,3 +57,4 @@ validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kub
 
 # kill exporter
 kill $!
+
