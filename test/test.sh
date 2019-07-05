@@ -1,9 +1,7 @@
 set -e
 
 # cleanup certs
-rm -rf certs
-mkdir certs
-rm -f main
+./testCleanup.sh
 
 # build
 go build ../main.go
