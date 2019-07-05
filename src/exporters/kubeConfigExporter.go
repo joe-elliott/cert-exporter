@@ -2,13 +2,7 @@ package exporters
 
 import (
 	"fmt"
-	"time"
 	"path"
-
-	"io/ioutil"
-	"crypto/x509"
-	"encoding/pem"
-	"encoding/base64"
 
 	"github.com/joe-elliott/cert-exporter/src/kubeconfig"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
@@ -27,14 +21,17 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 	}
 
 	for _, c := range k.Clusters {
+		var duration float64
+
 		if c.Cluster.CertificateAuthorityData != "" {
-			err = exportCertAsBase64String(c.Cluster.CertificateAuthorityData, file, "cluster", c.Name)
+			duration, err = secondsToExpiryFromCertAsBase64String(c.Cluster.CertificateAuthorityData)
 
 			if err != nil {
 				return err
 			}
 		} else if c.Cluster.CertificateAuthority != "" { 
-			err = exportCertAsFile(c.Cluster.CertificateAuthority, file, "cluster", c.Name)
+			certFile := pathToFileFromKubeConfig(c.Cluster.CertificateAuthority, file)
+			duration, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
@@ -42,17 +39,22 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 		} else {
 			return fmt.Errorf("Cluster %v does not have CertAuthority or CertAuthorityData", c.Name)
 		}
+
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name).Set(duration)
 	}
 
 	for _, u := range k.Users {
+		var duration float64
+
 		if u.User.ClientCertificateData != "" {
-			err = exportCertAsBase64String(u.User.ClientCertificateData, file, "user", u.Name)
+			duration, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData)
 
 			if err != nil {
 				return err
 			}
 		} else if u.User.ClientCertificate != "" {
-			err = exportCertAsFile(u.User.ClientCertificate, file, "user", u.Name)
+			certFile := pathToFileFromKubeConfig(u.User.ClientCertificate, file)
+			duration, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
@@ -60,47 +62,18 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 		} else {
 			return fmt.Errorf("User %v does not have ClientCert or ClientCertData", u.Name)
 		}
+
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name).Set(duration)
 	}
 
 	return nil
 }
 
-func exportCertAsFile(file string, kubeConfigFile string, configObject string, name string) error {
-	
+func pathToFileFromKubeConfig(file string, kubeConfigFile string) string {
 	if !path.IsAbs(file) {
 		kubeConfigPath := path.Dir(kubeConfigFile)
 		file = path.Join(kubeConfigPath, file)	
 	}
 
-	certBytes, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
-	}
-
-	return exportCertAsBytes(certBytes, kubeConfigFile, configObject, name)
-}
-
-func exportCertAsBase64String(s string, kubeConfigFile string, configObject string, name string) error {
-	certBytes, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return err
-	}
-
-	return exportCertAsBytes(certBytes, kubeConfigFile, configObject, name)
-}
-
-func exportCertAsBytes(certBytes []byte, kubeConfigFile string, configObject string, name string) error {
-	block, _ := pem.Decode(certBytes)
-	if block == nil {
-		return fmt.Errorf("Failed to parse as a pem")
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return err
-	}
-
-	durationUntilExpiry := time.Until(cert.NotAfter)
-	metrics.KubeConfigExpirySeconds.WithLabelValues(kubeConfigFile, configObject, name).Set(durationUntilExpiry.Seconds())
-	return nil
+	return file
 }
