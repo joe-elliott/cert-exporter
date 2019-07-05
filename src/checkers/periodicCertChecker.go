@@ -60,6 +60,7 @@ func (p *PeriodicCertChecker) getMatches() []string {
 		matches, err := filepath.Glob(includeGlob)
 
 		if err != nil {
+			metrics.ErrorTotal.Inc()
 			klog.Errorf("Glob failed on %v: %v", includeGlob, err)
 			continue
 		}
@@ -76,6 +77,7 @@ func (p *PeriodicCertChecker) includeFile(file string) bool {
 		exclude, err := filepath.Match(excludeGlob, file)
 
 		if err != nil {
+			metrics.ErrorTotal.Inc()
 			klog.Errorf("Match failed on %v,%v: %v", excludeGlob, file, err)
 			return false
 		}
