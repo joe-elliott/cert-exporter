@@ -101,3 +101,5 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 1'
 
+# kill exporter
+kill $!

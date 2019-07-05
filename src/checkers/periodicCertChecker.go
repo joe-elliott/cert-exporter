@@ -4,7 +4,7 @@ import (
 	"time"
 	"path/filepath"
 
-	"k8s.io/klog"
+	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
@@ -30,7 +30,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
 
 	for {
-		klog.Info("Begin periodic check")
+		glog.Info("Begin periodic check")
 
 		for _, match := range p.getMatches() {
 
@@ -38,13 +38,13 @@ func (p *PeriodicCertChecker) StartChecking() {
 				continue
 			}
 
-			klog.Infof("Publishing metrics for %v", match)
+			glog.Infof("Publishing metrics for %v", match)
 
 			err := p.exporter.ExportMetrics(match)
 
 			if err != nil {
 				metrics.ErrorTotal.Inc()
-				klog.Errorf("Error on %v: %v", match, err)
+				glog.Errorf("Error on %v: %v", match, err)
 			}
 		}
 
@@ -61,7 +61,7 @@ func (p *PeriodicCertChecker) getMatches() []string {
 
 		if err != nil {
 			metrics.ErrorTotal.Inc()
-			klog.Errorf("Glob failed on %v: %v", includeGlob, err)
+			glog.Errorf("Glob failed on %v: %v", includeGlob, err)
 			continue
 		}
 
@@ -78,7 +78,7 @@ func (p *PeriodicCertChecker) includeFile(file string) bool {
 
 		if err != nil {
 			metrics.ErrorTotal.Inc()
-			klog.Errorf("Match failed on %v,%v: %v", excludeGlob, file, err)
+			glog.Errorf("Match failed on %v,%v: %v", excludeGlob, file, err)
 			return false
 		}
 

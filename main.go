@@ -11,7 +11,7 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"k8s.io/klog"
+	"github.com/golang/glog"
 )
 
 var (
@@ -25,7 +25,6 @@ var (
 )
 
 func init() {
-
 	flag.Var(&includeCertGlobs, "include-cert-glob", "File globs to include when looking for certs.")
 	flag.Var(&excludeCertGlobs, "exclude-cert-glob", "File globs to exclude when looking for certs.")
 	flag.Var(&includeKubeConfigGlobs, "include-kubeconfig-glob", "File globs to include when looking for kubeconfigs.")
@@ -33,14 +32,12 @@ func init() {
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
-
-	klog.InitFlags(nil)
 }
 
 func main() {
-	klog.Info("Application Starting")
-
 	flag.Parse()
+	
+	glog.Info("Application Starting")
 
 	certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
 	go certChecker.StartChecking()
