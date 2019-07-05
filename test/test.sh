@@ -26,7 +26,7 @@ validateMetrics() {
 go build ../main.go
 chmod +x main
 
-days=100
+days=${1:-100}
 
 ./genCerts.sh certs $days
 ./genKubeConfig.sh certs ./
