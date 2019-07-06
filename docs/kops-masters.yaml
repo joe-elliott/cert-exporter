@@ -1,0 +1,98 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: cert-exporter-masters
+  name: cert-exporter-masters
+spec:
+  selector:
+    matchLabels:
+      name: cert-exporter-masters
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        name: cert-exporter-masters
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - image: joeelliott/cert-exporter:v1.0.0
+        name: cert-exporter-masters
+        command: ["./app"]
+        args:
+        - --include-kubeconfig-glob=/var/lib/*/kubeconfig
+        - --include-cert-glob=/etc/kubernetes/pki/*/*.crt
+        - --include-cert-glob=/srv/kubernetes/*.crt
+        - --include-cert-glob=/srv/kubernetes/*.cert
+        - --alsologtostderr
+        volumeMounts:
+        - mountPath: /var/lib/kubelet
+          name: kubelet
+          readOnly: true
+        - mountPath: /var/lib/kube-controller-manager
+          name: kube-controller-manager
+          readOnly: true
+        - mountPath: /var/lib/kubectl
+          name: kubectl
+          readOnly: true
+        - mountPath: /var/lib/kube-proxy
+          name: kube-proxy
+          readOnly: true
+        - mountPath: /var/lib/kube-scheduler
+          name: kube-scheduler
+          readOnly: true
+        - mountPath: /var/lib/kops
+          name: kops
+          readOnly: true
+        - mountPath: /etc/kubernetes/pki
+          name: etcd-pki
+          readOnly: true
+        - mountPath: /srv/kubernetes
+          name: kube-root
+          readOnly: true
+        securityContext:
+          runAsUser: 0
+      volumes:
+      - name: kubelet
+        hostPath:
+          path: /var/lib/kubelet
+          type: Directory
+      - name: kube-controller-manager
+        hostPath:
+          path: /var/lib/kube-controller-manager
+          type: Directory
+      - name: kubectl
+        hostPath:
+          path: /var/lib/kubectl
+          type: Directory
+      - name: kube-proxy
+        hostPath:
+          path: /var/lib/kube-proxy
+          type: Directory
+      - name: kube-scheduler
+        hostPath:
+          path: /var/lib/kube-scheduler
+          type: Directory
+      - name: kops
+        hostPath:
+          path: /var/lib/kops
+          type: Directory
+      - name: etcd-pki
+        hostPath:
+          path: /etc/kubernetes/pki
+          type: Directory
+      - name: kube-root
+        hostPath:
+          path: /srv/kubernetes
+          type: Directory
