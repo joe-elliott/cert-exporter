@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: cert-exporter
+  name: cert-exporter
+spec:
+  selector:
+    matchLabels:
+      name: cert-exporter
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        name: cert-exporter
+    spec:
+      containers:
+      - image: joeelliott/cert-exporter:v1.0.0
+        name: cert-exporter
+        command: ["./app"]
+        args:
+        - --include-kubeconfig-glob=/var/lib/kubelet/kubeconfig
+        - --alsologtostderr
+        volumeMounts:
+        - mountPath: /var/lib/kubelet
+          name: kubeconfig-vol
+          readOnly: true
+        securityContext:
+          runAsUser: 0
+      volumes:
+      - name: kubeconfig-vol
+        hostPath:
+          path: /var/lib/kubelet
+          type: Directory
+
+
