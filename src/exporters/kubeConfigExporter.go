@@ -8,9 +8,7 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
-
 type KubeConfigExporter struct {
-
 }
 
 func (c KubeConfigExporter) ExportMetrics(file string) error {
@@ -29,7 +27,7 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 			if err != nil {
 				return err
 			}
-		} else if c.Cluster.CertificateAuthority != "" { 
+		} else if c.Cluster.CertificateAuthority != "" {
 			certFile := pathToFileFromKubeConfig(c.Cluster.CertificateAuthority, file)
 			duration, err = secondsToExpiryFromCertAsFile(certFile)
 
@@ -72,7 +70,7 @@ func (c KubeConfigExporter) ExportMetrics(file string) error {
 func pathToFileFromKubeConfig(file string, kubeConfigFile string) string {
 	if !path.IsAbs(file) {
 		kubeConfigPath := path.Dir(kubeConfigFile)
-		file = path.Join(kubeConfigPath, file)	
+		file = path.Join(kubeConfigPath, file)
 	}
 
 	return file

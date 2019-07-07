@@ -1,8 +1,8 @@
 package checkers
 
 import (
-	"time"
 	"path/filepath"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
@@ -10,18 +10,18 @@ import (
 )
 
 type PeriodicCertChecker struct {
-	period time.Duration
+	period           time.Duration
 	includeCertGlobs []string
 	excludeCertGlobs []string
-	exporter exporters.Exporter
+	exporter         exporters.Exporter
 }
 
 func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string, e exporters.Exporter) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
-		period : period,
-		includeCertGlobs : includeCertGlobs,
-		excludeCertGlobs : excludeCertGlobs,
-		exporter : e,
+		period:           period,
+		includeCertGlobs: includeCertGlobs,
+		excludeCertGlobs: excludeCertGlobs,
+		exporter:         e,
 	}
 }
 

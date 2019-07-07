@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"io/ioutil"
 	"crypto/x509"
-	"encoding/pem"
 	"encoding/base64"
+	"encoding/pem"
+	"io/ioutil"
 )
 
 func secondsToExpiryFromCertAsFile(file string) (float64, error) {

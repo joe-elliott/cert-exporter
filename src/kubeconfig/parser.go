@@ -1,22 +1,22 @@
 package kubeconfig
 
 import (
-	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 type KubeConfig struct {
 	Clusters []struct {
-		Name string
+		Name    string
 		Cluster struct {
-			CertificateAuthority string `yaml:"certificate-authority"`
+			CertificateAuthority     string `yaml:"certificate-authority"`
 			CertificateAuthorityData string `yaml:"certificate-authority-data"`
-		} 
+		}
 	}
 	Users []struct {
 		Name string
 		User struct {
-			ClientCertificate string `yaml:"client-certificate"`
+			ClientCertificate     string `yaml:"client-certificate"`
 			ClientCertificateData string `yaml:"client-certificate-data"`
 		}
 	}

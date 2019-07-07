@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/joe-elliott/cert-exporter/src/checkers"
 	"github.com/joe-elliott/cert-exporter/src/args"
+	"github.com/joe-elliott/cert-exporter/src/checkers"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -36,7 +36,7 @@ func init() {
 
 func main() {
 	flag.Parse()
-	
+
 	glog.Info("Application Starting")
 
 	certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
