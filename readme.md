@@ -10,11 +10,11 @@ Kubernetes uses PKI certificates for authentication between all major components
 
 cert-exporter supports x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) as well as certs embedded or referenced from kubeconfig files.  Certificates are often stored both ways when building clusters.
 
-See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
+See [deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
 ### Dashboard
 
-After running cert-exporter in your cluster it's easy to build a [custom dashboard](./docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
+After running cert-exporter in your cluster it's easy to build a [custom dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
 
 ![cert-exporter dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/dashboard.png)
 
@@ -45,7 +45,7 @@ The number of seconds until a certificate stored in the PEM format is expired.  
 The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, and `name` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
 
 ### Other Docs
-- [Testing](./docs/testing.md)
+- [Testing](https://github.com/joe-elliott/cert-exporter/blob/master/docs/testing.md)
   - An overview of the testing scripts and how to run them.
-- [Deployment](./docs/deploy.md)
+- [Deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
