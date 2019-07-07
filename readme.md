@@ -14,7 +14,7 @@ See [deployment](./docs/deploy.md) for detailed information on running cert-expo
 
 After running cert-exporter in your cluster it's easy to build a [custom dashboard](./docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
 
-![cert-exporter dashboard](./docs/dashboard.png)
+![cert-exporter dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/dashboard.png)
 
 ### Exported Metrics
 
