@@ -8,10 +8,12 @@ cert-exporter can easily be deployed using [this container](https://hub.docker.c
 
 We use kops to manage our Kubernetes clusters and the following two daemonsets cover our nodes and masters.  We use two daemonsets because the certs on a master and node are very different.  These daemonset specs were built on a cluster built with kops 1.12.
 
+The following configurations will not only export the certificates used to govern access between Kubernetes components, but etcd as well.
+
 - [masters](./kops-masters.yaml)
 - [nodes](./kops-nodes.yaml)
 
-Note that certs are often restricted files.  Running as root allows the application to access them on the host.
+Note that certs are often restricted files.  Running as root allows the application to access them on the host:
 
 ```
   securityContext:
