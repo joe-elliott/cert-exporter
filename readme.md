@@ -2,6 +2,8 @@
 
 Kubernetes uses PKI certificates for authentication between all major components.  These certs are critical for the operation of your cluster but are often opaque to an administrator.  This application is designed to parse certificates and export expiration information for Prometheus to scrape.
 
+**WARNING** If you run this application in your cluster it will probably require elevated privileges of some kind.  Additionally you are exposing VERY sensitive information to it.  Review the source!
+
 ### Usage
 
 cert-exporter supports x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) as well as certs embedded or referenced from kubeconfig files.  Certificates are often stored both ways when building clusters.

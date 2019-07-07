@@ -1,8 +1,24 @@
 # deploy
 
-wip
+cert-exporter can easily be deployed using [this container](https://hub.docker.com/r/joeelliott/cert-exporter) to a cluster to export cert expiry information to prometheus using a Daemonset.  A daemonset was chosen because cert information should exist on every node and master in your cluster.
 
-#### flags
+**WARNING** If you run this application in your cluster it will probably require elevated privileges of some kind.  Additionally you are exposing VERY sensitive information to it.  Review the source!
+
+### kops
+
+We use kops to manage our Kubernetes clusters and the following two daemonsets cover our nodes and masters.  We use two daemonsets because the certs on a master and node are very different.  These daemonset specs were built on a cluster built with kops 1.12.
+
+- [masters](./kops-masters.yaml)
+- [nodes](./kops-nodes.yaml)
+
+Note that certs are often restricted files.  Running as root allows the application to access them on the host.
+
+```
+  securityContext:
+    runAsUser: 0
+```
+
+### flags
 The following 5 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.  
 
 ```
