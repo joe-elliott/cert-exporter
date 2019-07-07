@@ -8,9 +8,11 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
+// CertExporter exports kubeconfig certs
 type KubeConfigExporter struct {
 }
 
+// ExportMetrics exports all certs in the passed in kubeconfig file
 func (c KubeConfigExporter) ExportMetrics(file string) error {
 	k, err := kubeconfig.ParseKubeConfig(file)
 

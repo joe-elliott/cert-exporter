@@ -7,6 +7,7 @@ const (
 )
 
 var (
+	// ErrorTotal is a prometheus counter that indicates the total number of unexpected errors encountered by the application
 	ErrorTotal = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -15,6 +16,7 @@ var (
 		},
 	)
 
+	// CertExpirySeconds is a prometheus gauge that indicates the number of seconds until certificates on disk expires.
 	CertExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -24,6 +26,7 @@ var (
 		[]string{"filename"},
 	)
 
+	// KubeConfigExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubeconfig certificate expires.
 	KubeConfigExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,

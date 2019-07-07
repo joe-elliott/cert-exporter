@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 )
 
+// KubeConfig is a partial description of a kubeconfig file.  It defines only the fields required by this application.
 type KubeConfig struct {
 	Clusters []struct {
 		Name    string
@@ -22,6 +23,7 @@ type KubeConfig struct {
 	}
 }
 
+// ParseKubeConfig serializes the provided kubeconfig file into the KubeConfig struct
 func ParseKubeConfig(file string) (*KubeConfig, error) {
 	k := &KubeConfig{}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
+// PeriodicCertChecker is an object designed to check for files on disk at a regular interval
 type PeriodicCertChecker struct {
 	period           time.Duration
 	includeCertGlobs []string
@@ -16,6 +17,7 @@ type PeriodicCertChecker struct {
 	exporter         exporters.Exporter
 }
 
+// NewCertChecker is a factory method that returns a new PeriodicCertChecker
 func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string, e exporters.Exporter) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
 		period:           period,
@@ -25,6 +27,7 @@ func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCert
 	}
 }
 
+// StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicCertChecker) StartChecking() {
 
 	periodChannel := time.Tick(p.period)
