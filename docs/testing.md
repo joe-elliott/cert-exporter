@@ -1,4 +1,4 @@
-# testing
+# Testing
 
 cert-exporter testing is fairly simple.  The [./test.sh](../test/test.sh) in the test directory will build the application, generate some certs and kubeconfigs, run the application against the files and curl the prometheus metrics to confirm they are accurate.  It takes one parameter which is the number of days to expire the test certs in.
 
