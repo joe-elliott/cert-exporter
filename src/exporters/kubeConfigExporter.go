@@ -8,7 +8,7 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
-// CertExporter exports kubeconfig certs
+// KubeConfigExporter exports kubeconfig certs
 type KubeConfigExporter struct {
 }
 
