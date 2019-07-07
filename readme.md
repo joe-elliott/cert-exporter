@@ -14,8 +14,34 @@ After running cert-exporter in your cluster it's easy to build a [custom dashboa
 
 ![cert-exporter dashboard](./docs/dashboard.png)
 
-### Docs
+### Exported Metrics
+
+cert-exporter exports the following metrics
+
+```
+# HELP cert_exporter_error_total Cert Exporter Errors
+# TYPE cert_exporter_error_total counter
+cert_exporter_error_total 0
+# HELP cert_exporter_cert_expires_in_seconds Number of seconds til the cert expires.
+# TYPE cert_exporter_cert_expires_in_seconds gauge
+cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt"} 8.639964560021e+06
+# HELP cert_exporter_kubeconfig_expires_in_seconds Number of seconds til the cert in kubeconfig expires.
+# TYPE cert_exporter_kubeconfig_expires_in_seconds gauge
+cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",type="cluster"} 8.639964559682e+06
+cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",type="user"} 8.639964559249e+06
+```
+
+**cert_exporter_error_total**  
+The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.
+
+**cert_exporter_cert_expires_in_seconds**  
+The number of seconds until a certificate stored in the PEM format is expired.  The `filename` label indicates the exported cert.
+
+**cert_exporter_kubeconfig_expires_in_seconds**
+The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, and `name` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
+
+### Other Docs
 - [Testing](./docs/testing.md)
   - An overview of the testing scripts and how to run them.
-- [Deploy](./docs/deploy.md)
+- [Deployment](./docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
