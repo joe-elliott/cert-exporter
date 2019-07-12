@@ -22,6 +22,9 @@ var (
 	prometheusListenAddress string
 	prometheusPath          string
 	pollingPeriod           time.Duration
+
+	kubeconfigPath       string
+	secretsLabelSelector string
 )
 
 func init() {
@@ -32,6 +35,9 @@ func init() {
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
+
+	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
+	flag.StringVar(&secretsLabelSelector, "secrets-label-selector", "", "Label selector to find secrets to publish as metrics.")
 }
 
 func main() {
@@ -44,6 +50,11 @@ func main() {
 
 	configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, &exporters.KubeConfigExporter{})
 	go configChecker.StartChecking()
+
+	if secretsLabelSelector != "" {
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, kubeconfigPath, &exporters.KubeConfigExporter{})
+		go configChecker.StartChecking()
+	}
 
 	http.Handle(prometheusPath, promhttp.Handler())
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))
