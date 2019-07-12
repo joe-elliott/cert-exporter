@@ -45,11 +45,15 @@ func main() {
 
 	glog.Info("Application Starting")
 
-	certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
-	go certChecker.StartChecking()
+	if len(includeCertGlobs) > 0 {
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, &exporters.CertExporter{})
+		go certChecker.StartChecking()
+	}
 
-	configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, &exporters.KubeConfigExporter{})
-	go configChecker.StartChecking()
+	if len(includeKubeConfigGlobs) > 0 {
+		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, &exporters.KubeConfigExporter{})
+		go configChecker.StartChecking()
+	}
 
 	if secretsLabelSelector != "" {
 		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, kubeconfigPath, &exporters.KubeConfigExporter{})
