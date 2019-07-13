@@ -1,6 +1,8 @@
 package checkers
 
 import (
+	"fmt"
+	"path/filepath"
 	"time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,19 +16,21 @@ import (
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
-	period         time.Duration
-	labelSelectors []string
-	kubeconfigPath string
-	exporter       exporters.Exporter
+	period          time.Duration
+	labelSelectors  []string
+	secretsDataGlob string
+	kubeconfigPath  string
+	exporter        exporters.Exporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
-		period:         period,
-		labelSelectors: labelSelectors,
-		kubeconfigPath: kubeconfigPath,
-		exporter:       e,
+		period:          period,
+		labelSelectors:  labelSelectors,
+		secretsDataGlob: secretsDataGlob,
+		kubeconfigPath:  kubeconfigPath,
+		exporter:        e,
 	}
 }
 
@@ -62,7 +66,15 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			}
 
 			for _, secret := range secrets.Items {
-				glog.Infof("%v", secret)
+
+				for name, _ := range secret.Data {
+
+					include, _ := filepath.Match(p.secretsDataGlob, name)
+
+					if include {
+						fmt.Println(secret.Name, name)
+					}
+				}
 			}
 		}
 
