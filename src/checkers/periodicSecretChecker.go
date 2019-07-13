@@ -1,7 +1,6 @@
 package checkers
 
 import (
-	"fmt"
 	"path/filepath"
 	"time"
 
@@ -67,12 +66,24 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 			for _, secret := range secrets.Items {
 
-				for name, _ := range secret.Data {
+				for name, bytes := range secret.Data {
 
 					include, _ := filepath.Match(p.secretsDataGlob, name)
 
+					if err != nil {
+						glog.Errorf("Error matching %v to %v: %v", p.secretsDataGlob, name, err)
+						metrics.ErrorTotal.Inc()
+						continue
+					}
+
 					if include {
-						fmt.Println(secret.Name, name)
+						// jpe sad face
+						err = p.exporter.Export(string(bytes))
+
+						if err != nil {
+							glog.Errorf("Error exporting secret %v", err)
+							metrics.ErrorTotal.Inc()
+						}
 					}
 				}
 			}
