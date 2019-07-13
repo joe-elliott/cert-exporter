@@ -3,7 +3,6 @@ package checkers
 import (
 	"time"
 
-	clientset "github.com/joe-elliott/kubernetes-grafana-controller/pkg/client/clientset/versioned"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
@@ -39,9 +38,9 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	}
 
 	// creates the clientset
-	client, err := clientset.NewForConfig(config)
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("clientset.NewForConfig failed: %v", err)
+		glog.Fatalf("kubernetes.NewForConfig failed: %v", err)
 	}
 
 	periodChannel := time.Tick(p.period)
