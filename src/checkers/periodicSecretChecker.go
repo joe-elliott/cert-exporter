@@ -3,6 +3,11 @@ package checkers
 import (
 	"time"
 
+	clientset "github.com/joe-elliott/kubernetes-grafana-controller/pkg/client/clientset/versioned"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog"
+
 	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 )
@@ -28,10 +33,34 @@ func NewSecretChecker(period time.Duration, secretLabelSelector string, kubeconf
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicSecretChecker) StartChecking() {
 
+	config, err := clientcmd.BuildConfigFromFlags("", p.kubeconfigPath)
+	if err != nil {
+		glog.Fatalf("Error building kubeconfig: %s", err.Error())
+	}
+
+	// creates the clientset
+	client, err := clientset.NewForConfig(config)
+	if err != nil {
+		glog.Fatalf("clientset.NewForConfig failed: %v", err)
+	}
+
 	periodChannel := time.Tick(p.period)
 
 	for {
 		glog.Info("Begin periodic check")
+
+		secrets, err := client.CoreV1().Secrets("").List(v1.ListOptions{
+			LabelSelector: p.secretLabelSelector,
+		})
+
+		if err != nil {
+			glog.Errorf("Error requesting secrets %v", err)
+			metrics.ErrorTotal.Inc()
+		}
+
+		for secret := range secrets {
+			glog("%v", secrets)
+		}
 
 		<-periodChannel
 	}
