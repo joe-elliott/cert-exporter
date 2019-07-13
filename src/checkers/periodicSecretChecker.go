@@ -3,29 +3,30 @@ package checkers
 import (
 	"time"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog"
 
 	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
-	period              time.Duration
-	labelSelectors      []string
-	kubeconfigPath      string
-	exporter            exporters.Exporter
+	period         time.Duration
+	labelSelectors []string
+	kubeconfigPath string
+	exporter       exporters.Exporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
 func NewSecretChecker(period time.Duration, labelSelectors []string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
-		period:              period,
+		period:         period,
 		labelSelectors: labelSelectors,
-		kubeconfigPath:      kubeconfigPath,
-		exporter:            e,
+		kubeconfigPath: kubeconfigPath,
+		exporter:       e,
 	}
 }
 
@@ -48,20 +49,21 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 
-		for labelSelector := range labelSelectors {
+		for _, labelSelector := range p.labelSelectors {
+
 			secrets, err := client.CoreV1().Secrets("").List(v1.ListOptions{
-				LabelSelector: p.secretLabelSelector,
+				LabelSelector: labelSelector,
 			})
-	
+
 			if err != nil {
 				glog.Errorf("Error requesting secrets %v", err)
 				metrics.ErrorTotal.Inc()
 				continue
 			}
-	
-			for secret := range secrets {
-				glog("%v", secrets)
-			}	
+
+			for _, secret := range secrets.Items {
+				glog.Infof("%v", secret)
+			}
 		}
 
 		<-periodChannel
