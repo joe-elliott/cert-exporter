@@ -15,16 +15,16 @@ import (
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
 	period              time.Duration
-	secretLabelSelector string
+	labelSelectors      []string
 	kubeconfigPath      string
 	exporter            exporters.Exporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, secretLabelSelector string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:              period,
-		secretLabelSelector: secretLabelSelector,
+		labelSelectors: labelSelectors,
 		kubeconfigPath:      kubeconfigPath,
 		exporter:            e,
 	}
@@ -49,17 +49,20 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 
-		secrets, err := client.CoreV1().Secrets("").List(v1.ListOptions{
-			LabelSelector: p.secretLabelSelector,
-		})
-
-		if err != nil {
-			glog.Errorf("Error requesting secrets %v", err)
-			metrics.ErrorTotal.Inc()
-		}
-
-		for secret := range secrets {
-			glog("%v", secrets)
+		for labelSelector := range labelSelectors {
+			secrets, err := client.CoreV1().Secrets("").List(v1.ListOptions{
+				LabelSelector: p.secretLabelSelector,
+			})
+	
+			if err != nil {
+				glog.Errorf("Error requesting secrets %v", err)
+				metrics.ErrorTotal.Inc()
+				continue
+			}
+	
+			for secret := range secrets {
+				glog("%v", secrets)
+			}	
 		}
 
 		<-periodChannel

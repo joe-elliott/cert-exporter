@@ -24,7 +24,7 @@ var (
 	pollingPeriod           time.Duration
 
 	kubeconfigPath       string
-	secretsLabelSelector string
+	secretsLabelSelector args.GlobArgs
 )
 
 func init() {
@@ -37,7 +37,7 @@ func init() {
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
-	flag.StringVar(&secretsLabelSelector, "secrets-label-selector", "", "Label selector to find secrets to publish as metrics.")
+	flag.Var(&secretsLabelSelector, "secrets-label-selector", "", "Label selector to find secrets to publish as metrics.")
 }
 
 func main() {
