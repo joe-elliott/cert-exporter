@@ -9,7 +9,7 @@ type CertExporter struct {
 }
 
 // ExportMetrics exports the provided PEM file
-func (c CertExporter) ExportMetrics(file string) error {
+func (c *CertExporter) ExportMetrics(file string) error {
 
 	duration, err := secondsToExpiryFromCertAsFile(file)
 

@@ -13,7 +13,7 @@ type KubeConfigExporter struct {
 }
 
 // ExportMetrics exports all certs in the passed in kubeconfig file
-func (c KubeConfigExporter) ExportMetrics(file string) error {
+func (c *KubeConfigExporter) ExportMetrics(file string) error {
 	k, err := kubeconfig.ParseKubeConfig(file)
 
 	if err != nil {

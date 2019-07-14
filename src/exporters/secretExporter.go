@@ -5,7 +5,7 @@ type SecretExporter struct {
 }
 
 // ExportMetrics exports the provided PEM file
-func (c SecretExporter) ExportMetrics(secret string) error {
+func (c *SecretExporter) ExportMetrics(secret string) error {
 
 	_, err := secondsToExpiryFromCertAsBase64String(secret)
 

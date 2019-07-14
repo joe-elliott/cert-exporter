@@ -23,7 +23,7 @@ type PeriodicSecretChecker struct {
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, kubeconfigPath string, e exporters.Exporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:          period,
 		labelSelectors:  labelSelectors,
@@ -77,6 +77,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					}
 
 					if include {
+
 						// jpe sad face
 						err = p.exporter.Export(string(bytes))
 
