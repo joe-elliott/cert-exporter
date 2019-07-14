@@ -49,8 +49,11 @@ The total number of unexpected errors encountered by cert-exporter.  A good metr
 **cert_exporter_cert_expires_in_seconds**  
 The number of seconds until a certificate stored in the PEM format is expired.  The `filename` label indicates the exported cert.
 
-**cert_exporter_kubeconfig_expires_in_seconds**
+**cert_exporter_kubeconfig_expires_in_seconds**  
 The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, and `name` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
+
+**cert_exporter_secret_expires_in_seconds**
+The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
 
 ### Other Docs
 - [Testing](https://github.com/joe-elliott/cert-exporter/blob/master/docs/testing.md)
