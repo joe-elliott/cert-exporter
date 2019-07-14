@@ -68,7 +68,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 				for name, bytes := range secret.Data {
 
-					include, _ := filepath.Match(p.secretsDataGlob, name)
+					include, err := filepath.Match(p.secretsDataGlob, name)
 
 					if err != nil {
 						glog.Errorf("Error matching %v to %v: %v", p.secretsDataGlob, name, err)
@@ -78,8 +78,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 					if include {
 
-						// jpe sad face
-						err = p.exporter.Export(string(bytes))
+						err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
 
 						if err != nil {
 							glog.Errorf("Error exporting secret %v", err)

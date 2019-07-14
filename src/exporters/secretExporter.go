@@ -1,18 +1,22 @@
 package exporters
 
+import {
+	
+}
+
 // CertExporter exports PEM file certs
 type SecretExporter struct {
 }
 
 // ExportMetrics exports the provided PEM file
-func (c *SecretExporter) ExportMetrics(secret string) error {
+func (c *SecretExporter) ExportMetrics(bytes []byte, keyName string, secretName string, secretNamespace string) error {
 
-	_, err := secondsToExpiryFromCertAsBase64String(secret)
+	duration, err := secondsToExpiryFromCertAsBytes(bytes)
 
 	if err != nil {
 		return err
 	}
 
-	// jpe -metrics.CertExpirySeconds.WithLabelValues(file).Set(duration)
+	metrics.SecretExpirySeconds.WithLabelValues(keyName, secretName, secretNamespace).Set(duration)
 	return nil
 }

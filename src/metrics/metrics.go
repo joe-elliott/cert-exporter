@@ -31,9 +31,19 @@ var (
 		prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "kubeconfig_expires_in_seconds",
-			Help:      "Number of seconds til the cert in kubeconfig expires.",
+			Help:      "Number of seconds til the cert in the kubeconfig expires.",
 		},
 		[]string{"filename", "type", "name"},
+	)
+
+	// SecretExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubernetes secret certificate expires
+	SecretExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "secret_expires_in_seconds",
+			Help:      "Number of seconds til the cert in the secret expires.",
+		},
+		[]string{"key_name", "secret_name", "secret_namespace"},
 	)
 )
 
@@ -41,4 +51,5 @@ func init() {
 	prometheus.MustRegister(ErrorTotal)
 	prometheus.MustRegister(CertExpirySeconds)
 	prometheus.MustRegister(KubeConfigExpirySeconds)
+	prometheus.MustRegister(SecretExpirySeconds)
 }
