@@ -19,7 +19,7 @@ type PeriodicSecretChecker struct {
 	labelSelectors  []string
 	secretsDataGlob string
 	kubeconfigPath  string
-	exporter        exporters.Exporter
+	exporter        *exporters.SecretExporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
