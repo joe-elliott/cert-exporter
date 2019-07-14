@@ -20,8 +20,12 @@ Note that certs are often restricted files.  Running as root allows the applicat
     runAsUser: 0
 ```
 
+### cert-manager
+
+WIP
+
 ### flags
-The following 5 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.  
+The following 7 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.  
 
 ```
   -exclude-cert-glob value
@@ -32,6 +36,10 @@ The following 5 flags are the most commonly used to control cert-exporter behavi
     	File globs to include when looking for certs.
   -include-kubeconfig-glob value
     	File globs to include when looking for kubeconfigs.
+  -secrets-data-glob string
+    	Glob to match against secret data keys. (default "*.crt")
+  -secrets-label-selector value
+    	Label selector to find secrets to publish as metrics.
   -polling-period duration
     	Periodic interval in which to check certs. (default 1h0m0s)
 ```

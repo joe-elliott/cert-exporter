@@ -37,3 +37,9 @@ It's not great, but it gets the job done.  There could definitely be some work p
 - bash
 - openssl
 - curl
+
+### cert-manager testing
+
+`./test/cert-manager/test.sh` does really basic testing of cert-manager created certs.
+
+It expects there to be an already running k8s cluster with cert-manager installed.

@@ -8,7 +8,11 @@ Kubernetes uses PKI certificates for authentication between all major components
 
 ### Usage
 
-cert-exporter supports x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) as well as certs embedded or referenced from kubeconfig files.  Certificates are often stored both ways when building clusters.
+cert-exporter can publish metrics about 
+
+- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) 
+- Certs embedded or referenced from kubeconfig files.
+- Certs stored in Kubernetes secrets.  This supports applications such as [cert-manager](https://github.com/jetstack/cert-manager).
 
 See [deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
