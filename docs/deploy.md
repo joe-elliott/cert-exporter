@@ -22,7 +22,7 @@ Note that certs are often restricted files.  Running as root allows the applicat
 
 ### cert-manager
 
-WIP
+cert-exporter also supports certificates stored in Kubernetes secrets.  In this case it expects the secret to be in the PEM format.  See the [deployment yaml](./cert-manager.yaml) for an example deployment that will find and export all cert-manager certificates.  Note that it comes with the appropriate RBAC objects to allow the application to read certs.
 
 ### flags
 The following 7 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.  
