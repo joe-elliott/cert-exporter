@@ -19,5 +19,6 @@ metadata:
 spec:
   commonName: example.com
   secretName: selfsigned-cert-tls
+  duration: 2400h
   issuerRef:
     name: test-selfsigned
