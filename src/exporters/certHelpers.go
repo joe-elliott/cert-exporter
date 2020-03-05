@@ -13,6 +13,8 @@ import (
 type certMetric struct {
 	durationUntilExpiry float64
 	notAfter            float64
+	issuer              string
+	cn                  string
 }
 
 func secondsToExpiryFromCertAsFile(file string) (certMetric, error) {
@@ -49,5 +51,7 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte) (certMetric, error) {
 	metric.notAfter = float64(cert.NotAfter.Unix())
 	durationUntilExpiry := time.Until(cert.NotAfter)
 	metric.durationUntilExpiry = durationUntilExpiry.Seconds()
+	metric.issuer = cert.Issuer.CommonName
+	metric.cn = cert.Subject.CommonName
 	return metric, nil
 }
