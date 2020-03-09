@@ -23,7 +23,17 @@ var (
 			Name:      "cert_expires_in_seconds",
 			Help:      "Number of seconds til the cert expires.",
 		},
-		[]string{"filename"},
+		[]string{"filename", "issuer", "cn"},
+	)
+
+	// CertNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	CertNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "cert_not_after_timestamp",
+			Help:      "Timestamp of when the certificate expires.",
+		},
+		[]string{"filename", "issuer", "cn"},
 	)
 
 	// KubeConfigExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubeconfig certificate expires.
@@ -32,6 +42,16 @@ var (
 			Namespace: namespace,
 			Name:      "kubeconfig_expires_in_seconds",
 			Help:      "Number of seconds til the cert in the kubeconfig expires.",
+		},
+		[]string{"filename", "type", "name"},
+	)
+
+	// KubeConfigNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	KubeConfigNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "kubeconfig_not_after_timestamp",
+			Help:      "Expiration timestamp for cert in the kubeconfig.",
 		},
 		[]string{"filename", "type", "name"},
 	)
@@ -45,11 +65,24 @@ var (
 		},
 		[]string{"key_name", "secret_name", "secret_namespace"},
 	)
+
+	// SecretNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	SecretNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "secret_not_after_timestamp",
+			Help:      "Expiration timestamp for cert in the secret.",
+		},
+		[]string{"key_name", "secret_name", "secret_namespace"},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(ErrorTotal)
 	prometheus.MustRegister(CertExpirySeconds)
+	prometheus.MustRegister(CertNotAfterTimestamp)
 	prometheus.MustRegister(KubeConfigExpirySeconds)
+	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
+	prometheus.MustRegister(SecretNotAfterTimestamp)
 }

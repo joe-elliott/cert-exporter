@@ -21,17 +21,17 @@ func (c *KubeConfigExporter) ExportMetrics(file string) error {
 	}
 
 	for _, c := range k.Clusters {
-		var duration float64
+		var metric certMetric
 
 		if c.Cluster.CertificateAuthorityData != "" {
-			duration, err = secondsToExpiryFromCertAsBase64String(c.Cluster.CertificateAuthorityData)
+			metric, err = secondsToExpiryFromCertAsBase64String(c.Cluster.CertificateAuthorityData)
 
 			if err != nil {
 				return err
 			}
 		} else if c.Cluster.CertificateAuthority != "" {
 			certFile := pathToFileFromKubeConfig(c.Cluster.CertificateAuthority, file)
-			duration, err = secondsToExpiryFromCertAsFile(certFile)
+			metric, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
@@ -40,21 +40,22 @@ func (c *KubeConfigExporter) ExportMetrics(file string) error {
 			return fmt.Errorf("Cluster %v does not have CertAuthority or CertAuthorityData", c.Name)
 		}
 
-		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name).Set(duration)
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name).Set(metric.durationUntilExpiry)
+		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", c.Name).Set(metric.notAfter)
 	}
 
 	for _, u := range k.Users {
-		var duration float64
+		var metric certMetric
 
 		if u.User.ClientCertificateData != "" {
-			duration, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData)
+			metric, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData)
 
 			if err != nil {
 				return err
 			}
 		} else if u.User.ClientCertificate != "" {
 			certFile := pathToFileFromKubeConfig(u.User.ClientCertificate, file)
-			duration, err = secondsToExpiryFromCertAsFile(certFile)
+			metric, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
@@ -63,7 +64,8 @@ func (c *KubeConfigExporter) ExportMetrics(file string) error {
 			return fmt.Errorf("User %v does not have ClientCert or ClientCertData", u.Name)
 		}
 
-		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name).Set(duration)
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name).Set(metric.durationUntilExpiry)
+		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", u.Name).Set(metric.notAfter)
 	}
 
 	return nil

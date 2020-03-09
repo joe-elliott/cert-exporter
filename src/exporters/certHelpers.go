@@ -10,36 +10,48 @@ import (
 	"io/ioutil"
 )
 
-func secondsToExpiryFromCertAsFile(file string) (float64, error) {
+type certMetric struct {
+	durationUntilExpiry float64
+	notAfter            float64
+	issuer              string
+	cn                  string
+}
+
+func secondsToExpiryFromCertAsFile(file string) (certMetric, error) {
 
 	certBytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		return 0, err
+		return certMetric{}, err
 	}
 
 	return secondsToExpiryFromCertAsBytes(certBytes)
 }
 
-func secondsToExpiryFromCertAsBase64String(s string) (float64, error) {
+func secondsToExpiryFromCertAsBase64String(s string) (certMetric, error) {
 	certBytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return 0, err
+		return certMetric{}, err
 	}
 
 	return secondsToExpiryFromCertAsBytes(certBytes)
 }
 
-func secondsToExpiryFromCertAsBytes(certBytes []byte) (float64, error) {
+func secondsToExpiryFromCertAsBytes(certBytes []byte) (certMetric, error) {
+	var metric certMetric
 	block, _ := pem.Decode(certBytes)
 	if block == nil {
-		return 0, fmt.Errorf("Failed to parse as a pem")
+		return metric, fmt.Errorf("Failed to parse as a pem")
 	}
 
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return 0, err
+		return metric, err
 	}
 
+	metric.notAfter = float64(cert.NotAfter.Unix())
 	durationUntilExpiry := time.Until(cert.NotAfter)
-	return durationUntilExpiry.Seconds(), nil
+	metric.durationUntilExpiry = durationUntilExpiry.Seconds()
+	metric.issuer = cert.Issuer.CommonName
+	metric.cn = cert.Subject.CommonName
+	return metric, nil
 }
