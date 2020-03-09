@@ -48,9 +48,9 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certs/client.crt"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certs/root.crt"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certs/server.crt"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certs/client.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certs/root.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certs/server.crt",issuer="root"}' $days
 
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",type="cluster"}' $days
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",type="cluster"}' $days
@@ -76,9 +76,9 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certsSibling/root.crt"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{filename="certsSibling/server.crt"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certsSibling/client.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certsSibling/root.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certsSibling/server.crt",issuer="root"}' $days
 
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",type="cluster"}' $days
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",type="cluster"}' $days
