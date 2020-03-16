@@ -22,17 +22,27 @@ type PeriodicSecretChecker struct {
 	labelSelectors     []string
 	secretsDataGlob    string
 	kubeconfigPath     string
-	annotationSelector string
+	annotationSelector labels.Set
 	namespace          string
 	exporter           *exporters.SecretExporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
 func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelector string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+	var set labels.Set
+
+	if annotationSelector != "" {
+		var err error
+		set, err = labels.ConvertSelectorToLabelsMap(annotationSelector)
+		if err != nil {
+			glog.Fatalf("failed to parse annotation selector %s: %v", annotationSelector, err)
+		}
+	}
+
 	return &PeriodicSecretChecker{
 		period:             period,
 		labelSelectors:     labelSelectors,
-		annotationSelector: annotationSelector,
+		annotationSelector: set,
 		namespace:          namespace,
 		secretsDataGlob:    secretsDataGlob,
 		kubeconfigPath:     kubeconfigPath,
@@ -70,7 +80,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					break
 				}
 
-				secrets = append(secrets, s.Items)
+				secrets = append(secrets, s.Items...)
 			}
 		} else {
 			s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
@@ -86,10 +96,10 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			continue
 		}
 
-		for _, secret := range secrets.Items {
+		for _, secret := range secrets {
 			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
 
-			if p.annotationSelector != "" {
+			if p.annotationSelector != nil {
 				annotations := secret.GetAnnotations()
 				if !labels.SelectorFromSet(p.annotationSelector).Matches(labels.Set(annotations)) {
 					continue

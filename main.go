@@ -41,7 +41,7 @@ func init() {
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&secretsDataGlob, "secrets-data-glob", "*.crt", "Glob to match against secret data keys.")
 
-	flag.Var(&secretsLabelSelector, "secrets-label-selector", "", "Label selector to find secrets to publish as metrics.")
+	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsAnnotationSelector, "secrets-annotation-selector", "", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 }
