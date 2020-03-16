@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
+	api_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -15,21 +16,25 @@ import (
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
-	period          time.Duration
-	labelSelectors  []string
-	secretsDataGlob string
-	kubeconfigPath  string
-	exporter        *exporters.SecretExporter
+	period             time.Duration
+	labelSelectors     []string
+	secretsDataGlob    string
+	kubeconfigPath     string
+	annotationSelector string
+	namespace          string
+	exporter           *exporters.SecretExporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelector string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
-		period:          period,
-		labelSelectors:  labelSelectors,
-		secretsDataGlob: secretsDataGlob,
-		kubeconfigPath:  kubeconfigPath,
-		exporter:        e,
+		period:             period,
+		labelSelectors:     labelSelectors,
+		annotationSelector: annotationSelector,
+		namespace:          namespace,
+		secretsDataGlob:    secretsDataGlob,
+		kubeconfigPath:     kubeconfigPath,
+		exporter:           e,
 	}
 }
 
@@ -52,38 +57,62 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 
-		for _, labelSelector := range p.labelSelectors {
+		var secrets []api_v1.Secret
+		if len(p.labelSelectors) > 0 {
+			for _, labelSelector := range p.labelSelectors {
+				s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
+					LabelSelector: labelSelector,
+				})
 
-			secrets, err := client.CoreV1().Secrets("").List(v1.ListOptions{
-				LabelSelector: labelSelector,
-			})
+				if err != nil {
+					break
+				}
 
-			if err != nil {
-				glog.Errorf("Error requesting secrets %v", err)
-				metrics.ErrorTotal.Inc()
-				continue
+				secrets = append(secrets, s.Items...)
 			}
+		} else {
+			s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
 
-			for _, secret := range secrets.Items {
+			if err == nil {
+				secrets = s.Items
+			}
+		}
 
-				for name, bytes := range secret.Data {
+		if err != nil {
+			glog.Errorf("Error requesting secrets %v", err)
+			metrics.ErrorTotal.Inc()
+			continue
+		}
 
-					include, err := filepath.Match(p.secretsDataGlob, name)
+		for _, secret := range secrets {
+			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
+
+			if p.annotationSelector != "" {
+				annotations := secret.GetAnnotations()
+				_, ok := annotations[p.annotationSelector]
+				if !ok {
+					continue
+				}
+			}
+			glog.Infof("Annotations matched.  Parsing Secret.")
+
+			for name, bytes := range secret.Data {
+
+				include, err := filepath.Match(p.secretsDataGlob, name)
+
+				if err != nil {
+					glog.Errorf("Error matching %v to %v: %v", p.secretsDataGlob, name, err)
+					metrics.ErrorTotal.Inc()
+					continue
+				}
+
+				if include {
+
+					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
 
 					if err != nil {
-						glog.Errorf("Error matching %v to %v: %v", p.secretsDataGlob, name, err)
+						glog.Errorf("Error exporting secret %v", err)
 						metrics.ErrorTotal.Inc()
-						continue
-					}
-
-					if include {
-
-						err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
-
-						if err != nil {
-							glog.Errorf("Error exporting secret %v", err)
-							metrics.ErrorTotal.Inc()
-						}
 					}
 				}
 			}

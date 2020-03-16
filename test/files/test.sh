@@ -28,7 +28,7 @@ validateMetrics() {
 ./testCleanup.sh
 
 # build
-go build ../main.go
+go build ../../main.go
 chmod +x main
 
 days=${1:-100}

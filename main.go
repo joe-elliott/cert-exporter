@@ -15,16 +15,18 @@ import (
 )
 
 var (
-	includeCertGlobs        args.GlobArgs
-	excludeCertGlobs        args.GlobArgs
-	includeKubeConfigGlobs  args.GlobArgs
-	excludeKubeConfigGlobs  args.GlobArgs
-	prometheusListenAddress string
-	prometheusPath          string
-	pollingPeriod           time.Duration
-	kubeconfigPath          string
-	secretsLabelSelector    args.GlobArgs
-	secretsDataGlob         string
+	includeCertGlobs          args.GlobArgs
+	excludeCertGlobs          args.GlobArgs
+	includeKubeConfigGlobs    args.GlobArgs
+	excludeKubeConfigGlobs    args.GlobArgs
+	prometheusListenAddress   string
+	prometheusPath            string
+	pollingPeriod             time.Duration
+	kubeconfigPath            string
+	secretsLabelSelector      args.GlobArgs
+	secretsAnnotationSelector string
+	secretsNamespace          string
+	secretsDataGlob           string
 )
 
 func init() {
@@ -38,7 +40,10 @@ func init() {
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&secretsDataGlob, "secrets-data-glob", "*.crt", "Glob to match against secret data keys.")
+
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
+	flag.StringVar(&secretsAnnotationSelector, "secrets-annotation-selector", "", "Annotation selector to find secrets to publish as metrics.")
+	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 }
 
 func main() {
@@ -56,8 +61,8 @@ func main() {
 		go configChecker.StartChecking()
 	}
 
-	if len(secretsLabelSelector) > 0 {
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, secretsDataGlob, kubeconfigPath, &exporters.SecretExporter{})
+	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 {
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, secretsDataGlob, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
 		go configChecker.StartChecking()
 	}
 
