@@ -1,6 +1,6 @@
 module github.com/joe-elliott/cert-exporter
 
-go 1.12
+go 1.14
 
 replace k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 
@@ -18,7 +18,7 @@ require (
 	k8s.io/api v0.0.0-20190712022805-31fe033ae6f9 // indirect
 	k8s.io/apimachinery v0.0.0-20190711222657-391ed67afa7b
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/klog v0.3.0
+	k8s.io/klog v0.3.0 // indirect
 	k8s.io/utils v0.0.0-20190712101616-fac88abaa102 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
