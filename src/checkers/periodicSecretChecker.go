@@ -4,8 +4,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"k8s.io/apimachinery/pkg/labels"
-
 	api_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -22,27 +20,17 @@ type PeriodicSecretChecker struct {
 	labelSelectors     []string
 	secretsDataGlob    string
 	kubeconfigPath     string
-	annotationSelector labels.Set
+	annotationSelector string
 	namespace          string
 	exporter           *exporters.SecretExporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
 func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelector string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
-	var set labels.Set
-
-	if annotationSelector != "" {
-		var err error
-		set, err = labels.ConvertSelectorToLabelsMap(annotationSelector)
-		if err != nil {
-			glog.Fatalf("failed to parse annotation selector %s: %v", annotationSelector, err)
-		}
-	}
-
 	return &PeriodicSecretChecker{
 		period:             period,
 		labelSelectors:     labelSelectors,
-		annotationSelector: set,
+		annotationSelector: annotationSelector,
 		namespace:          namespace,
 		secretsDataGlob:    secretsDataGlob,
 		kubeconfigPath:     kubeconfigPath,
@@ -99,9 +87,10 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		for _, secret := range secrets {
 			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
 
-			if p.annotationSelector != nil {
+			if p.annotationSelector != "" {
 				annotations := secret.GetAnnotations()
-				if !labels.SelectorFromSet(p.annotationSelector).Matches(labels.Set(annotations)) {
+				_, ok := annotations[p.annotationSelector]
+				if !ok {
 					continue
 				}
 			}

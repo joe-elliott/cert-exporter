@@ -61,7 +61,7 @@ func main() {
 		go configChecker.StartChecking()
 	}
 
-	if len(secretsLabelSelector) > 0 {
+	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 {
 		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, secretsDataGlob, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
 		go configChecker.StartChecking()
 	}
