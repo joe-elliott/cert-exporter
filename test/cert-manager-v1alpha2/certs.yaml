@@ -17,11 +17,10 @@ metadata:
   name: example-crt
   namespace: cert-manager-test
 spec:
-  secretName: my-selfsigned-cert
-  commonName: "my-selfsigned-root-ca"
-  isCA: true
+  commonName: example.com
+  secretName: selfsigned-cert-tls
+  duration: 2400h
   issuerRef:
     name: selfsigning-issuer
-    kind: ClusterIssuer
 
     
