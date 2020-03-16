@@ -7,6 +7,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Issuer
 metadata:
   name: selfsigning-issuer
+  namespace: cert-manager-test
 spec:
   selfSigned: {}
 ---
@@ -14,6 +15,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: example-crt
+  namespace: cert-manager-test
 spec:
   secretName: my-selfsigned-cert
   commonName: "my-selfsigned-root-ca"

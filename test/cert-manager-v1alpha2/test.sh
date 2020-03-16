@@ -86,8 +86,6 @@ validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secre
 # kill exporter
 kill $pid
 
-read -p "press enter"
-
 rm ./main
 kubectl --kubeconfig $(eval $CONFIG_PATH) delete -f ./certs.yaml
 k3d delete --name=$K3D_NAME
