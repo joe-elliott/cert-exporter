@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: prometheus-operator
+    release: prometheus-operator
+  name: prom-secrets-certs
+  namespace: monitoring
+spec:
+  groups:
+  - name: certs
+    rules:
+    - alert: SecretCertificateExpiry30Days
+      for: 15m
+      expr: min by (key_name) (cert_exporter_secret_expires_in_seconds / 86400) < 30
+      annotations:
+        message: |
+            "The cert for {{ $labels.key_name }} is going to expire in 30 days!
+      labels:
+        severity: warning
+    - alert: SecretCertificateExpiry7Days
+      for: 15m
+      expr: min by (key_name) (cert_exporter_secret_expires_in_seconds / 86400) < 7
+      annotations:
+        message: |
+            "The cert for {{ $labels.key_name }} is going to expire in 7 days!
+      labels:
+        severity: error

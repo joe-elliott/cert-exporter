@@ -16,6 +16,8 @@ cert-exporter can publish metrics about
 
 See [deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
+See [custom-secrets](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets) for examples of how to run it to scrape certificates in secrets managed by you (not cert-manager).
+
 ### Dashboard
 
 After running cert-exporter in your cluster it's easy to build a [custom dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
