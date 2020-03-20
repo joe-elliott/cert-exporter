@@ -16,6 +16,11 @@ validateMetrics() {
       return 0
     fi
 
+    if [ "$expectedVal" == "" ]; then 
+      echo "TEST SUCCESS: $metrics found.  Not testing expected val."
+      return 0
+    fi
+
     val=${raw#* }
     valInDays=$(awk "BEGIN {printf \"%.0f\", $val / (24 * 60 * 60)}")
 
@@ -63,11 +68,13 @@ chmod +x ./main
 
 go run ../../main.go --kubeconfig $(eval $CONFIG_PATH) \
                --secrets-annotation-selector='cert-manager.io/certificate-name' \
+               --secrets-annotation-selector='test' \
                --alsologtostderr &
 pid=$!
 sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
+validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="test.crt",secret_name="test",secret_namespace="default"}'
 
 # kill exporter
 kill $pid

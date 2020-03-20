@@ -16,25 +16,25 @@ import (
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
-	period             time.Duration
-	labelSelectors     []string
-	secretsDataGlob    string
-	kubeconfigPath     string
-	annotationSelector string
-	namespace          string
-	exporter           *exporters.SecretExporter
+	period              time.Duration
+	labelSelectors      []string
+	secretsDataGlob     string
+	kubeconfigPath      string
+	annotationSelectors []string
+	namespace           string
+	exporter            *exporters.SecretExporter
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelector string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelectors []string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
-		period:             period,
-		labelSelectors:     labelSelectors,
-		annotationSelector: annotationSelector,
-		namespace:          namespace,
-		secretsDataGlob:    secretsDataGlob,
-		kubeconfigPath:     kubeconfigPath,
-		exporter:           e,
+		period:              period,
+		labelSelectors:      labelSelectors,
+		annotationSelectors: annotationSelectors,
+		namespace:           namespace,
+		secretsDataGlob:     secretsDataGlob,
+		kubeconfigPath:      kubeconfigPath,
+		exporter:            e,
 	}
 }
 
@@ -87,10 +87,20 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		for _, secret := range secrets {
 			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
 
-			if p.annotationSelector != "" {
+			if len(p.annotationSelectors) > 0 {
+				matches := false
+
 				annotations := secret.GetAnnotations()
-				_, ok := annotations[p.annotationSelector]
-				if !ok {
+
+				for _, selector := range p.annotationSelectors {
+					_, ok := annotations[selector]
+					if ok {
+						matches = true
+						break
+					}
+				}
+
+				if !matches {
 					continue
 				}
 			}
@@ -114,6 +124,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 						glog.Errorf("Error exporting secret %v", err)
 						metrics.ErrorTotal.Inc()
 					}
+				} else {
+					glog.Infof("Ignoring %v.  Does not match %v.", name, p.secretsDataGlob)
 				}
 			}
 		}
