@@ -24,7 +24,7 @@ var (
 	pollingPeriod             time.Duration
 	kubeconfigPath            string
 	secretsLabelSelector      args.GlobArgs
-	secretsAnnotationSelector string
+	secretsAnnotationSelector args.GlobArgs
 	secretsNamespace          string
 	secretsDataGlob           string
 )
@@ -42,7 +42,7 @@ func init() {
 	flag.StringVar(&secretsDataGlob, "secrets-data-glob", "*.crt", "Glob to match against secret data keys.")
 
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
-	flag.StringVar(&secretsAnnotationSelector, "secrets-annotation-selector", "", "Annotation selector to find secrets to publish as metrics.")
+	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 }
 
