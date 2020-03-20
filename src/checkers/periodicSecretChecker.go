@@ -93,7 +93,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				annotations := secret.GetAnnotations()
 
 				for _, selector := range p.annotationSelectors {
-					_, ok := annotations[p.annotationSelector]
+					_, ok := annotations[selector]
 					if ok {
 						matches = true
 						break
