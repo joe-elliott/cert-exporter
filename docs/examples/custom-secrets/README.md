@@ -1,6 +1,6 @@
 # Local Secrets Monitoring
 
-If you have local secrets you wish to monitor, the examples in this directory will help you acheive that.
+If you have local secrets you wish to monitor, the examples in this directory will help you achieve that.
 
 ## Service Definition
 
