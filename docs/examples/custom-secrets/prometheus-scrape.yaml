@@ -1,0 +1,8 @@
+values:
+  prometheus:
+    prometheusSpec:
+      additionalScrapeConfigs:
+
+      - job_name: 'cert-exporter'
+        static_configs:
+        - targets: ['secrets-cert-exporter:8080']

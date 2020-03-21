@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cert-exporter
+  labels:
+    app: cert-exporter
+    name: cert-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: cert-exporter
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: cert-exporter
+    spec:
+      serviceAccountName: cert-exporter
+      containers:
+      - image: joeelliott/cert-exporter:v1.3.0
+        name: cert-exporter
+        command: ["./app"]
+        args:
+        - --secrets-label-selector=monitor-cert
+        - --alsologtostderr
+        ports:
+          - name: metrics
+            containerPort: 8080
+            protocol: TCP
