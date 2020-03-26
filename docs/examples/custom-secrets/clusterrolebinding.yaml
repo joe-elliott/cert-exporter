@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cert-exporter
-  namespace: default
+  namespace: monitoring
 roleRef:
   kind: ClusterRole
   name: secret-reader
