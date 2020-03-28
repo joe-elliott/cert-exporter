@@ -26,7 +26,8 @@ var (
 	secretsLabelSelector      args.GlobArgs
 	secretsAnnotationSelector args.GlobArgs
 	secretsNamespace          string
-	secretsDataGlob           string
+	includeSecretsDataGlobs   args.GlobArgs
+	excludeSecretsDataGlobs   args.GlobArgs
 )
 
 func init() {
@@ -39,11 +40,13 @@ func init() {
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
-	flag.StringVar(&secretsDataGlob, "secrets-data-glob", "*.crt", "Glob to match against secret data keys.")
-
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
 	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
+	flag.Var(&includeSecretsDataGlobs, "include-secrets-glob", "Globs to match against secret data keys (Default \"*\".")
+	flag.Var(&excludeSecretsDataGlobs, "exclude-secrets-glob", "Globs to match against secret data keys.")
+
+	includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 }
 
 func main() {
@@ -62,7 +65,7 @@ func main() {
 	}
 
 	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 {
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, secretsDataGlob, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
 		go configChecker.StartChecking()
 	}
 
