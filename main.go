@@ -43,8 +43,8 @@ func init() {
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
 	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
-	flag.Var(&includeSecretsDataGlobs, "include-secrets-glob", "Globs to match against secret data keys (Default \"*\".")
-	flag.Var(&excludeSecretsDataGlobs, "exclude-secrets-glob", "Globs to match against secret data keys.")
+	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Globs to match against secret data keys (Default \"*\").")
+	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Globs to match against secret data keys.")
 
 	includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 }

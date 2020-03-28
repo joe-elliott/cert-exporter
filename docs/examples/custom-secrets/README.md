@@ -8,7 +8,7 @@ There is a service defined in [service.yaml](https://github.com/joe-elliott/cert
 
 ## Secret Creation
 
-On [line 27 of the deployment file](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/deployment.yaml#L27) you will see the additional options passed to the cert exporter that allows for monitoring certificates based on labels.  In order for your certs to be monitored, the certificate keys all need to end in `*.crt` (unless you override that option with --secrets-data-glob).  The [example secret](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/secret.yaml) is configured to be monitored by prometheus.
+On [line 27 of the deployment file](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/deployment.yaml#L27) you will see the additional options passed to the cert exporter that allows for monitoring certificates based on labels.  The [example secret](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/secret.yaml) is configured to be monitored by prometheus.
 
 **NOTE:  The label only has to have a matching key.  Any value supplied will work!**
 

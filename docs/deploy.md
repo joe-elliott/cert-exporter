@@ -46,8 +46,10 @@ The following 9 flags are the most commonly used to control cert-exporter behavi
     	File globs to include when looking for kubeconfigs.
   -secrets-annotation-selector string
     	Annotation selector to find secrets to publish as metrics.
-  -secrets-data-glob string
-    	Glob to match against secret data keys. (default "*.crt")
+  -secrets-exclude-glob value
+    	Globs to match against secret data keys.
+  -secrets-include-glob value
+    	Globs to match against secret data keys (Default "*").
   -secrets-label-selector value
     	Label selector to find secrets to publish as metrics.
   -secrets-namespace string

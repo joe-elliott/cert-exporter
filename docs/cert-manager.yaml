@@ -23,6 +23,7 @@ spec:
         command: ["./app"]
         args:
         - --secrets-annotation-selector='cert-manager.io/certificate-name'
+        - --secrets-include-glob='*.crt'
         - --alsologtostderr
 ---
 apiVersion: rbac.authorization.k8s.io/v1
