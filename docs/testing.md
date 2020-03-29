@@ -1,6 +1,6 @@
 # Testing
 
-cert-exporter testing is fairly simple.  The [./test.sh](../test/test.sh) in the test directory will build the application, generate some certs and kubeconfigs, run the application against the files and curl the prometheus metrics to confirm they are accurate.  It takes one parameter which is the number of days to expire the test certs in.
+cert-exporter testing is fairly simple.  The [./test.sh](../test/files/test.sh) in the test directory will build the application, generate some certs and kubeconfigs, run the application against the files and curl the prometheus metrics to confirm they are accurate.  It takes one parameter which is the number of days to expire the test certs in.
 
 Example:
 
@@ -40,6 +40,4 @@ It's not great, but it gets the job done.  There could definitely be some work p
 
 ### cert-manager testing
 
-`./test/cert-manager/test.sh` does really basic testing of cert-manager created certs.
-
-It expects there to be an already running k8s cluster with cert-manager installed.
+`./test/cert-manager-v1alpha1/test.sh` and `./test/cert-manager-v1alpha2/test.sh` do really basic testing of cert-manager created certs.

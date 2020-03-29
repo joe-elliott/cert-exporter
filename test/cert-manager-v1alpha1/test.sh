@@ -52,17 +52,18 @@ kubectl --kubeconfig $(eval $CONFIG_PATH) create namespace cert-manager
 kubectl --kubeconfig $(eval $CONFIG_PATH) label namespace cert-manager certmanager.k8s.io/disable-validation=true
 kubectl --kubeconfig $(eval $CONFIG_PATH) apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
 
-sleep 90
+sleep 180
 
 kubectl --kubeconfig $(eval $CONFIG_PATH) create -f ./certs.yaml
 
+go build ../../main.go
+-chmod +x ./main
+
 echo "** Testing Label Selector"
 # run exporter
-go build ../../main.go
-chmod +x ./main
-
-go run ../../main.go --kubeconfig $(eval $CONFIG_PATH) \
+./main --kubeconfig $(eval $CONFIG_PATH) \
                --secrets-label-selector 'certmanager.k8s.io/certificate-name' \
+               --secrets-include-glob='*.crt' \
                --alsologtostderr &
 pid=$!
 sleep 5
@@ -70,13 +71,17 @@ sleep 5
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
+echo "** Killing $pid"
 kill $pid
+
+sleep 5
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
-go run ../../main.go --kubeconfig $(eval $CONFIG_PATH) \
+./main --kubeconfig $(eval $CONFIG_PATH) \
                --secrets-label-selector 'certmanager.k8s.io/certificate-name' \
                --secrets-namespace 'cert-manager-test' \
+               --secrets-include-glob='*.crt' \
                --alsologtostderr &
 pid=$!
 sleep 5
@@ -84,6 +89,7 @@ sleep 5
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
+echo "** Killing $pid"
 kill $pid
 
 read -p "press enter"

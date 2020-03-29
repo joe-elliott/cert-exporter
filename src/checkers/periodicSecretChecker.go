@@ -16,25 +16,27 @@ import (
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval
 type PeriodicSecretChecker struct {
-	period              time.Duration
-	labelSelectors      []string
-	secretsDataGlob     string
-	kubeconfigPath      string
-	annotationSelectors []string
-	namespace           string
-	exporter            *exporters.SecretExporter
+	period                  time.Duration
+	labelSelectors          []string
+	kubeconfigPath          string
+	annotationSelectors     []string
+	namespace               string
+	exporter                *exporters.SecretExporter
+	includeSecretsDataGlobs []string
+	excludeSecretsDataGlobs []string
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, secretsDataGlob string, annotationSelectors []string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors []string, includeSecretsDataGlobs []string, excludeSecretsDataGlobs []string, annotationSelectors []string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
-		period:              period,
-		labelSelectors:      labelSelectors,
-		annotationSelectors: annotationSelectors,
-		namespace:           namespace,
-		secretsDataGlob:     secretsDataGlob,
-		kubeconfigPath:      kubeconfigPath,
-		exporter:            e,
+		period:                  period,
+		labelSelectors:          labelSelectors,
+		annotationSelectors:     annotationSelectors,
+		namespace:               namespace,
+		kubeconfigPath:          kubeconfigPath,
+		exporter:                e,
+		includeSecretsDataGlobs: includeSecretsDataGlobs,
+		excludeSecretsDataGlobs: excludeSecretsDataGlobs,
 	}
 }
 
@@ -60,7 +62,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		var secrets []api_v1.Secret
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {
-				s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
+				var s *api_v1.SecretList
+				s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
 					LabelSelector: labelSelector,
 				})
 
@@ -71,7 +74,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				secrets = append(secrets, s.Items...)
 			}
 		} else {
-			s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
+			var s *api_v1.SecretList
+			s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
 
 			if err == nil {
 				secrets = s.Items
@@ -107,17 +111,35 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			glog.Infof("Annotations matched.  Parsing Secret.")
 
 			for name, bytes := range secret.Data {
+				include, exclude := false, false
 
-				include, err := filepath.Match(p.secretsDataGlob, name)
+				for _, glob := range p.includeSecretsDataGlobs {
+					include, err = filepath.Match(glob, name)
+					if err != nil {
+						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						metrics.ErrorTotal.Inc()
+						continue
+					}
 
-				if err != nil {
-					glog.Errorf("Error matching %v to %v: %v", p.secretsDataGlob, name, err)
-					metrics.ErrorTotal.Inc()
-					continue
+					if include {
+						break
+					}
 				}
 
-				if include {
+				for _, glob := range p.excludeSecretsDataGlobs {
+					exclude, err = filepath.Match(glob, name)
+					if err != nil {
+						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						metrics.ErrorTotal.Inc()
+						continue
+					}
 
+					if exclude {
+						break
+					}
+				}
+
+				if include && !exclude {
 					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
 
 					if err != nil {
@@ -125,7 +147,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 						metrics.ErrorTotal.Inc()
 					}
 				} else {
-					glog.Infof("Ignoring %v.  Does not match %v.", name, p.secretsDataGlob)
+					glog.Infof("Ignoring %v.  Does not match %v or matches %v.", name, p.includeSecretsDataGlobs, p.excludeSecretsDataGlobs)
 				}
 			}
 		}
