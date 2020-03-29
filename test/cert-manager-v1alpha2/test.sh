@@ -69,29 +69,29 @@ chmod +x ./main
 go run ../../main.go --kubeconfig $(eval $CONFIG_PATH) \
                --secrets-annotation-selector='cert-manager.io/certificate-name' \
                --secrets-annotation-selector='test' \
+               --secrets-include-glob='*.crt' \
                --alsologtostderr &
-pid=$!
 sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="test.crt",secret_name="test",secret_namespace="default"}'
 
 # kill exporter
-kill $pid
+kill $!
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
 go run ../../main.go --kubeconfig $(eval $CONFIG_PATH) \
                --secrets-annotation-selector='cert-manager.io/certificate-name' \
                --secrets-namespace 'cert-manager-test' \
+               --secrets-include-glob='*.crt' \
                --alsologtostderr &
-pid=$!
 sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
-kill $pid
+kill $!
 
 rm ./main
 kubectl --kubeconfig $(eval $CONFIG_PATH) delete -f ./certs.yaml

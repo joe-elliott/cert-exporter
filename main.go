@@ -45,8 +45,6 @@ func init() {
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Globs to match against secret data keys (Default \"*\").")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Globs to match against secret data keys.")
-
-	includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 }
 
 func main() {
@@ -65,6 +63,10 @@ func main() {
 	}
 
 	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 {
+		if len(includeSecretsDataGlobs) == 0 {
+			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
+		}
+
 		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
 		go configChecker.StartChecking()
 	}

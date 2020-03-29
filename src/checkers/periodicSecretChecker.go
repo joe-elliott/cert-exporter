@@ -62,7 +62,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		var secrets []api_v1.Secret
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {
-				s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
+				var s *api_v1.SecretList
+				s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
 					LabelSelector: labelSelector,
 				})
 
@@ -73,7 +74,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				secrets = append(secrets, s.Items...)
 			}
 		} else {
-			s, err := client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
+			var s *api_v1.SecretList
+			s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
 
 			if err == nil {
 				secrets = s.Items
@@ -112,7 +114,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				include, exclude := false, false
 
 				for _, glob := range p.includeSecretsDataGlobs {
-					include, err := filepath.Match(glob, name)
+					include, err = filepath.Match(glob, name)
 					if err != nil {
 						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
 						metrics.ErrorTotal.Inc()
@@ -125,7 +127,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				}
 
 				for _, glob := range p.excludeSecretsDataGlobs {
-					exclude, err := filepath.Match(glob, name)
+					exclude, err = filepath.Match(glob, name)
 					if err != nil {
 						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
 						metrics.ErrorTotal.Inc()
