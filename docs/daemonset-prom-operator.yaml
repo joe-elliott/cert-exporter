@@ -1,0 +1,467 @@
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    k8s-app: cert-exporter
+  name: cert-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      k8s-app: cert-exporter
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        k8s-app: cert-exporter
+    spec:
+      containers:
+      - image: joeelliott/cert-exporter:v2.0.0
+        name: cert-exporter
+        command: ["./app"]
+        args:
+        - --include-kubeconfig-glob=/var/lib/*/kubeconfig
+        - --include-cert-glob=/srv/kubernetes/*.crt
+        - --alsologtostderr
+        volumeMounts:
+        - mountPath: /var/lib/kubelet
+          name: kubelet
+          readOnly: true
+        - mountPath: /var/lib/kube-proxy
+          name: kube-proxy
+          readOnly: true
+        - mountPath: /srv/kubernetes
+          name: kube-root
+          readOnly: true
+        securityContext:
+          runAsUser: 0
+        resources:
+          limits:
+            cpu: 50m
+            memory: 50M
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "system-components"
+          effect: "NoSchedule"
+        - effect: NoSchedule
+          operator: Exists
+      volumes:
+      - name: kubelet
+        hostPath:
+          path: /var/lib/kubelet
+          type: Directory
+      - name: kube-proxy
+        hostPath:
+          path: /var/lib/kube-proxy
+          type: Directory
+      - name: kube-root
+        hostPath:
+          path: /srv/kubernetes
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cert-exporter-metrics
+  namespace: monitoring
+  labels:
+    k8s-app: cert-exporter-metrics
+spec:
+  selector:
+    k8s-app: cert-exporter
+  ports:
+    - name: metrics
+      port: 8080
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: prometheus-operator-operator
+    prometheus: prometheus-operator-prometheus
+    release: prometheus-operator
+  name: cert-exporter
+  namespace: monitoring
+spec:
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 20s
+  jobLabel: cert-exporter-metrics
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      k8s-app: cert-exporter-metrics
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cert-exporter-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  cert-exporter.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": 21,
+      "links": [],
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "#299c46",
+            "rgba(237, 129, 40, 0.89)",
+            "#d44a3a"
+          ],
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 5,
+            "x": 0,
+            "y": 0
+          },
+          "id": 5,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "options": {},
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "expr": "sum(cert_exporter_error_total)",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "thresholds": "1,1",
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Errors Total",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "avg"
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "fill": 1,
+          "gridPos": {
+            "h": 6,
+            "w": 19,
+            "x": 5,
+            "y": 0
+          },
+          "id": 7,
+          "interval": "",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "options": {},
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "increase(cert_exporter_error_total[1h])",
+              "format": "time_series",
+              "intervalFactor": 1,
+              "legendFormat": "{{kubernetes_pod_name}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Errors [1h]",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 6
+          },
+          "id": 2,
+          "interval": "",
+          "links": [],
+          "options": {},
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 10,
+            "desc": false
+          },
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "link": false,
+              "pattern": "/(__name__|Time|controller_revision_hash|instance|job|kubernetes_namespace|pod_template_generation)/",
+              "type": "hidden"
+            },
+            {
+              "alias": "Expiration",
+              "colorMode": "cell",
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD",
+              "decimals": 2,
+              "pattern": "Value",
+              "thresholds": [
+                "15724800",
+                "31536000"
+              ],
+              "type": "number",
+              "unit": "dtdurations"
+            }
+          ],
+          "targets": [
+            {
+              "expr": "cert_exporter_cert_expires_in_seconds",
+              "format": "table",
+              "instant": true,
+              "intervalFactor": 1,
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Kubernetes and Etcd PKI Cert Expiry",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
+          "id": 3,
+          "interval": "",
+          "links": [],
+          "options": {},
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 12,
+            "desc": false
+          },
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "link": false,
+              "pattern": "/(__name__|Time|controller_revision_hash|instance|job|kubernetes_namespace|pod_template_generation)/",
+              "type": "hidden"
+            },
+            {
+              "alias": "Expiration",
+              "colorMode": "cell",
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD",
+              "decimals": 2,
+              "pattern": "Value",
+              "thresholds": [
+                "15724800",
+                "31536000"
+              ],
+              "type": "number",
+              "unit": "dtdurations"
+            }
+          ],
+          "targets": [
+            {
+              "expr": "cert_exporter_kubeconfig_expires_in_seconds",
+              "format": "table",
+              "instant": true,
+              "intervalFactor": 1,
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Kubeconfig Cert Expiry",
+          "transform": "table",
+          "type": "table"
+        }
+      ],
+      "schemaVersion": 18,
+      "style": "dark",
+      "tags": [],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "5s",
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "timezone": "",
+      "title": "Certs",
+      "uid": "as4qRIIWz",
+      "version": 4
+    }

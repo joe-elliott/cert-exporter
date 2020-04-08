@@ -58,7 +58,10 @@ The number of seconds until a certificate stored in a kubeconfig expires.  The `
 The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
 
 ### Other Docs
+
 - [Testing](https://github.com/joe-elliott/cert-exporter/blob/master/docs/testing.md)
   - An overview of the testing scripts and how to run them.
 - [Deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
+- [Daemonset for Prometheus-operator](https://github.com/joe-elliott/cert-exporter/blob/master/docs/daemonset-prom-operator.md)
+  - How to deploy daemonset+service+servicemonitor+dashboard if you use [prometheus-operator](https://github.com/coreos/prometheus-operator) into the `monitoring` namespace
