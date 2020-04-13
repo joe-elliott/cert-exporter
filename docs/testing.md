@@ -8,22 +8,22 @@ Example:
 # ./test.sh
 ** Testing Certs and kubeconfig in the same dir
 cert_exporter_error_total 0
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/client.crt"}
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/root.crt"}
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/server.crt"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",type="cluster"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",type="cluster"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user1",type="user"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user2",type="user"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/client.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/root.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certs/server.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",nodename="master0",type="cluster"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",nodename="master0",type="cluster"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user1",nodename="master0",type="user"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user2",nodename="master0",type="user"}
 ** Testing Certs and kubeconfig in sibling dirs
 cert_exporter_error_total 0
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt"}
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/root.crt"}
-TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/server.crt"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",type="cluster"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",type="cluster"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",type="user"}
-TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user2",type="user"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/root.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_cert_expires_in_seconds{filename="certsSibling/server.crt",issuer="root",nodename="master0"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",nodename="master0",type="cluster"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",nodename="master0",type="cluster"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",nodename="master0",type="user"}
+TEST SUCCESS: cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user2",nodename="master0",type="user"}
 ** Testing Error metric increments
 E0707 09:25:59.470115   56712 periodicCertChecker.go:47] Error on certs/client.crt: Failed to parse as a pem
 cert_exporter_error_total 1

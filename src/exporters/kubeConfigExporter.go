@@ -13,7 +13,7 @@ type KubeConfigExporter struct {
 }
 
 // ExportMetrics exports all certs in the passed in kubeconfig file
-func (c *KubeConfigExporter) ExportMetrics(file string) error {
+func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 	k, err := kubeconfig.ParseKubeConfig(file)
 
 	if err != nil {
@@ -40,8 +40,8 @@ func (c *KubeConfigExporter) ExportMetrics(file string) error {
 			return fmt.Errorf("Cluster %v does not have CertAuthority or CertAuthorityData", c.Name)
 		}
 
-		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name).Set(metric.durationUntilExpiry)
-		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", c.Name).Set(metric.notAfter)
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name, nodeName).Set(metric.durationUntilExpiry)
+		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", c.Name, nodeName).Set(metric.notAfter)
 	}
 
 	for _, u := range k.Users {
@@ -64,8 +64,8 @@ func (c *KubeConfigExporter) ExportMetrics(file string) error {
 			return fmt.Errorf("User %v does not have ClientCert or ClientCertData", u.Name)
 		}
 
-		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name).Set(metric.durationUntilExpiry)
-		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", u.Name).Set(metric.notAfter)
+		metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name, nodeName).Set(metric.durationUntilExpiry)
+		metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", u.Name, nodeName).Set(metric.notAfter)
 	}
 
 	return nil

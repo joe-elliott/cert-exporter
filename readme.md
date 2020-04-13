@@ -1,6 +1,6 @@
 # cert-exporter
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![version](https://img.shields.io/badge/version-1.4.0-blue.svg?cacheSeconds=2592000)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![version](https://img.shields.io/badge/version-2.0.0-blue.svg?cacheSeconds=2592000)
 
 Kubernetes uses PKI certificates for authentication between all major components.  These certs are critical for the operation of your cluster but are often opaque to an administrator.  This application is designed to parse certificates and export expiration information for Prometheus to scrape.
 
@@ -49,10 +49,10 @@ cert_exporter_secret_expires_in_seconds{key_name="tls.crt",secret_name="selfsign
 The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.
 
 **cert_exporter_cert_expires_in_seconds**  
-The number of seconds until a certificate stored in the PEM format is expired.  The `filename` label indicates the exported cert.
+The number of seconds until a certificate stored in the PEM format is expired.  The `filename`, `issuer`, `cn`, and `nodename` label indicates the exported cert.
 
 **cert_exporter_kubeconfig_expires_in_seconds**  
-The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, and `name` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
+The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, `name`, and `nodename` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
 
 **cert_exporter_secret_expires_in_seconds**
 The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
