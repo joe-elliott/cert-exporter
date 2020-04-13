@@ -14,15 +14,17 @@ type PeriodicCertChecker struct {
 	period           time.Duration
 	includeCertGlobs []string
 	excludeCertGlobs []string
+	nodeName         string
 	exporter         exporters.Exporter
 }
 
 // NewCertChecker is a factory method that returns a new PeriodicCertChecker
-func NewCertChecker(period time.Duration, includeCertGlobs []string, excludeCertGlobs []string, e exporters.Exporter) *PeriodicCertChecker {
+func NewCertChecker(period time.Duration, includeCertGlobs, excludeCertGlobs []string, nodeName string, e exporters.Exporter) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
 		period:           period,
 		includeCertGlobs: includeCertGlobs,
 		excludeCertGlobs: excludeCertGlobs,
+		nodeName:         nodeName,
 		exporter:         e,
 	}
 }
@@ -43,7 +45,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 
 			glog.Infof("Publishing metrics for %v", match)
 
-			err := p.exporter.ExportMetrics(match)
+			err := p.exporter.ExportMetrics(match, p.nodeName)
 
 			if err != nil {
 				metrics.ErrorTotal.Inc()
