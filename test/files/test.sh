@@ -32,6 +32,7 @@ go build ../../main.go
 chmod +x main
 
 days=${1:-100}
+NODE_NAME="master0"
 
 #
 # certs and kubeconfig in the same dir
@@ -48,14 +49,14 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certs/client.crt",issuer="root"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certs/root.crt",issuer="root"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certs/server.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certs/client.crt",issuer="root",nodename="master0"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certs/root.crt",issuer="root",nodename="master0"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certs/server.crt",issuer="root",nodename="master0"}' $days
 
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user1",type="user"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user2",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user1",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user2",nodename="master0",type="user"}' $days
 
 # kill exporter
 kill $!
@@ -76,14 +77,14 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certsSibling/client.crt",issuer="root"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certsSibling/root.crt",issuer="root"}' $days
-validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certsSibling/server.crt",issuer="root"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certsSibling/client.crt",issuer="root",nodename="master0"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certsSibling/root.crt",issuer="root",nodename="master0"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certsSibling/server.crt",issuer="root",nodename="master0"}' $days
 
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",type="user"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user2",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user2",nodename="master0",type="user"}' $days
 
 # kill exporter
 kill $!
