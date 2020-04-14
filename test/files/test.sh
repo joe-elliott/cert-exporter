@@ -32,7 +32,7 @@ go build ../../main.go
 chmod +x main
 
 days=${1:-100}
-NODE_NAME="master0"
+export NODE_NAME="master0"
 
 #
 # certs and kubeconfig in the same dir
@@ -104,3 +104,4 @@ curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 1'
 
 # kill exporter
 kill $!
+unset NODE_NAME
