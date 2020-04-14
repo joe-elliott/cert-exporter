@@ -1,7 +1,7 @@
 #
 # requires a k8s cluster running with cert-manager running in it
-#  assumes the location of kubeconfig at ~/.kube/config
-# requires k3d
+#  assumes the location of kubeconfig at $HOME/.kube/config
+# requires kind https://github.com/kubernetes-sigs/kind
 #
 
 validateMetrics() {
@@ -35,42 +35,32 @@ validateMetrics() {
     fi
 }
 
-export KUBECONFIG=""
-K3D_NAME=cert-exporter
-CONFIG_PATH="k3d get-kubeconfig --name=$K3D_NAME"
+KIND_CLUSTER_NAME=cert-exporter
 
-k3d create --name=$K3D_NAME
-echo -n "Ensuring k3d is running..."
-while true; do
-  k3d list 2>&1 | grep ".*$K3D_NAME.*running" >/dev/null && echo "done" && break \
-    || (echo -n . && sleep 1)
-done
+echo -n "Create cluster"
+kind create cluster --name=$KIND_CLUSTER_NAME
 
-echo -n "Getting kubeconfig..."
-while true; do
-  eval $CONFIG_PATH 2>&1 | grep "$K3D_NAME/kubeconfig.yaml" >/dev/null && echo done && break \
-    || (echo -n . && sleep 1)
-done
-echo Config is available at $(eval $CONFIG_PATH)
+echo -n "Get kubeconfig"
+kind export kubeconfig --name=$KIND_CLUSTER_NAME
 
-kubectl --kubeconfig $(eval $CONFIG_PATH) create namespace cert-manager
-kubectl --kubeconfig $(eval $CONFIG_PATH) label namespace cert-manager certmanager.k8s.io/disable-validation=true
-kubectl --kubeconfig $(eval $CONFIG_PATH) apply -f https://github.com/jetstack/cert-manager/releases/download/v0.14.0/cert-manager.yaml
+kubectl --kubeconfig=$HOME/.kube/config create namespace cert-manager
+kubectl --kubeconfig=$HOME/.kube/config label namespace cert-manager certmanager.k8s.io/disable-validation=true
+kubectl --kubeconfig=$HOME/.kube/config apply -f https://github.com/jetstack/cert-manager/releases/download/v0.14.0/cert-manager.yaml
 
-sleep 180
+kubectl --kubeconfig=$HOME/.kube/config wait --for=condition=available deploy --all -n cert-manager --timeout=3m
 
-kubectl --kubeconfig $(eval $CONFIG_PATH) create -f ./certs.yaml
+kubectl --kubeconfig=$HOME/.kube/config create -f ./certs.yaml
 
+GO111MODULE=on go mod vendor
 go build ../../main.go
-chmod +x ./main
 
 echo "** Testing Label Selector"
 # run exporter
-./main --kubeconfig $(eval $CONFIG_PATH) \
-               --secrets-annotation-selector='cert-manager.io/certificate-name' \
-               --secrets-annotation-selector='test' \
-               --secrets-include-glob='*.crt' \
-               --alsologtostderr &
+./main --kubeconfig=$HOME/.kube/config \
+    --secrets-annotation-selector='cert-manager.io/certificate-name' \
+    --secrets-annotation-selector='test' \
+    --secrets-include-glob='*.crt' \
+    --alsologtostderr &
 pid=$!
 sleep 10
 
@@ -83,11 +73,11 @@ kill $pid
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
-./main --kubeconfig $(eval $CONFIG_PATH) \
-               --secrets-annotation-selector='cert-manager.io/certificate-name' \
-               --secrets-namespace 'cert-manager-test' \
-               --secrets-include-glob='*.crt' \
-               --alsologtostderr &
+./main --kubeconfig=$HOME/.kube/config \
+    --secrets-annotation-selector='cert-manager.io/certificate-name' \
+    --secrets-namespace='cert-manager-test' \
+    --secrets-include-glob='*.crt' \
+    --alsologtostderr &
 pid=$!
 sleep 10
 
@@ -99,11 +89,11 @@ kill $pid
 
 echo "** Testing Label Selector And Exclude Glob"
 # run exporter
-./main --kubeconfig $(eval $CONFIG_PATH) \
-               --secrets-annotation-selector='cert-manager.io/certificate-name' \
-               --secrets-namespace 'cert-manager-test' \
-               --secrets-exclude-glob='*.key' \
-               --alsologtostderr &
+./main --kubeconfig=$HOME/.kube/config \
+    --secrets-annotation-selector='cert-manager.io/certificate-name' \
+    --secrets-namespace='cert-manager-test' \
+    --secrets-exclude-glob='*.key' \
+    --alsologtostderr &
 pid=$!
 sleep 10
 
@@ -114,5 +104,4 @@ echo "** Killing $pid"
 kill $pid
 
 rm ./main
-kubectl --kubeconfig $(eval $CONFIG_PATH) delete -f ./certs.yaml
-k3d delete --name=$K3D_NAME
+kind delete cluster --name=$KIND_CLUSTER_NAME

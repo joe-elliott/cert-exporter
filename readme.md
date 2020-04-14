@@ -60,7 +60,7 @@ The number of seconds until a certificate stored in a kubernetes secret expires.
 ### Other Docs
 
 - [Testing](https://github.com/joe-elliott/cert-exporter/blob/master/docs/testing.md)
-  - An overview of the testing scripts and how to run them.
+  - An overview of the testing scripts and how to run them. It requires [kind](https://github.com/kubernetes-sigs/kind) CLI.
 - [Deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
 - [Daemonset for Prometheus-operator](https://github.com/joe-elliott/cert-exporter/blob/master/docs/daemonset-prom-operator.md)
