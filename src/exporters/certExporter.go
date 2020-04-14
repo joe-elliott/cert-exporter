@@ -10,9 +10,7 @@ type CertExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *CertExporter) ExportMetrics(file, nodeName string) error {
-
 	metric, err := secondsToExpiryFromCertAsFile(file)
-
 	if err != nil {
 		return err
 	}

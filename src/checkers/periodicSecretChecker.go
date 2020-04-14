@@ -42,7 +42,6 @@ func NewSecretChecker(period time.Duration, labelSelectors []string, includeSecr
 
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicSecretChecker) StartChecking() {
-
 	config, err := clientcmd.BuildConfigFromFlags("", p.kubeconfigPath)
 	if err != nil {
 		glog.Fatalf("Error building kubeconfig: %s", err.Error())
