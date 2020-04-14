@@ -59,3 +59,7 @@ The following 9 flags are the most commonly used to control cert-exporter behavi
 ```
 
 For a full flag listing run the application with the `--help` parameter.
+
+### environment variables
+
+cert-exporter respects the `NODE_NAME` environment variable.  If present it will add this value as label to file metrics.  See one of the [deployment yamls](./kops-nodes.yaml) for an example of using the [Kubernetes Downward API](https://kubernetes.io/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/) to make use of this feature.
