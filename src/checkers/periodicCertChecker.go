@@ -31,7 +31,6 @@ func NewCertChecker(period time.Duration, includeCertGlobs, excludeCertGlobs []s
 
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicCertChecker) StartChecking() {
-
 	periodChannel := time.Tick(p.period)
 
 	for {
@@ -77,7 +76,6 @@ func (p *PeriodicCertChecker) getMatches() []string {
 }
 
 func (p *PeriodicCertChecker) includeFile(file string) bool {
-
 	for _, excludeGlob := range p.excludeCertGlobs {
 		exclude, err := filepath.Match(excludeGlob, file)
 

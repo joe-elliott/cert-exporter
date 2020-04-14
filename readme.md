@@ -41,8 +41,8 @@ cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconf
 cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",nodename="master0",type="user"} 8.639964559249e+06
 # HELP cert_exporter_secret_expires_in_seconds Number of seconds til the cert in the secret expires.
 # TYPE cert_exporter_secret_expires_in_seconds gauge
-cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.6396867095666e+06
-cert_exporter_secret_expires_in_seconds{key_name="tls.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.639686709417423e+06
+cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.6396867095666e+06
+cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="tls.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.639686709417423e+06
 ```
 
 **cert_exporter_error_total**  
@@ -55,7 +55,7 @@ The number of seconds until a certificate stored in the PEM format is expired.  
 The number of seconds until a certificate stored in a kubeconfig expires.  The `filename`, `type`, `name`, and `nodename` labels indicate the kubeconfig, cluster or user node and name of the node.  See details [here](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/).
 
 **cert_exporter_secret_expires_in_seconds**
-The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
+The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `issuer`, `cn`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
 
 ### Other Docs
 
