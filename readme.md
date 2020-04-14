@@ -34,11 +34,11 @@ cert-exporter exports the following metrics
 cert_exporter_error_total 0
 # HELP cert_exporter_cert_expires_in_seconds Number of seconds til the cert expires.
 # TYPE cert_exporter_cert_expires_in_seconds gauge
-cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt"} 8.639964560021e+06
+cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt",issuer="root",nodename="master0"} 8.639964560021e+06
 # HELP cert_exporter_kubeconfig_expires_in_seconds Number of seconds til the cert in kubeconfig expires.
 # TYPE cert_exporter_kubeconfig_expires_in_seconds gauge
-cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",type="cluster"} 8.639964559682e+06
-cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",type="user"} 8.639964559249e+06
+cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",nodename="master0",type="cluster"} 8.639964559682e+06
+cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",nodename="master0",type="user"} 8.639964559249e+06
 # HELP cert_exporter_secret_expires_in_seconds Number of seconds til the cert in the secret expires.
 # TYPE cert_exporter_secret_expires_in_seconds gauge
 cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.6396867095666e+06
