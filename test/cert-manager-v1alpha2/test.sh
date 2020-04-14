@@ -62,7 +62,7 @@ sleep 180
 kubectl --kubeconfig $(eval $CONFIG_PATH) create -f ./certs.yaml
 
 go build ../../main.go
--chmod +x ./main
+chmod +x ./main
 
 echo "** Testing Label Selector"
 # run exporter
@@ -74,8 +74,8 @@ echo "** Testing Label Selector"
 pid=$!
 sleep 10
 
-validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
-validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="test.crt",secret_name="test",secret_namespace="default"}'
+validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
+validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="hms-test",issuer="hms-test",key_name="test.crt",secret_name="test",secret_namespace="default"}'
 
 # kill exporter
 echo "** Killing $pid"
@@ -91,7 +91,7 @@ echo "** Testing Label Selector And Namespace"
 pid=$!
 sleep 10
 
-validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
+validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
 echo "** Killing $pid"
@@ -107,7 +107,7 @@ echo "** Testing Label Selector And Exclude Glob"
 pid=$!
 sleep 10
 
-validateMetrics 'cert_exporter_secret_expires_in_seconds{key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
+validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
 echo "** Killing $pid"
