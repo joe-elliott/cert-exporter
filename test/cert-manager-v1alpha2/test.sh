@@ -36,27 +36,25 @@ validateMetrics() {
 }
 
 KIND_CLUSTER_NAME=cert-exporter
+CONFIG_PATH=cert-exporter.kubeconfig
 
 echo -n "Create cluster"
-kind create cluster --name=$KIND_CLUSTER_NAME
+kind create cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 
-echo -n "Get kubeconfig"
-kind export kubeconfig --name=$KIND_CLUSTER_NAME
+kubectl --kubeconfig=$CONFIG_PATH create namespace cert-manager
+kubectl --kubeconfig=$CONFIG_PATH label namespace cert-manager certmanager.k8s.io/disable-validation=true
+kubectl --kubeconfig=$CONFIG_PATH apply -f https://github.com/jetstack/cert-manager/releases/download/v0.14.0/cert-manager.yaml
 
-kubectl --kubeconfig=$HOME/.kube/config create namespace cert-manager
-kubectl --kubeconfig=$HOME/.kube/config label namespace cert-manager certmanager.k8s.io/disable-validation=true
-kubectl --kubeconfig=$HOME/.kube/config apply -f https://github.com/jetstack/cert-manager/releases/download/v0.14.0/cert-manager.yaml
+kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=available deploy --all -n cert-manager --timeout=3m
 
-kubectl --kubeconfig=$HOME/.kube/config wait --for=condition=available deploy --all -n cert-manager --timeout=3m
-
-kubectl --kubeconfig=$HOME/.kube/config create -f ./certs.yaml
+kubectl --kubeconfig=$CONFIG_PATH apply -f ./certs.yaml
 
 GO111MODULE=on go mod vendor
 go build ../../main.go
 
 echo "** Testing Label Selector"
 # run exporter
-./main --kubeconfig=$HOME/.kube/config \
+./main --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-annotation-selector='test' \
     --secrets-include-glob='*.crt' \
@@ -73,7 +71,7 @@ kill $pid
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
-./main --kubeconfig=$HOME/.kube/config \
+./main --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-include-glob='*.crt' \
@@ -89,7 +87,7 @@ kill $pid
 
 echo "** Testing Label Selector And Exclude Glob"
 # run exporter
-./main --kubeconfig=$HOME/.kube/config \
+./main --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-exclude-glob='*.key' \
@@ -104,4 +102,5 @@ echo "** Killing $pid"
 kill $pid
 
 rm ./main
-kind delete cluster --name=$KIND_CLUSTER_NAME
+kind delete cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
+rm $CONFIG_PATH
