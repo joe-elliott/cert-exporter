@@ -28,8 +28,8 @@ validateMetrics() {
 ./testCleanup.sh
 
 # build
+GO111MODULE=on go mod vendor
 go build ../../main.go
-chmod +x main
 
 days=${1:-100}
 export NODE_NAME="master0"

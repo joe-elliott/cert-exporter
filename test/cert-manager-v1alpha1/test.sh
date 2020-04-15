@@ -1,7 +1,7 @@
 #
 # requires a k8s cluster running with cert-manager running in it
-#  assumes the location of kubeconfig at ~/.kube/config
-# requires k3d
+#  assumes the location of kubeconfig at $HOME/.kube/config
+# requires kind https://github.com/kubernetes-sigs/kind
 #
 
 validateMetrics() {
@@ -30,61 +30,49 @@ validateMetrics() {
     fi
 }
 
-export KUBECONFIG=""
-K3D_NAME=cert-exporter
-CONFIG_PATH="k3d get-kubeconfig --name=$K3D_NAME"
+KIND_CLUSTER_NAME=cert-exporter
+CONFIG_PATH=cert-exporter.kubeconfig
 
-k3d create --name=$K3D_NAME
-echo -n "Ensuring k3d is running..."
-while true; do
-  k3d list 2>&1 | grep ".*$K3D_NAME.*running" >/dev/null && echo "done" && break \
-    || (echo -n . && sleep 1)
-done
+echo -n "Create cluster"
+kind create cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 
-echo -n "Getting kubeconfig..."
-while true; do
-  eval $CONFIG_PATH 2>&1 | grep "$K3D_NAME/kubeconfig.yaml" >/dev/null && echo done && break \
-    || (echo -n . && sleep 1)
-done
-echo Config is available at $(eval $CONFIG_PATH)
+kubectl --kubeconfig=$CONFIG_PATH create namespace cert-manager
+kubectl --kubeconfig=$CONFIG_PATH label namespace cert-manager certmanager.k8s.io/disable-validation=true
+kubectl --kubeconfig=$CONFIG_PATH apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
 
-kubectl --kubeconfig $(eval $CONFIG_PATH) create namespace cert-manager
-kubectl --kubeconfig $(eval $CONFIG_PATH) label namespace cert-manager certmanager.k8s.io/disable-validation=true
-kubectl --kubeconfig $(eval $CONFIG_PATH) apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
+kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=available deploy --all -n cert-manager --timeout=3m
 
-sleep 180
-
-kubectl --kubeconfig $(eval $CONFIG_PATH) create -f ./certs.yaml
-
+GO111MODULE=on go mod vendor
 go build ../../main.go
-chmod +x ./main
+
+kubectl --kubeconfig=$CONFIG_PATH apply -f ./certs.yaml
+
+kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=ready certificate/selfsigned-cert -n cert-manager-test
 
 echo "** Testing Label Selector"
 # run exporter
-./main --kubeconfig $(eval $CONFIG_PATH) \
-               --secrets-label-selector 'certmanager.k8s.io/certificate-name' \
-               --secrets-include-glob='*.crt' \
-               --alsologtostderr &
+./main --kubeconfig=$CONFIG_PATH \
+    --secrets-label-selector='certmanager.k8s.io/certificate-name' \
+    --secrets-include-glob='*.crt' \
+    --alsologtostderr &
 pid=$!
-sleep 5
+sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
 # kill exporter
 echo "** Killing $pid"
 kill $pid
-
-sleep 5
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
-./main --kubeconfig $(eval $CONFIG_PATH) \
-               --secrets-label-selector 'certmanager.k8s.io/certificate-name' \
-               --secrets-namespace 'cert-manager-test' \
-               --secrets-include-glob='*.crt' \
-               --alsologtostderr &
+./main --kubeconfig=$CONFIG_PATH \
+    --secrets-label-selector='certmanager.k8s.io/certificate-name' \
+    --secrets-namespace='cert-manager-test' \
+    --secrets-include-glob='*.crt' \
+    --alsologtostderr &
 pid=$!
-sleep 5
+sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
 
@@ -92,8 +80,6 @@ validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer
 echo "** Killing $pid"
 kill $pid
 
-read -p "press enter"
-
 rm ./main
-kubectl --kubeconfig $(eval $CONFIG_PATH) delete -f ./certs.yaml
-k3d delete --name=$K3D_NAME
+kind delete cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
+rm $CONFIG_PATH
