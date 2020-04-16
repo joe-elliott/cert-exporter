@@ -1,6 +1,5 @@
 #
 # requires a k8s cluster running with cert-manager running in it
-#  assumes the location of kubeconfig at $HOME/.kube/config
 # requires kind https://github.com/kubernetes-sigs/kind
 #
 
