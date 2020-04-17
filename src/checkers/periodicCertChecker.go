@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )

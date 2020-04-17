@@ -4,12 +4,12 @@ import (
 	"path/filepath"
 	"time"
 
-	api_v1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/golang/glog"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
@@ -27,7 +27,7 @@ type PeriodicSecretChecker struct {
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors []string, includeSecretsDataGlobs []string, excludeSecretsDataGlobs []string, annotationSelectors []string, namespace string, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:                  period,
 		labelSelectors:          labelSelectors,
@@ -58,14 +58,13 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 
-		var secrets []api_v1.Secret
+		var secrets []corev1.Secret
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {
-				var s *api_v1.SecretList
-				s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{
+				var s *corev1.SecretList
+				s, err = client.CoreV1().Secrets(p.namespace).List(metav1.ListOptions{
 					LabelSelector: labelSelector,
 				})
-
 				if err != nil {
 					break
 				}
@@ -73,9 +72,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				secrets = append(secrets, s.Items...)
 			}
 		} else {
-			var s *api_v1.SecretList
-			s, err = client.CoreV1().Secrets(p.namespace).List(v1.ListOptions{})
-
+			var s *corev1.SecretList
+			s, err = client.CoreV1().Secrets(p.namespace).List(metav1.ListOptions{})
 			if err == nil {
 				secrets = s.Items
 			}
@@ -92,9 +90,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 			if len(p.annotationSelectors) > 0 {
 				matches := false
-
 				annotations := secret.GetAnnotations()
-
 				for _, selector := range p.annotationSelectors {
 					_, ok := annotations[selector]
 					if ok {
@@ -107,7 +103,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					continue
 				}
 			}
-			glog.Infof("Annotations matched.  Parsing Secret.")
+			glog.Infof("Annotations matched. Parsing Secret.")
 
 			for name, bytes := range secret.Data {
 				include, exclude := false, false
@@ -140,13 +136,12 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 				if include && !exclude {
 					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
-
 					if err != nil {
 						glog.Errorf("Error exporting secret %v", err)
 						metrics.ErrorTotal.Inc()
 					}
 				} else {
-					glog.Infof("Ignoring %v.  Does not match %v or matches %v.", name, p.includeSecretsDataGlobs, p.excludeSecretsDataGlobs)
+					glog.Infof("Ignoring %v. Does not match %v or matches %v.", name, p.includeSecretsDataGlobs, p.excludeSecretsDataGlobs)
 				}
 			}
 		}
