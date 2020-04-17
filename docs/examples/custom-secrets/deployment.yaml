@@ -25,6 +25,7 @@ spec:
         command: ["./app"]
         args:
         - --secrets-label-selector=monitor-cert
+        - --secrets-include-glob=*.crt
         - --alsologtostderr
         ports:
           - name: metrics
