@@ -89,6 +89,7 @@ echo "** Testing Label Selector And Exclude Glob"
 ./main --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
+    --secrets-include-glob='*.crt' \
     --secrets-exclude-glob='*.key' \
     --alsologtostderr &
 pid=$!
