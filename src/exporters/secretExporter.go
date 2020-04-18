@@ -9,7 +9,7 @@ type SecretExporter struct {
 }
 
 // ExportMetrics exports the provided PEM file
-func (c *SecretExporter) ExportMetrics(bytes []byte, keyName string, secretName string, secretNamespace string) error {
+func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secretNamespace string) error {
 	metric, err := secondsToExpiryFromCertAsBytes(bytes)
 	if err != nil {
 		return err

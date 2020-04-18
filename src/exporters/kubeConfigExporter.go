@@ -71,7 +71,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 	return nil
 }
 
-func pathToFileFromKubeConfig(file string, kubeConfigFile string) string {
+func pathToFileFromKubeConfig(file, kubeConfigFile string) string {
 	if !path.IsAbs(file) {
 		kubeConfigPath := path.Dir(kubeConfigFile)
 		file = path.Join(kubeConfigPath, file)
