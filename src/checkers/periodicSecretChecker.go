@@ -135,6 +135,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				}
 
 				if include && !exclude {
+					glog.Infof("Publishing %v/%v metrics %v", secret.Name, secret.Namespace, name)
 					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
 					if err != nil {
 						glog.Errorf("Error exporting secret %v", err)
