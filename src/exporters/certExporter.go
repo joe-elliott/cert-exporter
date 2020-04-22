@@ -15,7 +15,7 @@ func (c *CertExporter) ExportMetrics(file, nodeName string) error {
 		return err
 	}
 
-	metrics.CertExpirySeconds.WithLabelValues(file, metric.issuer, metric.cn, nodeName).Set(metric.durationUntilExpiry)
-	metrics.CertNotAfterTimestamp.WithLabelValues(file, metric.issuer, metric.cn, nodeName).Set(metric.notAfter)
+	metrics.CertExpirySeconds.WithLabelValues(file, metric.cn, metric.subject, metric.subjectSAN, metric.issuer, nodeName).Set(metric.durationUntilExpiry)
+	metrics.CertNotAfterTimestamp.WithLabelValues(file, metric.cn, metric.subject, metric.subjectSAN, metric.issuer, nodeName).Set(metric.notAfter)
 	return nil
 }

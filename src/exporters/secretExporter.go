@@ -15,7 +15,7 @@ func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secret
 		return err
 	}
 
-	metrics.SecretExpirySeconds.WithLabelValues(keyName, metric.issuer, metric.cn, secretName, secretNamespace).Set(metric.durationUntilExpiry)
-	metrics.SecretNotAfterTimestamp.WithLabelValues(keyName, metric.issuer, metric.cn, secretName, secretNamespace).Set(metric.notAfter)
+	metrics.SecretExpirySeconds.WithLabelValues(keyName, metric.cn, metric.subject, metric.subjectSAN, metric.issuer, secretName, secretNamespace).Set(metric.durationUntilExpiry)
+	metrics.SecretNotAfterTimestamp.WithLabelValues(keyName, metric.cn, metric.subject, metric.subjectSAN, metric.issuer, secretName, secretNamespace).Set(metric.notAfter)
 	return nil
 }

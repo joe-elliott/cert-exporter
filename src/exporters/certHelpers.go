@@ -2,6 +2,7 @@ package exporters
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"crypto/x509"
@@ -14,7 +15,8 @@ type certMetric struct {
 	durationUntilExpiry float64
 	notAfter            float64
 	issuer              string
-	cn                  string
+	cn, subject         string
+	subjectSAN          string
 }
 
 func secondsToExpiryFromCertAsFile(file string) (certMetric, error) {
@@ -49,7 +51,33 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte) (certMetric, error) {
 
 	metric.notAfter = float64(cert.NotAfter.Unix())
 	metric.durationUntilExpiry = time.Until(cert.NotAfter).Seconds()
-	metric.issuer = cert.Issuer.CommonName
-	metric.cn = cert.Subject.CommonName
+	metric.cn = cert.Subject.CommonName // for backward-compatibility, keep the cn field
+
+	subject := fmt.Sprintf("CN=%s", cert.Subject.CommonName)
+	if len(cert.Issuer.Organization) > 0 {
+		subject = subject + fmt.Sprintf(" O=%s", strings.Join(cert.Issuer.Organization, ","))
+	}
+	if len(cert.Issuer.OrganizationalUnit) > 0 {
+		subject = subject + fmt.Sprintf(" OU=%s", strings.Join(cert.Issuer.OrganizationalUnit, ","))
+	}
+	metric.subject = subject
+
+	issuer := fmt.Sprintf("CN=%s", cert.Issuer.CommonName)
+	if len(cert.Issuer.Organization) > 0 {
+		issuer = issuer + fmt.Sprintf(" O=%s", strings.Join(cert.Issuer.Organization, ","))
+	}
+	if len(cert.Issuer.OrganizationalUnit) > 0 {
+		issuer = issuer + fmt.Sprintf(" OU=%s", strings.Join(cert.Issuer.OrganizationalUnit, ","))
+	}
+	metric.issuer = issuer
+
+	subjectSAN := []string{}
+	for _, dns := range cert.DNSNames {
+		subjectSAN = append(subjectSAN, fmt.Sprintf("DNS:%s", dns))
+	}
+	for _, ip := range cert.IPAddresses {
+		subjectSAN = append(subjectSAN, fmt.Sprintf("IP:%s", ip.String()))
+	}
+	metric.subjectSAN = strings.Join(subjectSAN, " ")
 	return metric, nil
 }

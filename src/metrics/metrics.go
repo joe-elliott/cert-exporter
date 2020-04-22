@@ -23,7 +23,7 @@ var (
 			Name:      "cert_expires_in_seconds",
 			Help:      "Number of seconds til the cert expires.",
 		},
-		[]string{"filename", "issuer", "cn", "nodename"},
+		[]string{"filename", "cn", "cert", "cert_SAN", "issuer", "nodename"},
 	)
 
 	// CertNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
@@ -33,7 +33,7 @@ var (
 			Name:      "cert_not_after_timestamp",
 			Help:      "Timestamp of when the certificate expires.",
 		},
-		[]string{"filename", "issuer", "cn", "nodename"},
+		[]string{"filename", "cn", "cert", "cert_SAN", "issuer", "nodename"},
 	)
 
 	// KubeConfigExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubeconfig certificate expires.
@@ -63,7 +63,7 @@ var (
 			Name:      "secret_expires_in_seconds",
 			Help:      "Number of seconds til the cert in the secret expires.",
 		},
-		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
+		[]string{"key_name", "cn", "cert", "cert_SAN", "issuer", "secret_name", "secret_namespace"},
 	)
 
 	// SecretNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
@@ -73,7 +73,7 @@ var (
 			Name:      "secret_not_after_timestamp",
 			Help:      "Expiration timestamp for cert in the secret.",
 		},
-		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
+		[]string{"key_name", "cn", "cert", "cert_SAN", "issuer", "secret_name", "secret_namespace"},
 	)
 )
 
