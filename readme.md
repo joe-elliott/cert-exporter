@@ -14,13 +14,13 @@ cert-exporter can publish metrics about
 - Certs embedded or referenced from kubeconfig files.
 - Certs stored in Kubernetes secrets.  This supports applications such as [cert-manager](https://github.com/jetstack/cert-manager).
 
-See [deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
+See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
-See [custom-secrets](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets) for examples of how to run `cert-exporter` to scrape certificates in secrets managed by you (not cert-manager).
+See [custom-secrets](./docs/examples/custom-secrets) for examples of how to run `cert-exporter` to scrape certificates in secrets managed by you (not cert-manager).
 
 ### Dashboard
 
-After running cert-exporter in your cluster it's easy to build a [custom dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
+After running cert-exporter in your cluster it's easy to build a [custom dashboard](./docs/sample-dashboard.json) to expose information about the certs in your cluster.
 
 ![cert-exporter dashboard](./docs/dashboard.png)
 
@@ -59,9 +59,9 @@ The number of seconds until a certificate stored in a kubernetes secret expires.
 
 ### Other Docs
 
-- [Testing](https://github.com/joe-elliott/cert-exporter/blob/master/docs/testing.md)
+- [Testing](./docs/testing.md)
   - An overview of the testing scripts and how to run them. It requires [kind](https://github.com/kubernetes-sigs/kind) CLI.
-- [Deployment](https://github.com/joe-elliott/cert-exporter/blob/master/docs/deploy.md)
+- [Deployment](./docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
-- [Daemonset for Prometheus-operator](https://github.com/joe-elliott/cert-exporter/blob/master/docs/daemonset-prom-operator.md)
+- [Daemonset for Prometheus-operator](./docs/daemonset-prom-operator.md)
   - How to deploy daemonset+service+servicemonitor+dashboard if you use [prometheus-operator](https://github.com/coreos/prometheus-operator) into the `monitoring` namespace
