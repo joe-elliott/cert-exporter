@@ -21,6 +21,240 @@
     {
       "cacheTimeout": null,
       "colorBackground": true,
+      "colorPostfix": false,
+      "colorPrefix": false,
+      "colorValue": false,
+      "colors": [
+        "rgba(245, 54, 54, 0.9)",
+        "rgba(245, 54, 54, 0.9)",
+        "rgba(245, 54, 54, 0.9)"
+      ],
+      "format": "none",
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 11,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "count(cert_exporter_cert_expires_in_seconds <= 15724800)+count(cert_exporter_kubeconfig_expires_in_seconds <= 15724800)+count(cert_exporter_secret_expires_in_seconds <= 15724800) OR on() vector(0)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Expiration within half year",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [],
+      "valueName": "current",
+      "gauge": {
+        "show": false,
+        "minValue": 0,
+        "maxValue": 100,
+        "thresholdMarkers": true,
+        "thresholdLabels": false
+      }
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorPostfix": false,
+      "colorPrefix": false,
+      "colorValue": false,
+      "colors": [
+        "rgba(237, 129, 40, 0.89)",
+        "rgba(237, 129, 40, 0.89)",
+        "rgba(237, 129, 40, 0.89)"
+      ],
+      "format": "none",
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 8,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "count(15724800 < cert_exporter_cert_expires_in_seconds and cert_exporter_cert_expires_in_seconds <= 31536000)+count(15724800 < cert_exporter_kubeconfig_expires_in_seconds and cert_exporter_kubeconfig_expires_in_seconds <= 31536000)+count(15724800 < cert_exporter_secret_expires_in_seconds and cert_exporter_secret_expires_in_seconds <= 31536000) OR on() vector(0)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Expiration within half and one year",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [],
+      "valueName": "current",
+      "gauge": {
+        "show": false,
+        "minValue": 0,
+        "maxValue": 100,
+        "thresholdMarkers": true,
+        "thresholdLabels": false
+      }
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorPostfix": false,
+      "colorPrefix": false,
+      "colorValue": false,
+      "colors": [
+        "rgba(50, 172, 45, 0.97)",
+        "rgba(50, 172, 45, 0.97)",
+        "rgba(50, 172, 45, 0.97)"
+      ],
+      "format": "none",
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 6,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "count(cert_exporter_cert_expires_in_seconds > 31536000)+count(cert_exporter_kubeconfig_expires_in_seconds > 31536000)+count(cert_exporter_secret_expires_in_seconds > 31536000) OR on() vector(0)",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Expiration after one year",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [],
+      "valueName": "current",
+      "gauge": {
+        "show": false,
+        "minValue": 0,
+        "maxValue": 100,
+        "thresholdMarkers": true,
+        "thresholdLabels": false
+      }
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
       "colorValue": false,
       "colors": [
         "#299c46",
@@ -39,7 +273,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 5,
       "interval": null,
@@ -110,7 +344,7 @@
         "h": 6,
         "w": 19,
         "x": 5,
-        "y": 0
+        "y": 2
       },
       "id": 7,
       "interval": "",
@@ -195,7 +429,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 2,
       "interval": "",
@@ -258,7 +492,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 16
       },
       "id": 3,
       "interval": "",
