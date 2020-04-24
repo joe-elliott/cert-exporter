@@ -22,7 +22,7 @@ See [custom-secrets](https://github.com/joe-elliott/cert-exporter/blob/master/do
 
 After running cert-exporter in your cluster it's easy to build a [custom dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/sample-dashboard.yaml) to expose information about the certs in your cluster.
 
-![cert-exporter dashboard](https://github.com/joe-elliott/cert-exporter/blob/master/docs/dashboard.png)
+![cert-exporter dashboard](./docs/dashboard.png)
 
 ### Exported Metrics
 
