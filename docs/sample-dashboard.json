@@ -585,7 +585,7 @@
     ]
   },
   "timezone": "",
-  "title": "Certs",
+  "title": "cert-exporter",
   "uid": "as4qRIIWz",
   "version": 4
 }
