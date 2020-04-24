@@ -63,5 +63,5 @@ The number of seconds until a certificate stored in a kubernetes secret expires.
   - An overview of the testing scripts and how to run them. It requires [kind](https://github.com/kubernetes-sigs/kind) CLI.
 - [Deployment](./docs/deploy.md)
   - Information on how to deploy cert-exporter as well as examples for a kops cluster.
-- [Daemonset for Prometheus-operator](./docs/daemonset-prom-operator.md)
+- [Daemonset for Prometheus-operator](./docs/daemonset-prom-operator.yaml)
   - How to deploy daemonset+service+servicemonitor+dashboard if you use [prometheus-operator](https://github.com/coreos/prometheus-operator) into the `monitoring` namespace
