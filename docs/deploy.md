@@ -27,13 +27,13 @@ cert-exporter also supports certificates stored in Kubernetes secrets.  In this 
 Different parameters are required for different versions of the cert manager api due to changes in the way the secrets were stored.  See below:
 
 **cert-manager.k8s.io/v1alpha1**
-`--secrets-label-selector='certmanager.k8s.io/certificate-name'`
+`--secrets-label-selector=certmanager.k8s.io/certificate-name`
 
 **cert-manager.io/v1alpha2**
-`--secrets-annotation-selector='cert-manager.io/certificate-name'`
+`--secrets-annotation-selector=cert-manager.io/certificate-name`
 
 ### flags
-The following 9 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.  
+The following 9 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
 
 ```
   -exclude-cert-glob value
