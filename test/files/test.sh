@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# requires a k8s cluster running with cert-manager running in it
+# requires kind https://github.com/kubernetes-sigs/kind
+
+set -o errexit
+
 validateMetrics() {
     metrics=$1
     expectedVal=$2    
