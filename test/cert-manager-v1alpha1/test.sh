@@ -1,7 +1,9 @@
-#
+#!/bin/bash
+
 # requires a k8s cluster running with cert-manager running in it
 # requires kind https://github.com/kubernetes-sigs/kind
-#
+
+set -o errexit
 
 validateMetrics() {
     metrics=$1
@@ -33,7 +35,8 @@ KIND_CLUSTER_NAME=cert-exporter
 CONFIG_PATH=cert-exporter.kubeconfig
 
 echo -n "Create cluster"
-kind create cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
+# cert-manager v1alpha1 is no longer workable on kubernetes version >= v1.18.x
+kind create cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH --image=kindest/node:v1.17.0
 
 kubectl --kubeconfig=$CONFIG_PATH create namespace cert-manager
 kubectl --kubeconfig=$CONFIG_PATH label namespace cert-manager certmanager.k8s.io/disable-validation=true

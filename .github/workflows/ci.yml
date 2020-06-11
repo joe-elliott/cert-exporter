@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go ^1.12
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.12
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Test cert-manager-v1alpha1
+        run: |
+          cd test/cert-manager-v1alpha1
+          ./test.sh
+
+      - name: Test cert-manager-v1alpha2
+        run: |
+          cd test/cert-manager-v1alpha2
+          ./test.sh
+
+      - name: Test certificate and kubeconfig
+        run: |
+          cd test/files
+          ./test.sh
