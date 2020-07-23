@@ -4,7 +4,7 @@ If you have custom secrets you wish to monitor (you created them as k8s resource
 
 ## Service Definition
 
-There is a service defined in [service.yaml](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/service.yaml) to allow you to scrape the exporter from prometheus with the config in [prometheus-scrape.yaml](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/prometheus-scrape.yaml).  The prometheus config assumes you are using the [prometheus-operator helm chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator)
+There is a service defined in [service.yaml](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/service.yaml) which is used by prometheus service monitor with the config in [service-monitor.yaml](https://github.com/joe-elliott/cert-exporter/blob/master/docs/examples/custom-secrets/service-monitor.yaml).  The prometheus config assumes you are using the [prometheus-operator helm chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator)
 
 ## Secret Creation
 
