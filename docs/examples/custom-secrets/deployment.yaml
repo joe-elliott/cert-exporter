@@ -25,7 +25,7 @@ spec:
         command: ["./app"]
         args:
         - --secrets-label-selector=monitor-cert
-        - --alsologtostderr
+        - --logtostderr
         ports:
           - name: metrics
             containerPort: 8080
