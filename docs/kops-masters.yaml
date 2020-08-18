@@ -35,7 +35,7 @@ spec:
         - --include-cert-glob=/etc/kubernetes/pki/*/*.crt
         - --include-cert-glob=/srv/kubernetes/*.crt
         - --include-cert-glob=/srv/kubernetes/*.cert
-        - --alsologtostderr
+        - --logtostderr
         env:
         - name: NODE_NAME
           valueFrom:

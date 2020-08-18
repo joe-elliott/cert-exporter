@@ -59,7 +59,7 @@ echo "** Testing Label Selector"
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-annotation-selector='test' \
     --secrets-include-glob='*.crt' \
-    --alsologtostderr &
+    --logtostderr &
 pid=$!
 sleep 10
 
@@ -76,7 +76,7 @@ echo "** Testing Label Selector And Namespace"
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-include-glob='*.crt' \
-    --alsologtostderr &
+    --logtostderr &
 pid=$!
 sleep 10
 
@@ -92,7 +92,7 @@ echo "** Testing Label Selector And Exclude Glob"
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-exclude-glob='*.key' \
-    --alsologtostderr &
+    --logtostderr &
 pid=$!
 sleep 10
 

@@ -56,7 +56,7 @@ echo "** Testing Label Selector"
 ./main --kubeconfig=$CONFIG_PATH \
     --secrets-label-selector='certmanager.k8s.io/certificate-name' \
     --secrets-include-glob='*.crt' \
-    --alsologtostderr &
+    --logtostderr &
 pid=$!
 sleep 10
 
@@ -72,7 +72,7 @@ echo "** Testing Label Selector And Namespace"
     --secrets-label-selector='certmanager.k8s.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-include-glob='*.crt' \
-    --alsologtostderr &
+    --logtostderr &
 pid=$!
 sleep 10
 
