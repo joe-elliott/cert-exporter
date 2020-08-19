@@ -31,6 +31,7 @@ validateMetrics() {
     fi
 }
 
+CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)/cert-exporter"
 KIND_CLUSTER_NAME=cert-exporter
 CONFIG_PATH=cert-exporter.kubeconfig
 
@@ -43,9 +44,7 @@ kubectl --kubeconfig=$CONFIG_PATH label namespace cert-manager certmanager.k8s.i
 kubectl --kubeconfig=$CONFIG_PATH apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
 
 kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=available deploy --all -n cert-manager --timeout=3m
-
-GO111MODULE=on go mod vendor
-go build ../../main.go
+sleep 10 # NB give the deploy more time to be ready. let us know if you know a better way!
 
 kubectl --kubeconfig=$CONFIG_PATH apply -f ./certs.yaml
 
@@ -53,7 +52,8 @@ kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=ready certificate/selfsig
 
 echo "** Testing Label Selector"
 # run exporter
-./main --kubeconfig=$CONFIG_PATH \
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
     --secrets-label-selector='certmanager.k8s.io/certificate-name' \
     --secrets-include-glob='*.crt' \
     --logtostderr &
@@ -68,7 +68,8 @@ kill $pid
 
 echo "** Testing Label Selector And Namespace"
 # run exporter
-./main --kubeconfig=$CONFIG_PATH \
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
     --secrets-label-selector='certmanager.k8s.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
     --secrets-include-glob='*.crt' \
@@ -82,6 +83,5 @@ validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer
 echo "** Killing $pid"
 kill $pid
 
-rm ./main
 kind delete cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 rm $CONFIG_PATH

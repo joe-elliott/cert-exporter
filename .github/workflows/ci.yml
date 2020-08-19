@@ -30,10 +30,6 @@ jobs:
             dist/
             !dist/*/*
 
-      # TODO the following ./test.sh executions must use the binary from
-      #         ./dist/cert-exporter_linux_amd64/cert-exporter
-      #      instead of building it from source.
-
       - name: Test cert-manager-v1alpha1
         run: |
           cd test/cert-manager-v1alpha1

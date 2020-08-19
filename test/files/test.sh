@@ -34,9 +34,7 @@ validateMetrics() {
 # cleanup certs
 ./testCleanup.sh
 
-# build
-GO111MODULE=on go mod vendor
-go build ../../main.go
+CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)/cert-exporter"
 
 days=${1:-100}
 export NODE_NAME="master0"
@@ -50,7 +48,7 @@ mkdir certs
 ./genKubeConfig.sh certs ./ >/dev/null 2>&1
 
 # run exporter
-./main -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
+$CERT_EXPORTER_PATH -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
 
 sleep 2
 
@@ -78,7 +76,7 @@ mkdir kubeConfigSibling
 ./genKubeConfig.sh kubeConfigSibling ../certsSibling >/dev/null 2>&1
 
 # run exporter
-./main -include-cert-glob=certsSibling/*.crt  -include-kubeconfig-glob=kubeConfigSibling/kubeconfig &
+$CERT_EXPORTER_PATH -include-cert-glob=certsSibling/*.crt  -include-kubeconfig-glob=kubeConfigSibling/kubeconfig &
 
 sleep 2
 
@@ -103,7 +101,7 @@ echo "** Testing Error metric increments"
 echo 'asdfasdf' > certs/client.crt
 
 # run exporter
-./main -include-cert-glob=certs/client.crt &
+$CERT_EXPORTER_PATH -include-cert-glob=certs/client.crt &
 
 sleep 2
 
