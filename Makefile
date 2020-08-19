@@ -1,18 +1,19 @@
 GOPATH := $(shell go env GOPATH)
+GORELEASER := $(GOPATH)/bin/goreleaser
 
 all: build
 
-$(GOPATH)/bin/goreleaser:
+$(GORELEASER):
 	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | BINDIR=$(GOPATH)/bin sh
 
-build: $(GOPATH)/bin/goreleaser
-	$(GOPATH)/bin/goreleaser build --skip-validate --rm-dist
+build: $(GORELEASER)
+	$(GORELEASER) build --skip-validate --rm-dist
 
-snapshot: $(GOPATH)/bin/goreleaser
-	$(GOPATH)/bin/goreleaser release --snapshot --skip-publish --rm-dist
+snapshot: $(GORELEASER)
+	$(GORELEASER) release --snapshot --skip-publish --rm-dist
 
-release: $(GOPATH)/bin/goreleaser
-	$(GOPATH)/bin/goreleaser release --rm-dist
+release: $(GORELEASER)
+	$(GORELEASER) release --rm-dist
 
 clean:
 	rm -rf dist
