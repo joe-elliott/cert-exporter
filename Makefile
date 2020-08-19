@@ -9,7 +9,7 @@ build: $(GOPATH)/bin/goreleaser
 	$(GOPATH)/bin/goreleaser build --skip-validate --rm-dist
 
 snapshot: $(GOPATH)/bin/goreleaser
-	$(GOPATH)/bin/goreleaser --snapshot --skip-publish --rm-dist
+	$(GOPATH)/bin/goreleaser release --snapshot --skip-publish --rm-dist
 
 release: $(GOPATH)/bin/goreleaser
 	$(GOPATH)/bin/goreleaser release
