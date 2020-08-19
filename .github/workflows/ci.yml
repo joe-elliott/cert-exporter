@@ -19,16 +19,8 @@ jobs:
         with:
           go-version: ^1.15
 
-      - name: Build snapshot
-        run: make snapshot
-
-      - name: Archive dist
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: |
-            dist/
-            !dist/*/*
+      - name: Build
+        run: make build
 
       - name: Test certificate and kubeconfig
         run: |
@@ -44,3 +36,21 @@ jobs:
         run: |
           cd test/cert-manager-v1alpha2
           ./test.sh
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            make release
+          else
+            make snapshot
+          fi
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-artifacts
+          path: |
+            dist/
+            !dist/*/*

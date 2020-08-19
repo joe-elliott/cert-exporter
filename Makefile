@@ -12,7 +12,7 @@ snapshot: $(GOPATH)/bin/goreleaser
 	$(GOPATH)/bin/goreleaser release --snapshot --skip-publish --rm-dist
 
 release: $(GOPATH)/bin/goreleaser
-	$(GOPATH)/bin/goreleaser release
+	$(GOPATH)/bin/goreleaser release --rm-dist
 
 clean:
 	rm -rf dist
