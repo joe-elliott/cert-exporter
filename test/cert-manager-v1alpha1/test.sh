@@ -9,7 +9,7 @@ validateMetrics() {
     metrics=$1
     expectedVal=$2    
 
-    raw=$(curl --silent http://localhost:8080/metrics | grep "$metrics")
+    raw=$(curl --silent http://localhost:8080/metrics | grep "$metrics" || true)
 
     if [ "$raw" == "" ]; then
       echo "TEST FAILURE: $metrics" 
