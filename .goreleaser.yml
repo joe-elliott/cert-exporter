@@ -29,6 +29,7 @@ changelog:
 snapshot:
   name_template: '{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}'
 release:
+  draft: true
   prerelease: auto
 archives:
   - format_overrides:
