@@ -26,6 +26,8 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+snapshot:
+  name_template: '{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}'
 archives:
   - format_overrides:
     - goos: windows
