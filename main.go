@@ -16,6 +16,12 @@ import (
 )
 
 var (
+	version = "unknown"
+	commit  = "unknown"
+	date    = "unknown"
+)
+
+var (
 	includeCertGlobs          args.GlobArgs
 	excludeCertGlobs          args.GlobArgs
 	includeKubeConfigGlobs    args.GlobArgs
@@ -51,7 +57,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	glog.Info("Application Starting")
+	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
 	if len(includeCertGlobs) > 0 {
 		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})

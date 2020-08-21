@@ -10,13 +10,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go ^1.12
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go ^1.15
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.12
+          go-version: ^1.15
 
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+      - name: Build
+        run: make build
+
+      - name: Test certificate and kubeconfig
+        run: |
+          cd test/files
+          ./test.sh
 
       - name: Test cert-manager-v1alpha1
         run: |
@@ -28,7 +37,20 @@ jobs:
           cd test/cert-manager-v1alpha2
           ./test.sh
 
-      - name: Test certificate and kubeconfig
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd test/files
-          ./test.sh
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            make release
+          else
+            make release-snapshot
+          fi
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-artifacts
+          path: |
+            dist/
+            !dist/*/*
