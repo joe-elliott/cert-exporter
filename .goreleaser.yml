@@ -28,6 +28,8 @@ changelog:
       - '^test:'
 snapshot:
   name_template: '{{ .Version }}-SNAPSHOT-{{ .ShortCommit }}'
+release:
+  prerelease: auto
 archives:
   - format_overrides:
     - goos: windows
