@@ -9,7 +9,7 @@ $(GORELEASER):
 build: $(GORELEASER)
 	$(GORELEASER) build --skip-validate --rm-dist
 
-snapshot: $(GORELEASER)
+release-snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --skip-publish --rm-dist
 
 release: $(GORELEASER)
@@ -18,4 +18,4 @@ release: $(GORELEASER)
 clean:
 	rm -rf dist
 
-.PHONY: all build snapshot release clean
+.PHONY: all build release-snapshot release clean

@@ -44,7 +44,7 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             make release
           else
-            make snapshot
+            make release-snapshot
           fi
 
       - name: Upload release artifacts
