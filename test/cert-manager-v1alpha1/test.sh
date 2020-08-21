@@ -47,6 +47,7 @@ kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=available deploy --all -n
 sleep 10 # NB give the deploy more time to be ready. let us know if you know a better way!
 
 kubectl --kubeconfig=$CONFIG_PATH apply -f ./certs.yaml
+sleep 10 # NB give cert-manager time to create the certificates. let us know if you know a better way to do this!
 
 kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=ready certificate/selfsigned-cert -n cert-manager-test
 
