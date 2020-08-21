@@ -18,7 +18,6 @@ builds:
       - -X main.version={{ .Version }}
       - -X main.commit={{ .Commit }}
       - -X main.date={{ .CommitDate }}
-      - -X main.builtBy=goreleaser
     mod_timestamp: '{{ .CommitTimestamp }}'
 changelog:
   sort: asc
