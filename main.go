@@ -16,10 +16,9 @@ import (
 )
 
 var (
-	version = "dev"
+	version = "unknown"
 	commit  = "unknown"
 	date    = "unknown"
-	builtBy = "unknown"
 )
 
 var (
@@ -58,7 +57,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	glog.Infof("Application Starting %s, commit %s, built at %s by %s", version, commit, date, builtBy)
+	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
 	if len(includeCertGlobs) > 0 {
 		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
