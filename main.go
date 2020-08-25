@@ -22,19 +22,21 @@ var (
 )
 
 var (
-	includeCertGlobs          args.GlobArgs
-	excludeCertGlobs          args.GlobArgs
-	includeKubeConfigGlobs    args.GlobArgs
-	excludeKubeConfigGlobs    args.GlobArgs
-	prometheusListenAddress   string
-	prometheusPath            string
-	pollingPeriod             time.Duration
-	kubeconfigPath            string
-	secretsLabelSelector      args.GlobArgs
-	secretsAnnotationSelector args.GlobArgs
-	secretsNamespace          string
-	includeSecretsDataGlobs   args.GlobArgs
-	excludeSecretsDataGlobs   args.GlobArgs
+	includeCertGlobs           args.GlobArgs
+	excludeCertGlobs           args.GlobArgs
+	includeKubeConfigGlobs     args.GlobArgs
+	excludeKubeConfigGlobs     args.GlobArgs
+	prometheusListenAddress    string
+	prometheusPath             string
+	pollingPeriod              time.Duration
+	kubeconfigPath             string
+	secretsLabelSelector       args.GlobArgs
+	secretsAnnotationSelector  args.GlobArgs
+	secretsNamespace           string
+	includeSecretsDataGlobs    args.GlobArgs
+	excludeSecretsDataGlobs    args.GlobArgs
+	enableCloudWatchInRegion   string
+	cloudWatchMetricsNamespace string
 )
 
 func init() {
@@ -52,6 +54,8 @@ func init() {
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Secret globs to include when looking for secret data keys (Default \"*\").")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
+	flag.StringVar(&enableCloudWatchInRegion, "enable-cloudwatch-in-region", "", "Enable sending metrics to CloudWatch in selected region.")
+	flag.StringVar(&cloudWatchMetricsNamespace, "cloudwatch-metrics-namespace", "Monitoring", "Cloudwatch metrics namespace Default \"Monitoring\".")
 }
 
 func main() {
@@ -60,12 +64,20 @@ func main() {
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
 	if len(includeCertGlobs) > 0 {
-		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
+		exps := []exporters.Exporter{&exporters.CertExporter{}}
+		if len(enableCloudWatchInRegion) > 0 {
+			exps = append(exps, exporters.NewCloudWatchExporter(enableCloudWatchInRegion, cloudWatchMetricsNamespace))
+		}
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), exps)
 		go certChecker.StartChecking()
 	}
 
 	if len(includeKubeConfigGlobs) > 0 {
-		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), &exporters.KubeConfigExporter{})
+		exps := []exporters.Exporter{&exporters.KubeConfigExporter{}}
+		if len(enableCloudWatchInRegion) > 0 {
+			exps = append(exps, exporters.NewCloudWatchExporter(enableCloudWatchInRegion, cloudWatchMetricsNamespace))
+		}
+		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), exps)
 		go configChecker.StartChecking()
 	}
 
