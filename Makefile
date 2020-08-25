@@ -13,6 +13,8 @@ release-snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --skip-publish --rm-dist
 
 release: $(GORELEASER)
+	git clean -f
+	git checkout -- .
 	$(GORELEASER) release --rm-dist
 
 clean:
