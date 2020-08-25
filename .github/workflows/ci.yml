@@ -1,10 +1,6 @@
 name: CI
 
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: [push]
 
 jobs:
   test:
@@ -41,6 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euxo pipefail
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             make release
           else
