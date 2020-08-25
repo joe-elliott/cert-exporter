@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     tags:
-      - master
+      - '*'
 
 jobs:
   test:
