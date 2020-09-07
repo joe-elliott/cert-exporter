@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cert-exporter.fullname" . }}-cert-manager
+  labels:
+    {{- include "cert-exporter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.certManagerDeployment.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "cert-exporter.deploymentSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cert-exporter.deploymentSelectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.certManagerDeployment.deployment.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "cert-exporter.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.certManagerDeployment.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.certManagerDeployment.deployment.securityContext | nindent 12 }}
+          image: "{{ .Values.certManagerDeployment.deployment.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.certManagerDeployment.deployment.image.pullPolicy }}
+          command: {{- toYaml .Values.certManagerDeployment.deployment.image.command }}
+          args:
+            {{- toYaml .Values.certManagerDeployment.deployment.image.args | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.certManagerDeployment.deployment.resources | nindent 12 }}
+      {{- with .Values.certManagerDeployment.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.certManagerDeployment.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.certManagerDeployment.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

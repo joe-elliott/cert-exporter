@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "cert-exporter.fullname" . }}-cert-manager
+  namespace: {{ template "cert-exporter.namespace" . }}
+  labels:
+    app: {{ template "cert-exporter.name" . }}-coredns
+{{ include "cert-exporter.labels" . | indent 4 }}
+spec:
+  jobLabel: jobLabel
+  selector:
+    matchLabels:
+      app: {{ template "cert-exporter.name" . }}-coredns
+      release: {{ .Release.Name | quote }}
+  namespaceSelector:
+    matchNames:
+      - "kube-system"
+  endpoints:
+  - port: http-metrics
+    {{- if .Values.certManagerDeployment.serviceMonitor.interval}}
+    interval: {{ .Values.certManagerDeployment.serviceMonitor.interval }}
+    {{- end }}
+{{- if .Values.certManagerDeployment.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+{{ tpl (toYaml .Values.certManagerDeployment.serviceMonitor.metricRelabelings | indent 4) . }}
+{{- end }}
+{{- if .Values.certManagerDeployment.serviceMonitor.relabelings }}
+    relabelings:
+{{ toYaml .Values.certManagerDeployment.serviceMonitor.relabelings | indent 4 }}
+{{- end }}
+s

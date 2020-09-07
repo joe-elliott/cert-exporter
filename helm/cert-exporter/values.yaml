@@ -1,0 +1,97 @@
+
+# Right now this chart only supports Deployments.
+# In future it might be extended to support Daemonsets as well.
+
+certManagerDeployment:
+  deployment:
+    replicaCount: 1
+
+    image:
+      repository: joeelliott/cert-exporter
+      pullPolicy: IfNotPresent
+      command: ["./app"]
+      args:
+      - --secrets-annotation-selector=cert-manager.io/certificate-name
+      - --secrets-include-glob=*.crt
+      - --logtostderr
+    imagePullSecrets: []
+    nameOverride: ""
+    fullnameOverride: ""
+
+    podSecurityContext: {}
+    # fsGroup: 2000
+
+    securityContext: {}
+      # capabilities:
+      #   drop:s
+      #   - ALL
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+
+    resources: {}
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+  
+    serviceMonitor:
+    ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+    ##
+    interval: 20s
+
+    ## metric relabel configs to apply to samples before ingestion.
+    ##
+    metricRelabelings: []
+    # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
+
+    # relabel configs to apply to samples before ingestion.
+    ##
+    relabelings: []
+    # - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #   separator: ;
+    #   regex: ^(.*)$
+    #   targetLabel: nodename
+    #   replacement: $1
+    #   action: replace
+
+
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+clusterRole:
+  # New role to grant to the service account
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # Rules for the Role
+  rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+dashboards:
+  additionalLabels:
+    grafana-dashboard: "1"
+  certManagerDashboard:
+    create: true
