@@ -12,21 +12,23 @@ import (
 
 // PeriodicCertChecker is an object designed to check for files on disk at a regular interval
 type PeriodicCertChecker struct {
-	period           time.Duration
-	includeCertGlobs []string
-	excludeCertGlobs []string
-	nodeName         string
-	exporter         exporters.Exporter
+	period               time.Duration
+	includeCertGlobs     []string
+	excludeCertGlobs     []string
+	nodeName             string
+	includeFullCertChain bool
+	exporter             exporters.Exporter
 }
 
 // NewCertChecker is a factory method that returns a new PeriodicCertChecker
-func NewCertChecker(period time.Duration, includeCertGlobs, excludeCertGlobs []string, nodeName string, e exporters.Exporter) *PeriodicCertChecker {
+func NewCertChecker(period time.Duration, includeCertGlobs, excludeCertGlobs []string, nodeName string, includeFullCertChain bool, e exporters.Exporter) *PeriodicCertChecker {
 	return &PeriodicCertChecker{
-		period:           period,
-		includeCertGlobs: includeCertGlobs,
-		excludeCertGlobs: excludeCertGlobs,
-		nodeName:         nodeName,
-		exporter:         e,
+		period:               period,
+		includeCertGlobs:     includeCertGlobs,
+		excludeCertGlobs:     excludeCertGlobs,
+		nodeName:             nodeName,
+		includeFullCertChain: includeFullCertChain,
+		exporter:             e,
 	}
 }
 
@@ -43,7 +45,7 @@ func (p *PeriodicCertChecker) StartChecking() {
 
 			glog.Infof("Publishing %v node metrics %v", p.nodeName, match)
 
-			err := p.exporter.ExportMetrics(match, p.nodeName)
+			err := p.exporter.ExportMetrics(match, p.nodeName, p.includeFullCertChain)
 			if err != nil {
 				metrics.ErrorTotal.Inc()
 				glog.Errorf("Error on %v: %v", match, err)

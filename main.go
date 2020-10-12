@@ -35,6 +35,7 @@ var (
 	secretsNamespace          string
 	includeSecretsDataGlobs   args.GlobArgs
 	excludeSecretsDataGlobs   args.GlobArgs
+	includeFullCertChain      bool
 )
 
 func init() {
@@ -45,6 +46,7 @@ func init() {
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
+	flag.BoolVar(&includeFullCertChain, "include-full-cert-chain", false, "Set to true to expose metrics for all certificates in the chain (Default false).")
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
@@ -58,14 +60,17 @@ func main() {
 	flag.Parse()
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
+	if includeFullCertChain {
+		glog.Infof("Argument '-include-full-cert-chain' set to true. Metrics for all certificates in the chain will be published.")
+	}
 
 	if len(includeCertGlobs) > 0 {
-		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), includeFullCertChain, &exporters.CertExporter{})
 		go certChecker.StartChecking()
 	}
 
 	if len(includeKubeConfigGlobs) > 0 {
-		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), &exporters.KubeConfigExporter{})
+		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), includeFullCertChain, &exporters.KubeConfigExporter{})
 		go configChecker.StartChecking()
 	}
 
@@ -73,7 +78,7 @@ func main() {
 		if len(includeSecretsDataGlobs) == 0 {
 			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 		}
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{})
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, includeFullCertChain, &exporters.SecretExporter{})
 		go configChecker.StartChecking()
 	}
 

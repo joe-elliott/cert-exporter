@@ -42,6 +42,8 @@ The following 9 flags are the most commonly used to control cert-exporter behavi
     	File globs to exclude when looking for kubeconfigs.
   -include-cert-glob value
     	File globs to include when looking for certs.
+  -include-full-cert-chain
+      Set to true to expose metrics for all certificates in the chain (Default false).
   -include-kubeconfig-glob value
     	File globs to include when looking for kubeconfigs.
   -secrets-annotation-selector string

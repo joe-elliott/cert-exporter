@@ -24,10 +24,11 @@ type PeriodicSecretChecker struct {
 	exporter                *exporters.SecretExporter
 	includeSecretsDataGlobs []string
 	excludeSecretsDataGlobs []string
+	includeFullCertChain    bool
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, includeFullCertChain bool, e *exporters.SecretExporter) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:                  period,
 		labelSelectors:          labelSelectors,
@@ -37,6 +38,7 @@ func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGl
 		exporter:                e,
 		includeSecretsDataGlobs: includeSecretsDataGlobs,
 		excludeSecretsDataGlobs: excludeSecretsDataGlobs,
+		includeFullCertChain:    includeFullCertChain,
 	}
 }
 
@@ -136,7 +138,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 				if include && !exclude {
 					glog.Infof("Publishing %v/%v metrics %v", secret.Name, secret.Namespace, name)
-					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace)
+					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace, p.includeFullCertChain)
 					if err != nil {
 						glog.Errorf("Error exporting secret %v", err)
 						metrics.ErrorTotal.Inc()
