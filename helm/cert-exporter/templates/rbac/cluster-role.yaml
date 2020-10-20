@@ -1,15 +1,15 @@
-{{- if .Values.clusterRole.create -}}
+{{- if .Values.rbac.clusterRole.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "cert-exporter.fullname" . }}
   labels:
-    {{- include "cert-exporter.labels" . | nindent 4 }}
-  {{- with .Values.clusterRole.annotations }}
+    {{- include "cert-exporter.genericLabels" . | nindent 4 }}
+  {{- with .Values.rbac.clusterRole.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-{{- with .Values.clusterRole.rules }}
+{{- with .Values.rbac.clusterRole.rules }}
 rules:
   {{- toYaml . | nindent 2 }}
 {{- end }}

@@ -1,13 +1,17 @@
+{{- if .Values.rbac.clusterRoleBinding.create -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: cert-exporter
+  name: {{ include "cert-exporter.fullname" . }}
+  labels:
+    {{- include "cert-exporter.genericLabels" . | nindent 4}}
 subjects:
 - kind: ServiceAccount
-  name: cert-exporter
-  namespace: default
+  name: {{ include "cert-exporter.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: secret-reader
+  name: {{ include "cert-exporter.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
+{{- end -}}

@@ -3,13 +3,12 @@ kind: Service
 metadata:
   name: {{ include "cert-exporter.fullname" . }}
   labels:
-    app: {{ template "cert-exporter.name" . }}-cert-manager
-    jobLabel: cert-exporter
-{{- include "cert-exporter.labels" . | indent 4 }}
+    {{ include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.certManagerDeployment.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      name: metrics
+    - port: {{ .Values.certManagerDeployment.service.port }}
+      name: {{ .Values.certManagerDeployment.service.portName }}
+      targetPort: 8080
   selector:
-{{- include "cert-exporter.labels" . | indent 4 }}
+    {{ include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 6 }}

@@ -1,19 +1,18 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cert-exporter.fullname" . }}-cert-manager
+  name: "{{- include "cert-exporter.fullname" . -}}-cert-manager"
   labels:
-    {{- include "cert-exporter.labels" . | nindent 4 }}
+    {{- include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.certManagerDeployment.deployment.replicaCount }}
   selector:
     matchLabels:
-      {{- include "cert-exporter.deploymentSelectorLabels" . | nindent 6 }}
+      {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "cert-exporter.deploymentSelectorLabels" . | nindent 8 }}
+        {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.certManagerDeployment.deployment.imagePullSecrets }}
       imagePullSecrets:
@@ -26,23 +25,20 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.certManagerDeployment.deployment.securityContext | nindent 12 }}
-          image: "{{ .Values.certManagerDeployment.deployment.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.certManagerDeployment.deployment.image.repository  }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.certManagerDeployment.deployment.image.pullPolicy }}
-          command: {{- toYaml .Values.certManagerDeployment.deployment.image.command }}
+          {{- with .Values.certManagerDeployment.deployment.image.command  }}
+          command:
+            {{- toYaml . | nindent 12}}
+          {{- end}}
+          {{- with .Values.certManagerDeployment.deployment.image.args  }}
           args:
-            {{- toYaml .Values.certManagerDeployment.deployment.image.args | nindent 12 }}
+            {{- toYaml . | nindent 12}}
+          {{- end}}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.certManagerDeployment.deployment.resources | nindent 12 }}
       {{- with .Values.certManagerDeployment.deployment.nodeSelector }}

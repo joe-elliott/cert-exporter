@@ -11,9 +11,9 @@ certManagerDeployment:
       pullPolicy: IfNotPresent
       command: ["./app"]
       args:
-      - --secrets-annotation-selector=cert-manager.io/certificate-name
-      - --secrets-include-glob=*.crt
-      - --logtostderr
+        - --secrets-annotation-selector=cert-manager.io/certificate-name
+        - --secrets-include-glob=*.crt
+        - --logtostderr
     imagePullSecrets: []
     nameOverride: ""
     fullnameOverride: ""
@@ -44,54 +44,67 @@ certManagerDeployment:
 
   service:
     type: ClusterIP
-    port: 80
+    port: 8080
+
+    portName: http-metrics
   
+    # Requires prometheus-operator to be installed
     serviceMonitor:
-    ## Scrape interval. If not set, the Prometheus default scrape interval is used.
-    ##
-    interval: 20s
+      create: false
 
-    ## metric relabel configs to apply to samples before ingestion.
-    ##
-    metricRelabelings: []
-    # - action: keep
-    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
-    #   sourceLabels: [__name__]
+      # cannot be empty
+      additionalLabels:
+        prometheus.io/load-rule: "true"
+    
+      ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+      ##
+      interval: 20s
 
-    # relabel configs to apply to samples before ingestion.
-    ##
-    relabelings: []
-    # - sourceLabels: [__meta_kubernetes_pod_node_name]
-    #   separator: ;
-    #   regex: ^(.*)$
-    #   targetLabel: nodename
-    #   replacement: $1
-    #   action: replace
+      ## metric relabel configs to apply to samples before ingestion.
+      ##
+      metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
 
+      # relabel configs to apply to samples before ingestion.
+      ##
+      relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
 
+rbac:
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: cert-exporter
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name:
-
-clusterRole:
-  # New role to grant to the service account
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # Rules for the Role
-  rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list"]
+  clusterRole:
+    # New role to grant to the service account
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # Rules for the Role
+    rules:
+    - apiGroups: [""]
+      resources: ["secrets"]
+      verbs: ["get", "list"]
+  
+  clusterRoleBinding:
+    create: true
 
 dashboards:
+  # Labels to add to all dashboard ConfigMaps
   additionalLabels:
     grafana-dashboard: "1"
   certManagerDashboard:
     create: true
+  namespace: monitoring

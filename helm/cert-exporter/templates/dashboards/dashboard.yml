@@ -1,12 +1,15 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "cert-exporter.fullname" . }}-default-dashboard
+  name: "{{ include "cert-exporter.fullname" . }}-default-dashboard"
+  namespace: {{ .Values.dashboards.namespace }}
   labels:
-{{- toYaml .Values.dashboards.additionalLabels | indent 4 }}
-{{- include "cert-exporter.labels" . | indent 4 }}
+    {{ toYaml .Values.dashboards.additionalLabels | nindent 4 }}
+    {{ include "cert-exporter.genericLabels" . | nindent 4 }}
 data:
   cert-exporter-default-dashboard.json: |-
+  {{`
     {
       "annotations": {
         "list": [
@@ -598,3 +601,4 @@ data:
       "uid": "as4qRIIWz",
       "version": 4
     }
+  `}}
