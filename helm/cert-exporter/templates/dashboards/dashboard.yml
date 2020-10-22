@@ -9,7 +9,6 @@ metadata:
     {{ include "cert-exporter.genericLabels" . | nindent 4 }}
 data:
   cert-exporter-default-dashboard.json: |-
-  {{`
     {
       "annotations": {
         "list": [
@@ -601,4 +600,3 @@ data:
       "uid": "as4qRIIWz",
       "version": 4
     }
-  `}}
