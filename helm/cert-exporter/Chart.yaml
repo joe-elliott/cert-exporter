@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cert-exporter
+description: Monitors and exposes PKI information as Prometheus metrics
+
+type: application
+version: 0.1.1
+appVersion: v2.3.2

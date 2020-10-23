@@ -1,0 +1,30 @@
+{{- if .Values.certManagerDeployment.service.serviceMonitor.create -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "cert-exporter.fullname" . }}-cert-manager
+  labels:
+    {{- toYaml .Values.certManagerDeployment.service.serviceMonitor.additionalLabels | nindent 4 }}
+    {{- include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
+spec:
+  jobLabel: jobLabel
+  selector:
+    matchLabels:
+      {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace | quote }}
+  endpoints:
+  - port: {{ .Values.certManagerDeployment.service.portName }}
+    {{- if .Values.certManagerDeployment.service.serviceMonitor.interval}}
+    interval: {{ .Values.certManagerDeployment.service.serviceMonitor.interval }}
+    {{- end }}
+    {{- if .Values.certManagerDeployment.service.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+      {{ toYaml .Values.certManagerDeployment.service.serviceMonitor.metricRelabelings | nindent 6 }}
+    {{- end }}
+    {{- if .Values.certManagerDeployment.service.serviceMonitor.relabelings }}
+    relabelings:
+      {{ toYaml .Values.certManagerDeployment.service.serviceMonitor.relabelings | nindent 6 }}
+    {{- end }}
+{{- end }}
