@@ -388,7 +388,7 @@ data:
               "expr": "increase(cert_exporter_error_total[1h])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{kubernetes_pod_name}}",
+              "legendFormat": "{{ printf "{{ kubernetes_pod_name }}" }}",
               "refId": "A"
             }
           ],
