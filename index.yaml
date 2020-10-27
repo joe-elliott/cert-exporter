@@ -2,7 +2,7 @@ apiVersion: v1
 entries:
   cert-exporter:
   - apiVersion: v2
-    appVersion: v2.3.2
+    appVersion: v2.3.2-remove
     created: "2020-10-22T19:24:54.79698086Z"
     description: Monitors and exposes PKI information as Prometheus metrics
     digest: 89ada3f61f3460c95d722486888c3b57b50828f8dc3e74e68d262a3ddc33f9e9
