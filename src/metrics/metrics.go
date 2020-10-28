@@ -66,6 +66,16 @@ var (
 		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
 	)
 
+	// SecretCheckTotal is a prometheus counter that indicates the total number of times a secret was found
+	SecretCheckTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: namespace,
+			Name:      "secret_check_total",
+			Help:      "Number of times a secret was found",
+		},
+		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
+	)
+
 	// SecretNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
 	SecretNotAfterTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -85,4 +95,5 @@ func init() {
 	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
 	prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(SecretCheckTotal)
 }
