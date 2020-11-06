@@ -17,44 +17,43 @@ type certMetric struct {
 	cn                  string
 }
 
-func secondsToExpiryFromCertAsFile(file string, includeFullCertChain bool) ([]certMetric, error) {
+func secondsToExpiryFromCertAsFile(file string) ([]certMetric, error) {
 	certBytes, err := ioutil.ReadFile(file)
 	if err != nil {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes, includeFullCertChain)
+	return secondsToExpiryFromCertAsBytes(certBytes)
 }
 
-func secondsToExpiryFromCertAsBase64String(s string, includeFullCertChain bool) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBase64String(s string) ([]certMetric, error) {
 	certBytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes, includeFullCertChain)
+	return secondsToExpiryFromCertAsBytes(certBytes)
 }
 
-func secondsToExpiryFromCertAsBytes(certBytes []byte, includeFullCertChain bool) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
 	var metrics []certMetric
 	var blocks []*pem.Block
 
+	// Export the first certificates in the certificate chain
 	block, rest := pem.Decode(certBytes)
 	if block == nil {
 		return metrics, fmt.Errorf("Failed to parse as a pem")
 	}
 	blocks = append(blocks, block)
 
-	// If the include-full-cert-chain flag is used, the rest of the bytes in the file will also be processed
-	if includeFullCertChain {
-		for len(rest) != 0 {
-			block, rest = pem.Decode(rest)
-			if block == nil {
-				return metrics, fmt.Errorf("Failed to parse intermediate as a pem")
-			}
-			if block.Type == "CERTIFICATE" {
-				blocks = append(blocks, block)
-			}
+	// Export the remaining certificates in the certificate chain
+	for len(rest) != 0 {
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			return metrics, fmt.Errorf("Failed to parse intermediate as a pem")
+		}
+		if block.Type == "CERTIFICATE" {
+			blocks = append(blocks, block)
 		}
 	}
 

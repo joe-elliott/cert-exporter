@@ -13,7 +13,7 @@ type KubeConfigExporter struct {
 }
 
 // ExportMetrics exports all certs in the passed in kubeconfig file
-func (c *KubeConfigExporter) ExportMetrics(file, nodeName string, includeFullCertChain bool) error {
+func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 	k, err := kubeconfig.ParseKubeConfig(file)
 
 	if err != nil {
@@ -24,14 +24,14 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string, includeFullCer
 		var metricCollection []certMetric
 
 		if c.Cluster.CertificateAuthorityData != "" {
-			metricCollection, err = secondsToExpiryFromCertAsBase64String(c.Cluster.CertificateAuthorityData, includeFullCertChain)
+			metricCollection, err = secondsToExpiryFromCertAsBase64String(c.Cluster.CertificateAuthorityData)
 
 			if err != nil {
 				return err
 			}
 		} else if c.Cluster.CertificateAuthority != "" {
 			certFile := pathToFileFromKubeConfig(c.Cluster.CertificateAuthority, file)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, includeFullCertChain)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
@@ -50,14 +50,14 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string, includeFullCer
 		var metricCollection []certMetric
 
 		if u.User.ClientCertificateData != "" {
-			metricCollection, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData, includeFullCertChain)
+			metricCollection, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData)
 
 			if err != nil {
 				return err
 			}
 		} else if u.User.ClientCertificate != "" {
 			certFile := pathToFileFromKubeConfig(u.User.ClientCertificate, file)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, includeFullCertChain)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile)
 
 			if err != nil {
 				return err
