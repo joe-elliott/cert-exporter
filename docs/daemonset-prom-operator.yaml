@@ -19,7 +19,7 @@ spec:
         k8s-app: cert-exporter
     spec:
       containers:
-      - image: joeelliott/cert-exporter:v2.3.2
+      - image: joeelliott/cert-exporter:v2.4.0
         name: cert-exporter
         command: ["./app"]
         args:

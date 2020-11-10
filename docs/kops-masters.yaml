@@ -27,7 +27,7 @@ spec:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
       containers:
-      - image: joeelliott/cert-exporter:v2.3.2
+      - image: joeelliott/cert-exporter:v2.4.0
         name: cert-exporter-masters
         command: ["./app"]
         args:
