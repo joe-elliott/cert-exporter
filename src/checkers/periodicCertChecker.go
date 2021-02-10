@@ -1,11 +1,11 @@
 package checkers
 
 import (
-	"path/filepath"
 	"time"
 
 	"github.com/golang/glog"
 
+	"github.com/bmatcuk/doublestar/v3"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
@@ -37,10 +37,6 @@ func (p *PeriodicCertChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 		for _, match := range p.getMatches() {
-			if !p.includeFile(match) {
-				continue
-			}
-
 			glog.Infof("Publishing %v node metrics %v", p.nodeName, match)
 
 			err := p.exporter.ExportMetrics(match, p.nodeName)
@@ -55,34 +51,36 @@ func (p *PeriodicCertChecker) StartChecking() {
 }
 
 func (p *PeriodicCertChecker) getMatches() []string {
-	ret := make([]string, 0)
+	set := map[string]bool{}
 	for _, includeGlob := range p.includeCertGlobs {
-		matches, err := filepath.Glob(includeGlob)
+		matches, err := doublestar.Glob(includeGlob)
 		if err != nil {
 			metrics.ErrorTotal.Inc()
 			glog.Errorf("Glob failed on %v: %v", includeGlob, err)
 			continue
 		}
-
-		ret = append(ret, matches...)
+		for _, match := range matches {
+			set[match] = true
+		}
 	}
 
-	return ret
-}
-
-func (p *PeriodicCertChecker) includeFile(file string) bool {
 	for _, excludeGlob := range p.excludeCertGlobs {
-		exclude, err := filepath.Match(excludeGlob, file)
+		matches, err := doublestar.Glob(excludeGlob)
 		if err != nil {
 			metrics.ErrorTotal.Inc()
-			glog.Errorf("Match failed on %v,%v: %v", excludeGlob, file, err)
-			return false
+			glog.Errorf("Glob failed on %v: %v", excludeGlob, err)
+			continue
 		}
-
-		if exclude {
-			return false
+		for _, match := range matches {
+			delete(set, match)
 		}
 	}
 
-	return true
+	res := make([]string, len(set))
+	i := 0
+	for k := range set {
+		res[i] = k
+		i++
+	}
+	return res
 }

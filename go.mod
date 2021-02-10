@@ -3,6 +3,7 @@ module github.com/joe-elliott/cert-exporter
 go 1.14
 
 require (
+	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/googleapis/gnostic v0.3.0 // indirect
