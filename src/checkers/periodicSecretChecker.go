@@ -92,12 +92,12 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			// If you want only a certain type of cert
 			if len(p.includeSecretsTypes) > 0 {
 				exclude = false
-				for	_, t := range p.includeSecretsTypes {
+				for _, t := range p.includeSecretsTypes {
 					if string(secret.Type) == t {
 						include = true
 					}
 					if include {
-				       continue
+						continue
 					}
 				}
 				if !include {
