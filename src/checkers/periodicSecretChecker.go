@@ -101,7 +101,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					}
 				}
 				if !include {
-					glog.Infof("Skipping secret %s in %s because %s is not included in your secret-include-types %v", secret.GetName(), secret.GetNamespace(), secret.Type, p.includeSecretsTypes)
+					glog.Infof("Ignoring secret %s in %s because %s is not included in your secret-include-types %v", secret.GetName(), secret.GetNamespace(), secret.Type, p.includeSecretsTypes)
 					continue
 				}
 			}
