@@ -24,10 +24,11 @@ type PeriodicSecretChecker struct {
 	exporter                *exporters.SecretExporter
 	includeSecretsDataGlobs []string
 	excludeSecretsDataGlobs []string
+	includeSecretsTypes     []string
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.SecretExporter) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.SecretExporter, includeSecretsTypes []string) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:                  period,
 		labelSelectors:          labelSelectors,
@@ -37,6 +38,7 @@ func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGl
 		exporter:                e,
 		includeSecretsDataGlobs: includeSecretsDataGlobs,
 		excludeSecretsDataGlobs: excludeSecretsDataGlobs,
+		includeSecretsTypes:     includeSecretsTypes,
 	}
 }
 
@@ -86,6 +88,24 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		}
 
 		for _, secret := range secrets {
+			include, exclude := false, false
+			// If you want only a certain type of cert
+			if len(p.includeSecretsTypes) > 0 {
+				exclude = false
+				for _, t := range p.includeSecretsTypes {
+					if string(secret.Type) == t {
+						include = true
+					}
+					if include {
+						continue
+					}
+				}
+				if !include {
+					glog.Infof("Ignoring secret %s in %s because %s is not included in your secret-include-types %v", secret.GetName(), secret.GetNamespace(), secret.Type, p.includeSecretsTypes)
+					continue
+				}
+			}
+
 			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
 
 			if len(p.annotationSelectors) > 0 {
@@ -106,7 +126,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			glog.Infof("Annotations matched. Parsing Secret.")
 
 			for name, bytes := range secret.Data {
-				include, exclude := false, false
+				include, exclude = false, false
 
 				for _, glob := range p.includeSecretsDataGlobs {
 					include, err = filepath.Match(glob, name)
