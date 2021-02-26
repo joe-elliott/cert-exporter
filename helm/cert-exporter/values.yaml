@@ -47,7 +47,10 @@ certManagerDeployment:
     port: 8080
 
     portName: http-metrics
-  
+
+    # Annotations to add to the service
+    annotations: {}
+
     # Requires prometheus-operator to be installed
     serviceMonitor:
       create: false
@@ -55,7 +58,7 @@ certManagerDeployment:
       # cannot be empty
       additionalLabels:
         prometheus.io/load-rule: "true"
-    
+
       ## Scrape interval. If not set, the Prometheus default scrape interval is used.
       ##
       interval: 20s
@@ -97,7 +100,7 @@ rbac:
     - apiGroups: [""]
       resources: ["secrets"]
       verbs: ["get", "list"]
-  
+
   clusterRoleBinding:
     create: true
 

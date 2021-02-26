@@ -4,6 +4,10 @@ metadata:
   name: {{ include "cert-exporter.fullname" . }}
   labels:
     {{ include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
+  {{- with .Values.certManagerDeployment.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.certManagerDeployment.service.type }}
   ports:
