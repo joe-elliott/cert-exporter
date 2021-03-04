@@ -18,16 +18,17 @@ import (
 
 // PeriodicAwsChecker is an object designed to check for .pem files in AWS Secrets Manager
 type PeriodicAwsChecker struct {
+	awsAccount, awsRegion string
 	period           time.Duration
-	environment         string
 	exporter         *exporters.AwsExporter
 }
 
 // NewCertChecker is a factory method that returns a new AwsCertChecker
-func NewAwsChecker(period time.Duration, environment string, e *exporters.AwsExporter) *PeriodicAwsChecker {
+func NewAwsChecker(awsAccount string, awsRegion string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
 	return &PeriodicAwsChecker{
+		awsAccount:	      awsAccount,
+		awsRegion:		  awsRegion,
 		period:           period,
-		environment:         environment,
 		exporter:         e,
 	}
 }
@@ -40,20 +41,19 @@ func (p *PeriodicAwsChecker) StartChecking() {
 		glog.Info("Begin periodic check")
 
 		// Create a Session with a custom region
-		svc := secretsmanager.New(session.New(), aws.NewConfig().WithRegion("eu-central-1"))
+		svc := secretsmanager.New(session.New(), aws.NewConfig().WithRegion(p.awsRegion))
 
 		//TODO: Incorporate below block in FOR loop over all secrets passed as environment variable
-		secretNameArray := []string{"namespace", "am_config"}
-		environment:="acc"
-		account:="689483148385"
-		region:="eu-central-1"
+		secretNameArray := []string{"mnyp-secrets-auth/acc/namespace","mnyp-secrets-auth/acc/am_config","mnyp-secrets-auth/acc/am_encap"}
+		//account:="689483148385"
+		//region:="eu-central-1"
 
 		for _, secretName := range secretNameArray {
 			fmt.Println("# [INFO] Getting secret "+secretName+" from AWS Secrets Manager")
-			secretFullName:="mnyp-secrets-auth/"+environment+"/"+secretName
+
 
 			input := &secretsmanager.GetSecretValueInput{
-				SecretId:     aws.String("arn:aws:secretsmanager:"+region+":"+account+":secret:"+secretFullName),
+				SecretId:     aws.String("arn:aws:secretsmanager:"+p.awsRegion+":"+p.awsAccount+":secret:"+secretName),
 			}
 			
 			secretValue, err := svc.GetSecretValue(input)
@@ -70,8 +70,8 @@ func (p *PeriodicAwsChecker) StartChecking() {
 	
 			for key, value := range secretMap {
 				if (strings.Contains(key, ".pem")){
-					fmt.Printf("# [INFO] Exporting metrics from  %s", key)
-					err := p.exporter.ExportMetrics(value.(string),environment)
+					fmt.Println("# [INFO] Exporting metrics from ", key)
+					err := p.exporter.ExportMetrics(value.(string),secretName)
 					if err != nil {
 						metrics.ErrorTotal.Inc()
 						fmt.Errorf("Error exporting certificate metrics")

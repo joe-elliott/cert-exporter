@@ -36,6 +36,8 @@ var (
 	includeSecretsDataGlobs   args.GlobArgs
 	excludeSecretsDataGlobs   args.GlobArgs
 	includeSecretsTypes       args.GlobArgs
+	awsAccount		  		  string
+	awsRegion	              string
 )
 
 func init() {
@@ -54,6 +56,9 @@ func init() {
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Secret globs to include when looking for secret data keys (Default \"*\").")
 	flag.Var(&includeSecretsTypes, "secret-include-types", "Select only specific a secret type (Default nil).")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
+
+	flag.StringVar(&awsAccount, "aws-account","", "AWS account to search for secrets in")
+	flag.StringVar(&awsRegion, "aws-region","", "AWS region to search for secrets in")
 }
 
 func main() {
@@ -61,8 +66,29 @@ func main() {
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
-	certChecker := checkers.NewAwsChecker(pollingPeriod, os.Getenv("ENV"), &exporters.AwsExporter{})
-	go certChecker.StartChecking()
+	if len(includeCertGlobs) > 0 {
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
+		go certChecker.StartChecking()
+	}
+
+	if len(includeKubeConfigGlobs) > 0 {
+		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), &exporters.KubeConfigExporter{})
+		go configChecker.StartChecking()
+	}
+
+	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 || len(includeSecretsDataGlobs) > 0 {
+		if len(includeSecretsDataGlobs) == 0 {
+			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
+		}
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
+		go configChecker.StartChecking()
+	}
+
+	if len(awsAccount) > 0 && len(awsRegion) > 0 {
+		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s", awsAccount, awsRegion)
+		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, pollingPeriod, &exporters.AwsExporter{})
+		go awsChecker.StartChecking()
+	}
 
 	http.Handle(prometheusPath, promhttp.Handler())
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))

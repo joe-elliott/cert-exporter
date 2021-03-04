@@ -9,14 +9,14 @@ type AwsExporter struct {
 }
 
 // ExportMetrics exports the provided PEM file
-func (c *AwsExporter) ExportMetrics(file, env string) error {
+func (c *AwsExporter) ExportMetrics(file, secretName string) error {
 	metricCollection, err := secondsToExpiryFromCertAsBase64String(file)
 	if err != nil {
 		return err
 	}
 
 	for _, metric := range metricCollection {
-		metrics.AwsCertExpirySeconds.WithLabelValues(file, metric.issuer, metric.cn).Set(metric.durationUntilExpiry)
+		metrics.AwsCertExpirySeconds.WithLabelValues(secretName, file, metric.issuer, metric.cn).Set(metric.durationUntilExpiry)
 	}
 
 	return nil

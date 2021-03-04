@@ -83,7 +83,7 @@ var (
 			Name:      "cert_expires_in_seconds",
 			Help:      "Number of seconds til the cert expires.",
 		},
-		[]string{"filename", "issuer", "cn"},
+		[]string{"secretName","file", "issuer", "cn"},
 	)
 )
 
