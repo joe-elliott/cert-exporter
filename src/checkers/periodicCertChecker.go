@@ -6,8 +6,8 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/bmatcuk/doublestar/v3"
-	"github.com/joe-elliott/cert-exporter/src/exporters"
-	"github.com/joe-elliott/cert-exporter/src/metrics"
+	"github.com/hakhundov/cert-exporter/src/exporters"
+	"github.com/hakhundov/cert-exporter/src/metrics"
 )
 
 // PeriodicCertChecker is an object designed to check for files on disk at a regular interval

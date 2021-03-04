@@ -7,7 +7,7 @@ certManagerDeployment:
     replicaCount: 1
 
     image:
-      repository: joeelliott/cert-exporter
+      repository: hakhundov/cert-exporter
       pullPolicy: IfNotPresent
       command: ["./app"]
       args:

@@ -10,9 +10,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/joe-elliott/cert-exporter/src/args"
-	"github.com/joe-elliott/cert-exporter/src/checkers"
-	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/hakhundov/cert-exporter/src/args"
+	"github.com/hakhundov/cert-exporter/src/checkers"
+	"github.com/hakhundov/cert-exporter/src/exporters"
 )
 
 var (
@@ -61,23 +61,8 @@ func main() {
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
-	if len(includeCertGlobs) > 0 {
-		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
-		go certChecker.StartChecking()
-	}
-
-	if len(includeKubeConfigGlobs) > 0 {
-		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), &exporters.KubeConfigExporter{})
-		go configChecker.StartChecking()
-	}
-
-	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 || len(includeSecretsDataGlobs) > 0 {
-		if len(includeSecretsDataGlobs) == 0 {
-			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
-		}
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
-		go configChecker.StartChecking()
-	}
+	certChecker := checkers.NewAwsChecker(pollingPeriod, os.Getenv("ENV"), &exporters.AwsExporter{})
+	go certChecker.StartChecking()
 
 	http.Handle(prometheusPath, promhttp.Handler())
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))
