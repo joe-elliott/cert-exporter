@@ -66,7 +66,7 @@ func (p *PeriodicAwsChecker) StartChecking() {
 			for key, value := range secretMap {
 				if strings.Contains(key, ".pem") {
 					fmt.Println("# [INFO] Exporting metrics from ", key)
-					err := p.exporter.ExportMetrics(value.(string), secretName)
+					err := p.exporter.ExportMetrics(value.(string), secretName, key)
 					if err != nil {
 						metrics.ErrorTotal.Inc()
 						fmt.Errorf("Error exporting certificate metrics")
