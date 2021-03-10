@@ -2,7 +2,6 @@ package checkers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -39,13 +38,13 @@ func NewAwsChecker(awsAccount, awsRegion string, awsSecrets []string, period tim
 func (p *PeriodicAwsChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
 	for {
-		glog.Info("Begin periodic check")
+		glog.Info("AWS Checker: Begin periodic check")
 
 		// Create a Session with a custom region
 		svc := secretsmanager.New(session.New(), aws.NewConfig().WithRegion(p.awsRegion))
 
 		for _, secretName := range p.awsSecrets {
-			fmt.Println("# [INFO] Getting secret " + secretName + " from AWS Secrets Manager")
+			glog.Info("Getting secret " + secretName + " from AWS Secrets Manager")
 
 			input := &secretsmanager.GetSecretValueInput{
 				SecretId: aws.String("arn:aws:secretsmanager:" + p.awsRegion + ":" + p.awsAccount + ":secret:" + secretName),
@@ -54,8 +53,9 @@ func (p *PeriodicAwsChecker) StartChecking() {
 			secretValue, err := svc.GetSecretValue(input)
 
 			if err != nil {
+				glog.Error("Error in GetSecretValue: ", err)
 				metrics.ErrorTotal.Inc()
-				glog.Error(err)
+				continue
 			}
 
 			secretString := *secretValue.SecretString
@@ -65,11 +65,11 @@ func (p *PeriodicAwsChecker) StartChecking() {
 
 			for key, value := range secretMap {
 				if strings.Contains(key, ".pem") {
-					fmt.Println("# [INFO] Exporting metrics from ", key)
+					glog.Info("Exporting metrics from ", key)
 					err := p.exporter.ExportMetrics(value.(string), secretName, key)
 					if err != nil {
 						metrics.ErrorTotal.Inc()
-						fmt.Errorf("Error exporting certificate metrics")
+						glog.Error("Error exporting certificate metrics")
 					}
 				}
 			}
