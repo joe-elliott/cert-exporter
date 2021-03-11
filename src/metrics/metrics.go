@@ -80,7 +80,7 @@ var (
 	AwsCertExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
-			Name:      "cert_expires_in_seconds",
+			Name:      "cert_expires_in_seconds_aws",
 			Help:      "Number of seconds til the cert expires.",
 		},
 		[]string{"secretName", "key", "file", "issuer", "cn"},
