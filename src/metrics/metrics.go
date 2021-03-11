@@ -89,11 +89,11 @@ var (
 
 func init() {
 	prometheus.MustRegister(ErrorTotal)
-	//prometheus.MustRegister(CertExpirySeconds)
-	//prometheus.MustRegister(CertNotAfterTimestamp)
-	//prometheus.MustRegister(KubeConfigExpirySeconds)
-	//prometheus.MustRegister(KubeConfigNotAfterTimestamp)
-	//prometheus.MustRegister(SecretExpirySeconds)
-	//prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(CertExpirySeconds)
+	prometheus.MustRegister(CertNotAfterTimestamp)
+	prometheus.MustRegister(KubeConfigExpirySeconds)
+	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
+	prometheus.MustRegister(SecretExpirySeconds)
+	prometheus.MustRegister(SecretNotAfterTimestamp)
 	prometheus.MustRegister(AwsCertExpirySeconds)
 }

@@ -1,7 +1,7 @@
 package exporters
 
 import (
-	"github.com/hakhundov/cert-exporter/src/metrics"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 // AwsExporter exports AWS PEM file certs

@@ -10,8 +10,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/hakhundov/cert-exporter/src/exporters"
-	"github.com/hakhundov/cert-exporter/src/metrics"
+	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 // PeriodicSecretChecker is an object designed to check for files on disk at a regular interval

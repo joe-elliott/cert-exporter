@@ -10,9 +10,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/hakhundov/cert-exporter/src/args"
-	"github.com/hakhundov/cert-exporter/src/checkers"
-	"github.com/hakhundov/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/args"
+	"github.com/joe-elliott/cert-exporter/src/checkers"
+	"github.com/joe-elliott/cert-exporter/src/exporters"
 )
 
 var (

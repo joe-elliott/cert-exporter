@@ -5,7 +5,7 @@ Installs the project as a Deployment for monitoring cert-manager.
 # Installing chart
 
 ```
-helm repo add cert-exporter https://hakhundov.github.io/cert-exporter/
+helm repo add cert-exporter https://joe-elliott.github.io/cert-exporter/
 helm repo update
 helm install -n <my-namespace> my-cert-exporter-release  cert-exporter/cert-exporter -f <values>
 ```

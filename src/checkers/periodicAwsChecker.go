@@ -11,8 +11,8 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/hakhundov/cert-exporter/src/exporters"
-	"github.com/hakhundov/cert-exporter/src/metrics"
+	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 // PeriodicAwsChecker is an object designed to check for .pem files in AWS Secrets Manager

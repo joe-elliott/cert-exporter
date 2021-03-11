@@ -1,4 +1,4 @@
-module github.com/hakhundov/cert-exporter
+module github.com/joe-elliott/cert-exporter
 
 go 1.14
 
