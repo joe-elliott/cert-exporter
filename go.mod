@@ -5,10 +5,8 @@ go 1.14
 require (
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/bmatcuk/doublestar/v3 v3.0.0
-	github.com/google/gofuzz v1.0.0 // indirect
-	github.com/googleapis/gnostic v0.3.0 // indirect
-	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/prometheus/client_golang v1.9.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
