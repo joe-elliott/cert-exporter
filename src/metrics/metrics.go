@@ -75,6 +75,16 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
 	)
+
+	// AwsCertExpirySeconds is a prometheus gauge that indicates the number of seconds until certificates on AWS expires.
+	AwsCertExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "cert_expires_in_seconds_aws",
+			Help:      "Number of seconds til the cert expires.",
+		},
+		[]string{"secretName", "key", "file", "issuer", "cn"},
+	)
 )
 
 func init() {
@@ -85,4 +95,5 @@ func init() {
 	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
 	prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(AwsCertExpirySeconds)
 }

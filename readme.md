@@ -18,6 +18,12 @@ See [deployment](./docs/deploy.md) for detailed information on running cert-expo
 
 See [custom-secrets](./docs/examples/custom-secrets) for examples of how to run `cert-exporter` to scrape certificates in secrets managed by you (not cert-manager).
 
+To enable and scrape certificates from AWS secrets, do the following:
+```
+go run main.go --aws-account=<account_number> --aws-region=<region> --aws-secret=<secret_name_1> [--aws-secret=<secret_name_2>]
+```
+Of course, AWS credentials must be configured. See  https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
+
 ### Dashboard
 
 After running cert-exporter in your cluster it's easy to build a [custom dashboard](./docs/sample-dashboard.json) to expose information about the certs in your cluster.
