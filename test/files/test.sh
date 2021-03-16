@@ -60,10 +60,10 @@ validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="bundle-root",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example-bundle.be",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $days
 
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster1",nodename="master0",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="cluster2",nodename="master0",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user1",nodename="master0",type="user"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="certs/kubeconfig",name="user2",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="certs/kubeconfig",issuer="root",name="cluster1",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="certs/kubeconfig",issuer="root",name="cluster2",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="client",filename="certs/kubeconfig",issuer="root",name="user1",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="client",filename="certs/kubeconfig",issuer="root",name="user2",nodename="master0",type="user"}' $days
 
 # kill exporter
 kill $!
@@ -88,10 +88,10 @@ validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="cer
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certsSibling/root.crt",issuer="root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certsSibling/server.crt",issuer="root",nodename="master0"}' $days
 
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster1",nodename="master0",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="cluster2",nodename="master0",type="cluster"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user1",nodename="master0",type="user"}' $days
-validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconfig",name="user2",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="kubeConfigSibling/kubeconfig",issuer="root",name="cluster1",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="kubeConfigSibling/kubeconfig",issuer="root",name="cluster2",nodename="master0",type="cluster"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="client",filename="kubeConfigSibling/kubeconfig",issuer="root",name="user1",nodename="master0",type="user"}' $days
+validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="client",filename="kubeConfigSibling/kubeconfig",issuer="root",name="user2",nodename="master0",type="user"}' $days
 
 # kill exporter
 kill $!
