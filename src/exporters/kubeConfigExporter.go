@@ -41,8 +41,8 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		}
 
 		for _, metric := range metricCollection {
-			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", c.Name, nodeName).Set(metric.durationUntilExpiry)
-			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", c.Name, nodeName).Set(metric.notAfter)
+			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", metric.cn, metric.issuer, c.Name, nodeName).Set(metric.durationUntilExpiry)
+			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", metric.cn, metric.issuer, c.Name, nodeName).Set(metric.notAfter)
 		}
 	}
 
@@ -67,8 +67,8 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		}
 
 		for _, metric := range metricCollection {
-			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", u.Name, nodeName).Set(metric.durationUntilExpiry)
-			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", u.Name, nodeName).Set(metric.notAfter)
+			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", metric.cn, metric.issuer, u.Name, nodeName).Set(metric.durationUntilExpiry)
+			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", metric.cn, metric.issuer, u.Name, nodeName).Set(metric.notAfter)
 		}
 	}
 
