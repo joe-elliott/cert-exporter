@@ -40,6 +40,8 @@ func (p *PeriodicAwsChecker) StartChecking() {
 	for {
 		glog.Info("AWS Checker: Begin periodic check")
 
+		p.exporter.ResetMetrics()
+
 		// Create a Session with a custom region
 		svc := secretsmanager.New(session.New(), aws.NewConfig().WithRegion(p.awsRegion))
 

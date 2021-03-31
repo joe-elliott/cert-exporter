@@ -83,3 +83,8 @@ func pathToFileFromKubeConfig(file, kubeConfigFile string) string {
 
 	return file
 }
+
+func (c *KubeConfigExporter) ResetMetrics() {
+	metrics.KubeConfigExpirySeconds.Reset()
+	metrics.KubeConfigNotAfterTimestamp.Reset()
+}
