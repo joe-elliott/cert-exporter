@@ -30,6 +30,7 @@ certManagerDeployment:
       # runAsUser: 1000
 
     resources: {}
+      # limits:
       #   cpu: 100m
       #   memory: 128Mi
       # requests:
