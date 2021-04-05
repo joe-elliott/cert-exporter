@@ -22,3 +22,8 @@ func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secret
 
 	return nil
 }
+
+func (c *SecretExporter) ResetMetrics() {
+	metrics.SecretExpirySeconds.Reset()
+	metrics.SecretNotAfterTimestamp.Reset()
+}

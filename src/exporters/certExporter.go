@@ -22,3 +22,8 @@ func (c *CertExporter) ExportMetrics(file, nodeName string) error {
 
 	return nil
 }
+
+func (c *CertExporter) ResetMetrics() {
+	metrics.CertExpirySeconds.Reset()
+	metrics.CertNotAfterTimestamp.Reset()
+}

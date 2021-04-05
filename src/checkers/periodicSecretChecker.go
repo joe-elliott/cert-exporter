@@ -60,6 +60,8 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	for {
 		glog.Info("Begin periodic check")
 
+		p.exporter.ResetMetrics()
+
 		var secrets []corev1.Secret
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {

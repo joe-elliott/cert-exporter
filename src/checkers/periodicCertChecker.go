@@ -36,6 +36,9 @@ func (p *PeriodicCertChecker) StartChecking() {
 
 	for {
 		glog.Info("Begin periodic check")
+
+		p.exporter.ResetMetrics()
+
 		for _, match := range p.getMatches() {
 			glog.Infof("Publishing %v node metrics %v", p.nodeName, match)
 

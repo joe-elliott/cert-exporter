@@ -21,3 +21,7 @@ func (c *AwsExporter) ExportMetrics(file, secretName, key string) error {
 
 	return nil
 }
+
+func (c *AwsExporter) ResetMetrics() {
+	metrics.AwsCertExpirySeconds.Reset()
+}
