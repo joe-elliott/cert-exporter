@@ -18,6 +18,12 @@ certManagerDeployment:
     nameOverride: ""
     fullnameOverride: ""
 
+    podAnnotations: {}
+    # environment: prod
+    # prometheus.io/scrape: true
+    # prometheus.io/port: 8080
+    # prometheus.io/path: /metrics
+
     podSecurityContext: {}
     # fsGroup: 2000
 

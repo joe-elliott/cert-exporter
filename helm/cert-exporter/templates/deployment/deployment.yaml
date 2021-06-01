@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.certManagerDeployment.deployment.podAnnotations | nindent 8 }}
     spec:
     {{- with .Values.certManagerDeployment.deployment.imagePullSecrets }}
       imagePullSecrets:
