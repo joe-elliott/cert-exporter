@@ -3,5 +3,5 @@ name: cert-exporter
 description: Monitors and exposes PKI information as Prometheus metrics
 
 type: application
-version: 2.7.0
+version: 2.7.1
 appVersion: v2.7.0
