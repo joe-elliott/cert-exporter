@@ -43,6 +43,8 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.certManagerDeployment.deployment.resources | nindent 12 }}
+          volumeMounts:
+           {{- toYaml .Values.certManagerDeployment.deployment.volumeMounts | nindent 12 }}
       {{- with .Values.certManagerDeployment.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -55,3 +57,5 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+      volumes:
+          {{- toYaml .Values.certManagerDeployment.deployment.volumes | nindent 8 }}
