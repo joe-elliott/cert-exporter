@@ -49,6 +49,16 @@ certManagerDeployment:
 
     affinity: {}
 
+    volumes: []
+      # - name: kubelet
+      #   hostPath:
+      #     path: /var/lib/kubelet
+      #     type: Directory
+    volumeMounts: []
+      # - mountPath: /var/lib/kubelet/pki
+      #   name: kubelet
+      #   readOnly: true
+
   service:
     type: ClusterIP
     port: 8080
