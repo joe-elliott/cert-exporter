@@ -43,6 +43,7 @@ spec:
               fieldPath: spec.nodeName
         volumeMounts:
         - mountPath: /var/lib/kubelet
+          mountPropagation: HostToContainer
           name: kubelet
           readOnly: true
         - mountPath: /var/lib/kube-controller-manager

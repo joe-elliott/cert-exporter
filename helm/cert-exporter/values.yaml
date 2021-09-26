@@ -56,6 +56,7 @@ certManagerDeployment:
       #     type: Directory
     volumeMounts: []
       # - mountPath: /var/lib/kubelet/pki
+      #   mountPropagation: HostToContainer
       #   name: kubelet
       #   readOnly: true
 
