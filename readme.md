@@ -24,6 +24,14 @@ go run main.go --aws-account=<account_number> --aws-region=<region> --aws-secret
 ```
 Of course, AWS credentials must be configured. See  https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
 
+### Helm
+
+```
+helm repo add cert-exporter https://joe-elliott.github.io/cert-exporter/
+helm repo update
+helm upgrade --install cert-exporter cert-exporter/cert-exporter
+```
+
 ### Dashboard
 
 After running cert-exporter in your cluster it's easy to build a [custom dashboard](./docs/sample-dashboard.json) to expose information about the certs in your cluster.
