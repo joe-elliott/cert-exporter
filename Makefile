@@ -7,7 +7,7 @@ $(GORELEASER):
 	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | BINDIR=$(GOPATH)/bin sh
 
 build: $(GORELEASER)
-	$(GORELEASER) build --skip-validate --rm-dist
+	$(GORELEASER) build --skip-validate --skip-publish --rm-dist
 
 release-snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --skip-publish --rm-dist
