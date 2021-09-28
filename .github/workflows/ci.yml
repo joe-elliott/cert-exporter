@@ -19,6 +19,9 @@ jobs:
         with:
           go-version: ^1.15
 
+      - name: Clean Helm Tags
+        run: git tag -d $(git tag -l "cert-exporter*")
+
       - name: Build
         run: make build
 
