@@ -125,7 +125,7 @@ rbac:
 dashboards:
   # Labels to add to all dashboard ConfigMaps
   additionalLabels:
-    grafana-dashboard: "1"
+    grafana_dashboard: "1"
   certManagerDashboard:
     create: true
   namespace: monitoring
