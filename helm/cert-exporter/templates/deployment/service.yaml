@@ -3,16 +3,16 @@ kind: Service
 metadata:
   name: {{ include "cert-exporter.fullname" . }}
   labels:
-    {{ include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
-  {{- with .Values.certManagerDeployment.service.annotations }}
+    {{- include "cert-exporter.certManagerLabels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  type: {{ .Values.certManagerDeployment.service.type }}
+  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.certManagerDeployment.service.port }}
-      name: {{ .Values.certManagerDeployment.service.portName }}
+    - port: {{ .Values.service.port }}
+      name: {{ .Values.service.portName }}
       targetPort: 8080
   selector:
-    {{ include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 6 }}
+    {{ include "cert-exporter.certManagerSelectorLabels" . | nindent 6 }}

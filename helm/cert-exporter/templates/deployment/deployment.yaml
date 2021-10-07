@@ -1,39 +1,42 @@
+{{- include  "certManager.assertValidKind" . }}
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.certManager.kind }}
 metadata:
   name: "{{- include "cert-exporter.fullname" . -}}-cert-manager"
   labels:
-    {{- include "cert-exporter.certManagerDeploymentLabels" . | nindent 4 }}
+    {{- include "cert-exporter.certManagerLabels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.certManagerDeployment.deployment.replicaCount }}
+  {{- if eq .Values.certManager.kind "Deployment" }}
+  replicas: {{ .Values.certManager.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 6 }}
+      {{- include "cert-exporter.certManagerSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 8 }}
+        {{- include "cert-exporter.certManagerSelectorLabels" . | nindent 8 }}
       annotations:
-        {{- toYaml .Values.certManagerDeployment.deployment.podAnnotations | nindent 8 }}
+        {{- toYaml .Values.certManager.podAnnotations | nindent 8 }}
     spec:
-    {{- with .Values.certManagerDeployment.deployment.imagePullSecrets }}
+    {{- with .Values.certManager.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       serviceAccountName: {{ include "cert-exporter.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.certManagerDeployment.deployment.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.certManager.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.certManagerDeployment.deployment.securityContext | nindent 12 }}
-          image: "{{ .Values.certManagerDeployment.deployment.image.repository  }}:{{ .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.certManagerDeployment.deployment.image.pullPolicy }}
-          {{- with .Values.certManagerDeployment.deployment.image.command  }}
+            {{- toYaml .Values.certManager.securityContext | nindent 12 }}
+          image: "{{ .Values.certManager.image.repository  }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.certManager.image.pullPolicy }}
+          {{- with .Values.certManager.image.command  }}
           command:
             {{- toYaml . | nindent 12}}
           {{- end}}
-          {{- with .Values.certManagerDeployment.deployment.image.args  }}
+          {{- with .Values.certManager.image.args  }}
           args:
             {{- toYaml . | nindent 12}}
           {{- end}}
@@ -42,20 +45,20 @@ spec:
               containerPort: 8080
               protocol: TCP
           resources:
-            {{- toYaml .Values.certManagerDeployment.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.certManager.resources | nindent 12 }}
           volumeMounts:
-           {{- toYaml .Values.certManagerDeployment.deployment.volumeMounts | nindent 12 }}
-      {{- with .Values.certManagerDeployment.deployment.nodeSelector }}
+           {{- toYaml .Values.certManager.volumeMounts | nindent 12 }}
+      {{- with .Values.certManager.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.certManagerDeployment.deployment.affinity }}
+    {{- with .Values.certManager.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.certManagerDeployment.deployment.tolerations }}
+    {{- with .Values.certManager.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-          {{- toYaml .Values.certManagerDeployment.deployment.volumes | nindent 8 }}
+          {{- toYaml .Values.certManager.volumes | nindent 8 }}
