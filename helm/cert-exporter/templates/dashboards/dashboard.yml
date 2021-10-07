@@ -6,8 +6,8 @@ metadata:
   name: "{{ include "cert-exporter.fullname" . }}-default-dashboard"
   namespace: {{ .Values.dashboards.namespace }}
   labels:
-    {{ toYaml .Values.dashboards.additionalLabels | nindent 4 }}
-    {{ include "cert-exporter.genericLabels" . | nindent 4 }}
+    {{- toYaml .Values.dashboards.additionalLabels | nindent 4 }}
+    {{- include "cert-exporter.genericLabels" . | nindent 4 }}
 data:
   cert-exporter-default-dashboard.json: |-
     {
