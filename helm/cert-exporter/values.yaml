@@ -18,8 +18,10 @@ certManagerDeployment:
     nameOverride: ""
     fullnameOverride: ""
 
-    podAnnotations: {}
+    podLabels: {}
     # environment: prod
+
+    podAnnotations: {}
     # prometheus.io/scrape: true
     # prometheus.io/port: 8080
     # prometheus.io/path: /metrics
@@ -42,6 +44,10 @@ certManagerDeployment:
       # requests:
       #   cpu: 100m
       #   memory: 128Mi
+
+    env: []
+    # - name: DEMO_GREETING
+    #   value: "Hello from the environment"  
 
     nodeSelector: {}
 
@@ -97,6 +103,12 @@ certManagerDeployment:
       #   targetLabel: nodename
       #   replacement: $1
       #   action: replace
+
+      ## PodTargetLabels transfers labels on the Kubernetes Pod onto the target. 
+      ##
+      podTargetLabels: []
+      # - app
+      # - environment
 
 rbac:
   serviceAccount:
