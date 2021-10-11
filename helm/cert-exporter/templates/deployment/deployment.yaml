@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         {{- include "cert-exporter.certManagerDeploymentSelectorLabels" . | nindent 8 }}
+        {{- with .Values.certManagerDeployment.deployment.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         {{- toYaml .Values.certManagerDeployment.deployment.podAnnotations | nindent 8 }}
     spec:
@@ -37,6 +40,9 @@ spec:
           args:
             {{- toYaml . | nindent 12}}
           {{- end}}
+          {{- with .Values.certManagerDeployment.deployment.env }}
+          env: {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080

@@ -27,4 +27,7 @@ spec:
     relabelings:
       {{ toYaml .Values.certManagerDeployment.service.serviceMonitor.relabelings | nindent 6 }}
     {{- end }}
+  {{- with .Values.certManagerDeployment.service.serviceMonitor.podTargetLabels }}
+  podTargetLabels: {{ toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}
