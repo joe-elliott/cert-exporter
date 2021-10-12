@@ -1,102 +1,99 @@
+certManager:
+  # DaemonSet or Deployment
+  kind: Deployment
+  replicaCount: 1
 
-# Right now this chart only supports Deployments.
-# In future it might be extended to support Daemonsets as well.
+  image:
+    repository: joeelliott/cert-exporter
+    pullPolicy: IfNotPresent
+    command: ["./app"]
+    args:
+      - --secrets-annotation-selector=cert-manager.io/certificate-name
+      - --secrets-include-glob=*.crt
+      - --logtostderr
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
 
-certManagerDeployment:
-  deployment:
-    replicaCount: 1
+  podAnnotations: {}
+  # environment: prod
+  # prometheus.io/scrape: true
+  # prometheus.io/port: 8080
+  # prometheus.io/path: /metrics
 
-    image:
-      repository: joeelliott/cert-exporter
-      pullPolicy: IfNotPresent
-      command: ["./app"]
-      args:
-        - --secrets-annotation-selector=cert-manager.io/certificate-name
-        - --secrets-include-glob=*.crt
-        - --logtostderr
-    imagePullSecrets: []
-    nameOverride: ""
-    fullnameOverride: ""
+  podSecurityContext: {}
+  # fsGroup: 2000
 
-    podAnnotations: {}
-    # environment: prod
-    # prometheus.io/scrape: true
-    # prometheus.io/port: 8080
-    # prometheus.io/path: /metrics
+  securityContext: {}
+    # capabilities:
+    #   drop:s
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
 
-    podSecurityContext: {}
-    # fsGroup: 2000
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
-    securityContext: {}
-      # capabilities:
-      #   drop:s
-      #   - ALL
-      # readOnlyRootFilesystem: true
-      # runAsNonRoot: true
-      # runAsUser: 1000
+  nodeSelector: {}
 
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
+  tolerations: []
 
-    nodeSelector: {}
+  affinity: {}
 
-    tolerations: []
+  volumes: []
+    # - name: kubelet
+    #   hostPath:
+    #     path: /var/lib/kubelet
+    #     type: Directory
+  volumeMounts: []
+    # - mountPath: /var/lib/kubelet/pki
+    #   mountPropagation: HostToContainer
+    #   name: kubelet
+    #   readOnly: true
 
-    affinity: {}
+service:
+  type: ClusterIP
+  port: 8080
 
-    volumes: []
-      # - name: kubelet
-      #   hostPath:
-      #     path: /var/lib/kubelet
-      #     type: Directory
-    volumeMounts: []
-      # - mountPath: /var/lib/kubelet/pki
-      #   mountPropagation: HostToContainer
-      #   name: kubelet
-      #   readOnly: true
+  portName: http-metrics
 
-  service:
-    type: ClusterIP
-    port: 8080
+  # Annotations to add to the service
+  annotations: {}
 
-    portName: http-metrics
+  # Requires prometheus-operator to be installed
+  serviceMonitor:
+    create: false
 
-    # Annotations to add to the service
-    annotations: {}
+    # cannot be empty
+    additionalLabels:
+      prometheus.io/load-rule: "true"
 
-    # Requires prometheus-operator to be installed
-    serviceMonitor:
-      create: false
+    ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+    ##
+    interval: 20s
 
-      # cannot be empty
-      additionalLabels:
-        prometheus.io/load-rule: "true"
+    ## metric relabel configs to apply to samples before ingestion.
+    ##
+    metricRelabelings: []
+    # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
 
-      ## Scrape interval. If not set, the Prometheus default scrape interval is used.
-      ##
-      interval: 20s
-
-      ## metric relabel configs to apply to samples before ingestion.
-      ##
-      metricRelabelings: []
-      # - action: keep
-      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
-      #   sourceLabels: [__name__]
-
-      # relabel configs to apply to samples before ingestion.
-      ##
-      relabelings: []
-      # - sourceLabels: [__meta_kubernetes_pod_node_name]
-      #   separator: ;
-      #   regex: ^(.*)$
-      #   targetLabel: nodename
-      #   replacement: $1
-      #   action: replace
+    # relabel configs to apply to samples before ingestion.
+    ##
+    relabelings: []
+    # - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #   separator: ;
+    #   regex: ^(.*)$
+    #   targetLabel: nodename
+    #   replacement: $1
+    #   action: replace
 
 rbac:
   serviceAccount:

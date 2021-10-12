@@ -32,7 +32,7 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Labels for a generic resource not belonging to the Deployment or Daemonsets
+Labels for a generic resource not belonging to the Deployment or DaemonSet
 */}}
 {{- define "cert-exporter.genericLabels" -}}
 helm.sh/chart: {{ include "cert-exporter.chart" . }}
@@ -44,7 +44,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Selector labels for a generic resource not belonging to the Deployment or Daemonsets
+Selector labels for a generic resource not belonging to the Deployment or DaemonSet
 */}}
 {{- define "cert-exporter.genericSelectorLabels" -}}
 app.kubernetes.io/name: {{ include "cert-exporter.name" . }}
@@ -52,11 +52,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
-Labels for the Deployment monitoring the cert-manager Deployment
+Labels for the Deployment and DaemonSet
 */}}
-{{- define "cert-exporter.certManagerDeploymentLabels" -}}
+{{- define "cert-exporter.certManagerLabels" -}}
 helm.sh/chart: {{ include "cert-exporter.chart" . }}
-{{ include "cert-exporter.certManagerDeploymentSelectorLabels" . }}
+{{ include "cert-exporter.certManagerSelectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -64,53 +64,12 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Selector labels for the Deployment monitoring the cert-manager Deployment
+Selector labels for the Deployment and DaemonSet
 */}}
-{{- define "cert-exporter.certManagerDeploymentSelectorLabels" -}}
+{{- define "cert-exporter.certManagerSelectorLabels" -}}
 {{ include "cert-exporter.genericSelectorLabels" . }}
-cert-exporter.io/type: deployment
+cert-exporter.io/type: {{ kebabcase .Values.certManager.kind }}
 {{- end -}}
-
-{{/*
-Labels for the Deployment monitoring the cert-manager Deployment
-*/}}
-{{- define "cert-exporter.daemonsetMasterLabels" -}}
-helm.sh/chart: {{ include "cert-exporter.chart" . }}
-{{ include "cert-exporter.daemonsetMasterSelectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{/*
-Selector labels for Master DaemonSet
-*/}}
-{{- define "cert-exporter.daemonsetMasterSelectorLabels" -}}
-{{ include "cert-exporter.genericSelectorLabels" . }}
-cert-exporter.io/type: daemonset-master
-{{- end -}}
-
-{{/*
-Labels for the Deployment monitoring the cert-manager Deployment
-*/}}
-{{- define "cert-exporter.daemonsetWorkerLabels" -}}
-helm.sh/chart: {{ include "cert-exporter.chart" . }}
-{{ include "cert-exporter.daemonsetWorkerSelectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{/*
-Selector labels for Worker DaemonSet
-*/}}
-{{- define "cert-exporter.daemonsetWorkerSelectorLabels" -}}
-{{ include "cert-exporter.genericSelectorLabels" . }}
-cert-exporter.io/type: daemonset-worker
-{{- end -}}
-
 
 {{/*
 Create the name of the service account to use
@@ -120,5 +79,14 @@ Create the name of the service account to use
     {{ default (include "cert-exporter.fullname" .) .Values.rbac.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.rbac.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Check the exporter kind is Deployment or DaemonSet
+*/}}
+{{- define "certManager.assertValidKind" -}}
+{{- if not (or (eq .Values.certManager.kind "DaemonSet") (eq .Values.certManager.kind "Deployment")) -}}
+{{- fail "certManager.kind should be one of either Deployment or DaemonSet" -}}
 {{- end -}}
 {{- end -}}
