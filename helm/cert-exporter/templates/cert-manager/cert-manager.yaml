@@ -30,7 +30,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.certManager.securityContext | nindent 12 }}
-          image: "{{ .Values.certManager.image.repository  }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.certManager.image.repository  }}:{{ .Values.certManager.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.certManager.image.pullPolicy }}
           {{- with .Values.certManager.image.command  }}
           command:
