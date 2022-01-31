@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euxo pipefail
-          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          if [[ $GITHUB_REF =~ refs/tags/cert-exporter-[0-9].[0-9].[0-9] ]]; then
             make release
           else
             make release-snapshot
