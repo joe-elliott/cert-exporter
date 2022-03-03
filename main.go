@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/joe-elliott/cert-exporter/src/args"
 	"github.com/joe-elliott/cert-exporter/src/checkers"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
+	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
 var (
@@ -22,23 +24,24 @@ var (
 )
 
 var (
-	includeCertGlobs          args.GlobArgs
-	excludeCertGlobs          args.GlobArgs
-	includeKubeConfigGlobs    args.GlobArgs
-	excludeKubeConfigGlobs    args.GlobArgs
-	prometheusListenAddress   string
-	prometheusPath            string
-	pollingPeriod             time.Duration
-	kubeconfigPath            string
-	secretsLabelSelector      args.GlobArgs
-	secretsAnnotationSelector args.GlobArgs
-	secretsNamespace          string
-	includeSecretsDataGlobs   args.GlobArgs
-	excludeSecretsDataGlobs   args.GlobArgs
-	includeSecretsTypes       args.GlobArgs
-	awsAccount                string
-	awsRegion                 string
-	awsSecrets                args.GlobArgs
+	includeCertGlobs                  args.GlobArgs
+	excludeCertGlobs                  args.GlobArgs
+	includeKubeConfigGlobs            args.GlobArgs
+	excludeKubeConfigGlobs            args.GlobArgs
+	prometheusExporterMetricsDisabled bool
+	prometheusListenAddress           string
+	prometheusPath                    string
+	pollingPeriod                     time.Duration
+	kubeconfigPath                    string
+	secretsLabelSelector              args.GlobArgs
+	secretsAnnotationSelector         args.GlobArgs
+	secretsNamespace                  string
+	includeSecretsDataGlobs           args.GlobArgs
+	excludeSecretsDataGlobs           args.GlobArgs
+	includeSecretsTypes               args.GlobArgs
+	awsAccount                        string
+	awsRegion                         string
+	awsSecrets                        args.GlobArgs
 )
 
 func init() {
@@ -48,6 +51,7 @@ func init() {
 	flag.Var(&excludeKubeConfigGlobs, "exclude-kubeconfig-glob", "File globs to exclude when looking for kubeconfigs.")
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
+	flag.BoolVar(&prometheusExporterMetricsDisabled, "prometheus-disable-exporter-metrics", false, "Exclude metrics about the exporter itself (promhttp_*, process_*, go_*).")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
@@ -65,6 +69,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+	metrics.Init(prometheusExporterMetricsDisabled)
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
@@ -92,6 +97,12 @@ func main() {
 		go awsChecker.StartChecking()
 	}
 
-	http.Handle(prometheusPath, promhttp.Handler())
+	handler := promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{})
+
+	if !prometheusExporterMetricsDisabled {
+		handler = promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, handler)
+	}
+
+	http.Handle(prometheusPath, handler)
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))
 }
