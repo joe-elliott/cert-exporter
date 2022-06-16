@@ -34,7 +34,7 @@ validateMetrics() {
 # cleanup certs
 ./testCleanup.sh
 
-CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)/cert-exporter"
+CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)_v1/cert-exporter"
 
 days=${1:-100}
 export NODE_NAME="master0"

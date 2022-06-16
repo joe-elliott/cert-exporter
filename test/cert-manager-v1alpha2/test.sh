@@ -36,7 +36,7 @@ validateMetrics() {
     fi
 }
 
-CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)/cert-exporter"
+CERT_EXPORTER_PATH="../../dist/cert-exporter_$(go env GOOS)_$(go env GOARCH)_v1/cert-exporter"
 KIND_CLUSTER_NAME=cert-exporter
 CONFIG_PATH=cert-exporter.kubeconfig
 
