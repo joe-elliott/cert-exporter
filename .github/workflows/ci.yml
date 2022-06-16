@@ -32,7 +32,7 @@ jobs:
 
       - name: Test cert-manager
         run: |
-          cd test/cert-manager-v1
+          cd test/cert-manager
           ./test.sh
 
       - name: Release
