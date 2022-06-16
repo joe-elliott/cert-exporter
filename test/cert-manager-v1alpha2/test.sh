@@ -45,7 +45,7 @@ kind create cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 
 kubectl --kubeconfig=$CONFIG_PATH create namespace cert-manager
 kubectl --kubeconfig=$CONFIG_PATH label namespace cert-manager certmanager.k8s.io/disable-validation=true
-kubectl --kubeconfig=$CONFIG_PATH apply -f https://github.com/jetstack/cert-manager/releases/download/v0.14.0/cert-manager.yaml
+kubectl --kubeconfig=$CONFIG_PATH apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.1/cert-manager.yaml
 
 kubectl --kubeconfig=$CONFIG_PATH wait --for=condition=available deploy --all -n cert-manager --timeout=3m
 sleep 10 # NB give the deploy more time to be ready. let us know if you know a better way!
