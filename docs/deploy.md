@@ -24,12 +24,7 @@ Note that certs are often restricted files.  Running as root allows the applicat
 
 cert-exporter also supports certificates stored in Kubernetes secrets.  In this case it expects the secret to be in the PEM format.  See the [deployment yaml](./cert-manager.yaml) for an example deployment that will find and export all cert-manager certificates.  Note that it comes with the appropriate RBAC objects to allow the application to read certs.
 
-Different parameters are required for different versions of the cert manager api due to changes in the way the secrets were stored.  See below:
-
-**cert-manager.k8s.io/v1alpha1**
-`--secrets-label-selector=certmanager.k8s.io/certificate-name`
-
-**cert-manager.io/v1alpha2**
+**cert-manager.io/v1**
 `--secrets-annotation-selector=cert-manager.io/certificate-name`
 
 ### flags

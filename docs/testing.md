@@ -40,4 +40,4 @@ It's not great, but it gets the job done.  There could definitely be some work p
 
 ### cert-manager testing
 
-`./test/cert-manager-v1alpha1/test.sh` and `./test/cert-manager-v1alpha2/test.sh` do really basic testing of cert-manager created certs.
+`./test/cert-manager-v1/test.sh` do really basic testing of cert-manager created certs.
