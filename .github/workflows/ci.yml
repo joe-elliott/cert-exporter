@@ -30,9 +30,9 @@ jobs:
           cd test/files
           ./test.sh
 
-      - name: Test cert-manager-v1alpha2
+      - name: Test cert-manager
         run: |
-          cd test/cert-manager-v1alpha2
+          cd test/cert-manager-v1
           ./test.sh
 
       - name: Release
