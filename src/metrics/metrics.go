@@ -87,7 +87,13 @@ var (
 	)
 )
 
-func init() {
+func Init(prometheusExporterMetricsDisabled bool) {
+	if prometheusExporterMetricsDisabled {
+		emptyRegistry := prometheus.NewRegistry()
+		prometheus.DefaultRegisterer = emptyRegistry
+		prometheus.DefaultGatherer = emptyRegistry
+	}
+
 	prometheus.MustRegister(ErrorTotal)
 	prometheus.MustRegister(CertExpirySeconds)
 	prometheus.MustRegister(CertNotAfterTimestamp)
