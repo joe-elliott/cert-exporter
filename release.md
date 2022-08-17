@@ -6,5 +6,7 @@
 
 # Helm chart
 
-- (optional) Submit a PR which updates the image versions to the latest docker image
+- Submit a PR to update the chart version
+  - (optional) update the image versions to the latest docker image
 - Push a tag in the form `cert-exporter-X.X.X`
+  
