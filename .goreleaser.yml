@@ -10,6 +10,7 @@ builds:
       - darwin
     goarch:
       - amd64
+      - arm
     flags:
       - -v
       - -trimpath
