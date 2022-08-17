@@ -18,7 +18,7 @@ spec:
     spec:
       serviceAccountName: cert-exporter
       containers:
-      - image: joeelliott/cert-exporter:v2.7.0
+      - image: joeelliott/cert-exporter:v2.8.0
         name: cert-exporter
         command: ["./app"]
         args:
