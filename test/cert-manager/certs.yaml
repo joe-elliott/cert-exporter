@@ -32,3 +32,32 @@ metadata:
   annotations:
     test: test
 type: Opaque
+---
+apiVersion: v1
+data:
+  test.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDBzCCAe+gAwIBAgIUL5Q4+4bGE2JIH25vOaLKl6afZbQwDQYJKoZIhvcNAQEL
+    BQAwEzERMA8GA1UEAwwIaG1zLXRlc3QwHhcNMjAwMzEzMTExNTUzWhcNMjEwMzEz
+    MTExNTUzWjATMREwDwYDVQQDDAhobXMtdGVzdDCCASIwDQYJKoZIhvcNAQEBBQAD
+    ggEPADCCAQoCggEBAMUMd89v/Dn3AMEVpph/aDLIXtO4xGYakhr+vD5bwtENi38x
+    xngYhwZbpaI+NHGfRqVxgA2/QrPHoKPq6xxL+UTkzkaPth+YQRj3yja0nwzSg6Ib
+    4e2/+yrkbt3oQ+i9J9dgiKlWoVNzrUvSxhFAA2yorQ+zhfoRDtslGlRqd7Bx6+xo
+    miUJTeSXQXufeYVlR4LJ58ef1GiBySjx1UAzJXlA6zNLUNAxvRlGuXK7AG56eGDk
+    6LJmDS0zV71PoA3fb/QqSgQvSMwjisw8WYChALPz/NYq+A2p3NuhxrMWDNxMvqSE
+    JtlrJkvzdfouicj9qz2e3pNeunvmh69QMVtj570CAwEAAaNTMFEwHQYDVR0OBBYE
+    FJjzYoYtMOjz1dUYRHXIj+B9avSvMB8GA1UdIwQYMBaAFJjzYoYtMOjz1dUYRHXI
+    j+B9avSvMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAJTvD7EF
+    UwwKKeEaYEzRKH8VjyRwO1E1d7q0UxC9Onl/fLu4/DXSm/L+om+yAk+WjsUkf6Gs
+    VutNlmCD0Nqee5FsVc/6FyaAFRPn9Q2e53pPDPMRpIh0ttdqwPuY7QHj1AErQkF+
+    0/Y8WhNYkA+rTTypmta0xuu+sBW1DkD9bz/GQjjfnvSL2U2H3fu/KrpDP3tJocm4
+    Ps0Xgoo+i6CBFct8tKPak+e5MHkrMvU4vMWT5i9J75iYDwGPdeioJQ74YRIz4Ij5
+    gUoujzeH7Mj+qi59tTu7nuQdyUxHpGxeRRkFd/dUjmumd5Lm2SobCH6hyuAlukD/
+    X2VNb41zyF/0k04=
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: test
+  annotations:
+    test: test
+
