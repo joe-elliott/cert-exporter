@@ -85,6 +85,26 @@ var (
 		},
 		[]string{"secretName", "key", "file", "issuer", "cn"},
 	)
+
+	// ConfigMapExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubernetes configmap certificate expires
+	ConfigMapExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "configmap_expires_in_seconds",
+			Help:      "Number of seconds til the cert in the configmap expires.",
+		},
+		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
+	)
+
+	// ConfigMapNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	ConfigMapNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "configmap_not_after_timestamp",
+			Help:      "Expiration timestamp for cert in the configmap.",
+		},
+		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
+	)
 )
 
 func Init(prometheusExporterMetricsDisabled bool) {
@@ -101,5 +121,7 @@ func Init(prometheusExporterMetricsDisabled bool) {
 	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
 	prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(ConfigMapExpirySeconds)
+	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
 	prometheus.MustRegister(AwsCertExpirySeconds)
 }

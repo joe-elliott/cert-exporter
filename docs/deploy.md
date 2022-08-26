@@ -22,13 +22,13 @@ Note that certs are often restricted files.  Running as root allows the applicat
 
 ### cert-manager
 
-cert-exporter also supports certificates stored in Kubernetes secrets.  In this case it expects the secret to be in the PEM format.  See the [deployment yaml](./cert-manager.yaml) for an example deployment that will find and export all cert-manager certificates.  Note that it comes with the appropriate RBAC objects to allow the application to read certs.
+cert-exporter also supports certificates stored in Kubernetes secrets and configmaps.  In this case it expects the secret/configmap to be in the PEM format.  See the [deployment yaml](./cert-manager.yaml) for an example deployment that will find and export all cert-manager certificates.  Note that it comes with the appropriate RBAC objects to allow the application to read certs.
 
 **cert-manager.io/v1**
 `--secrets-annotation-selector=cert-manager.io/certificate-name`
 
 ### flags
-The following 9 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
+The following 15 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
 
 ```
   -exclude-cert-glob value
@@ -49,6 +49,16 @@ The following 9 flags are the most commonly used to control cert-exporter behavi
     	Label selector to find secrets to publish as metrics.
   -secrets-namespace string
     	Kubernetes namespace to list secrets.
+  -configmaps-annotation-selector string
+    	Annotation selector to find configmaps to publish as metrics.
+  -configmaps-exclude-glob value
+    	Globs to match against configmap data keys.
+  -configmaps-include-glob value
+    	Globs to match against configmap data keys (Default "*").
+  -configmaps-label-selector value
+    	Label selector to find configmaps to publish as metrics.
+  -configmaps-namespace string
+    	Kubernetes namespace to list configmaps.
   -polling-period duration
     	Periodic interval in which to check certs. (default 1h0m0s)
 ```

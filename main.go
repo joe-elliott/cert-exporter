@@ -39,6 +39,11 @@ var (
 	includeSecretsDataGlobs           args.GlobArgs
 	excludeSecretsDataGlobs           args.GlobArgs
 	includeSecretsTypes               args.GlobArgs
+	configMapsLabelSelector           args.GlobArgs
+	configMapsAnnotationSelector      args.GlobArgs
+	configMapsNamespace               string
+	includeConfigMapsDataGlobs        args.GlobArgs
+	excludeConfigMapsDataGlobs        args.GlobArgs
 	awsAccount                        string
 	awsRegion                         string
 	awsSecrets                        args.GlobArgs
@@ -61,6 +66,12 @@ func init() {
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Secret globs to include when looking for secret data keys (Default \"*\").")
 	flag.Var(&includeSecretsTypes, "secret-include-types", "Select only specific a secret type (Default nil).")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
+
+	flag.Var(&configMapsLabelSelector, "configmaps-label-selector", "Label selector to find configmaps to publish as metrics.")
+	flag.Var(&configMapsAnnotationSelector, "configmaps-annotation-selector", "Annotation selector to find configmaps to publish as metrics.")
+	flag.StringVar(&configMapsNamespace, "configmaps-namespace", "", "Kubernetes namespace to list configmaps.")
+	flag.Var(&includeConfigMapsDataGlobs, "configmaps-include-glob", "Configmap globs to include when looking for configmap data keys (Default \"*\").")
+	flag.Var(&excludeConfigMapsDataGlobs, "configmaps-exclude-glob", "Configmap globs to exclude when looking for configmap data keys.")
 
 	flag.StringVar(&awsAccount, "aws-account", "", "AWS account to search for secrets in")
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
@@ -95,6 +106,14 @@ func main() {
 		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
 		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
 		go awsChecker.StartChecking()
+	}
+
+	if len(configMapsLabelSelector) > 0 || len(configMapsAnnotationSelector) > 0 || len(includeConfigMapsDataGlobs) > 0 {
+		if len(includeConfigMapsDataGlobs) == 0 {
+			includeConfigMapsDataGlobs = args.GlobArgs([]string{"*"})
+		}
+		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespace, kubeconfigPath, &exporters.ConfigMapExporter{})
+		go configChecker.StartChecking()
 	}
 
 	handler := promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{})

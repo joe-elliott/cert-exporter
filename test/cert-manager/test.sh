@@ -105,5 +105,21 @@ validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer
 echo "** Killing $pid"
 kill $pid
 
+echo "** Testing ConfigMap checker"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --configmaps-annotation-selector='test' \
+    --configmaps-include-glob='*.crt' \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics 'cert_exporter_configmap_expires_in_seconds{cn="hms-test",configmap_name="test",configmap_namespace="default",issuer="hms-test",key_name="test.crt"}'
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
 kind delete cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 rm $CONFIG_PATH

@@ -4,7 +4,7 @@ import (
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 )
 
-// CertExporter exports PEM file certs
+// SecretExporter exports PEM file certs
 type SecretExporter struct {
 }
 
