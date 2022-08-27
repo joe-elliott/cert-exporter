@@ -59,6 +59,12 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Label selector to find configmaps to publish as metrics.
   -configmaps-namespace string
     	Kubernetes namespace to list configmaps.
+  -enable-webhook-cert-check bool
+        Enable webhook client config CABundle cert check (Default "false").
+  -webhooks-label-selector
+        Label selector to find webhooks to publish as metrics.
+  -webhooks-annotation-selector
+        Annotation selector to find webhooks to publish as metrics.
   -polling-period duration
     	Periodic interval in which to check certs. (default 1h0m0s)
 ```

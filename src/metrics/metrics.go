@@ -105,6 +105,26 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
 	)
+
+	// WebhookExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubernetes webhook certificate expires
+	WebhookExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "webhook_expires_in_seconds",
+			Help:      "Number of seconds til the cert in the webhook expires.",
+		},
+		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
+	)
+
+	// WebhookNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	WebhookNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "webhook_not_after_timestamp",
+			Help:      "Expiration timestamp for cert in the webhook.",
+		},
+		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
+	)
 )
 
 func Init(prometheusExporterMetricsDisabled bool) {
@@ -123,5 +143,7 @@ func Init(prometheusExporterMetricsDisabled bool) {
 	prometheus.MustRegister(SecretNotAfterTimestamp)
 	prometheus.MustRegister(ConfigMapExpirySeconds)
 	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
+	prometheus.MustRegister(WebhookExpirySeconds)
+	prometheus.MustRegister(WebhookNotAfterTimestamp)
 	prometheus.MustRegister(AwsCertExpirySeconds)
 }

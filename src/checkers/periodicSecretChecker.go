@@ -1,6 +1,7 @@
 package checkers
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -66,7 +67,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {
 				var s *corev1.SecretList
-				s, err = client.CoreV1().Secrets(p.namespace).List(metav1.ListOptions{
+				s, err = client.CoreV1().Secrets(p.namespace).List(context.TODO(), metav1.ListOptions{
 					LabelSelector: labelSelector,
 				})
 				if err != nil {
@@ -77,7 +78,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 			}
 		} else {
 			var s *corev1.SecretList
-			s, err = client.CoreV1().Secrets(p.namespace).List(metav1.ListOptions{})
+			s, err = client.CoreV1().Secrets(p.namespace).List(context.TODO(), metav1.ListOptions{})
 			if err == nil {
 				secrets = s.Items
 			}

@@ -1,6 +1,7 @@
 package checkers
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -64,7 +65,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 		if len(p.labelSelectors) > 0 {
 			for _, labelSelector := range p.labelSelectors {
 				var c *corev1.ConfigMapList
-				c, err = client.CoreV1().ConfigMaps(p.namespace).List(metav1.ListOptions{
+				c, err = client.CoreV1().ConfigMaps(p.namespace).List(context.TODO(), metav1.ListOptions{
 					LabelSelector: labelSelector,
 				})
 				if err != nil {
@@ -75,7 +76,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 			}
 		} else {
 			var c *corev1.ConfigMapList
-			c, err = client.CoreV1().ConfigMaps(p.namespace).List(metav1.ListOptions{})
+			c, err = client.CoreV1().ConfigMaps(p.namespace).List(context.TODO(), metav1.ListOptions{})
 			if err == nil {
 				configMaps = c.Items
 			}
