@@ -12,7 +12,12 @@ cert-exporter can publish metrics about
 
 - x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) 
 - Certs embedded or referenced from kubeconfig files.
-- Certs stored in Kubernetes secrets.  This supports applications such as [cert-manager](https://github.com/jetstack/cert-manager).
+- Certs stored in Kubernetes 
+  - secrets 
+    - direct support for [cert-manager](https://github.com/jetstack/cert-manager)
+  - configmaps
+  - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
+- Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
