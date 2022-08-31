@@ -4,4 +4,4 @@ description: Monitors and exposes PKI information as Prometheus metrics
 
 type: application
 version: 3.1.0
-appVersion: v2.8.0
+appVersion: v2.9.0
