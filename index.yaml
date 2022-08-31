@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   cert-exporter:
   - apiVersion: v2
+    appVersion: v2.9.0
+    created: "2022-08-31T20:40:36.088479434Z"
+    description: Monitors and exposes PKI information as Prometheus metrics
+    digest: 343520b232a7adf40ce5daf27f0b82a9b0c49ea99b83b928d6c640db3b65cc14
+    name: cert-exporter
+    type: application
+    urls:
+    - https://github.com/joe-elliott/cert-exporter/releases/download/cert-exporter-3.2.0/cert-exporter-3.2.0.tgz
+    version: 3.2.0
+  - apiVersion: v2
     appVersion: v2.8.0
     created: "2022-08-17T15:27:55.357906136Z"
     description: Monitors and exposes PKI information as Prometheus metrics
