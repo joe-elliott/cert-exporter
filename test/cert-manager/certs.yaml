@@ -60,4 +60,29 @@ metadata:
   name: test
   annotations:
     test: test
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: test-webhook-cfg
+  annotations:
+    test: test
+webhooks:
+  - admissionReviewVersions:
+      - v1
+      - v1beta
+    name: mutating.test-webhook.com
+    clientConfig:
+      service:
+        name: test-webhook-svc
+        namespace: default
+        path: "/mutate"
+      caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ3RENDQVVlZ0F3SUJBZ0lRSnpWYTZ6TC92a2ZTMU12NXZhelRwakFLQmdncWhrak9QUVFEQXpBaU1TQXcKSGdZRFZRUURFeGRqWlhKMExXMWhibUZuWlhJdGQyVmlhRzl2YXkxallUQWVGdzB5TWpBNE1qWXdNekl6TURGYQpGdzB5TXpBNE1qWXdNekl6TURGYU1DSXhJREFlQmdOVkJBTVRGMk5sY25RdGJXRnVZV2RsY2kxM1pXSm9iMjlyCkxXTmhNSFl3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0lEWWdBRXpwVjg3cUd2bXZMZ2FOSnhFUGVUbW1hMFgrcnEKNkdwNEZJNDZFeUtJQjNOb3dMQ1BTMUttcXo2VGtCbFFSbnovczZCdWp0dW9zZjd6L2lpSTJoSnFRVTRldnNwbQpUaHRPVzA4eCs1Y3lxbmEzdzJ1TFp0ZjZiMnRNV0Vpd21zeUpvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3CkR3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVVBSOGRkS3h2NlJWL3ZDaU1rZmJJdkRscGJrOHcKQ2dZSUtvWkl6ajBFQXdNRFp3QXdaQUl3QlVsTmtzR2tVWHRFb0tzTG1CdHNDN2NQcit4cHFIVjRnSGdpVVc0awpPdmNOazdLSU0vK0pOQzlDL3ZOZXRCUFBBakFGZEhDM1Z0eU5kNXVHdEY3dXVTcGxHbVJRYmIxWVdFTU5QbHkzCjhIRTliT09nZ09wYWNydDY5NnNwWVpsaGlDOD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+    failurePolicy: Ignore
+    sideEffects: None
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: ["core", ""]
+        apiVersions: ["*"]
+        resources: ["persistentvolumeclaims"]
 

@@ -44,6 +44,9 @@ var (
 	configMapsNamespace               string
 	includeConfigMapsDataGlobs        args.GlobArgs
 	excludeConfigMapsDataGlobs        args.GlobArgs
+	webhookCheckEnabled               bool
+	webhooksLabelSelector             args.GlobArgs
+	webhooksAnnotationSelector        args.GlobArgs
 	awsAccount                        string
 	awsRegion                         string
 	awsSecrets                        args.GlobArgs
@@ -72,6 +75,10 @@ func init() {
 	flag.StringVar(&configMapsNamespace, "configmaps-namespace", "", "Kubernetes namespace to list configmaps.")
 	flag.Var(&includeConfigMapsDataGlobs, "configmaps-include-glob", "Configmap globs to include when looking for configmap data keys (Default \"*\").")
 	flag.Var(&excludeConfigMapsDataGlobs, "configmaps-exclude-glob", "Configmap globs to exclude when looking for configmap data keys.")
+
+	flag.BoolVar(&webhookCheckEnabled, "enable-webhook-cert-check", false, "Enable webhook cert check.")
+	flag.Var(&webhooksLabelSelector, "webhooks-label-selector", "Label selector to find webhooks to publish as metrics.")
+	flag.Var(&webhooksAnnotationSelector, "webhooks-annotation-selector", "Annotation selector to find webhooks to publish as metrics.")
 
 	flag.StringVar(&awsAccount, "aws-account", "", "AWS account to search for secrets in")
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
@@ -113,6 +120,11 @@ func main() {
 			includeConfigMapsDataGlobs = args.GlobArgs([]string{"*"})
 		}
 		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespace, kubeconfigPath, &exporters.ConfigMapExporter{})
+		go configChecker.StartChecking()
+	}
+
+	if webhookCheckEnabled {
+		configChecker := checkers.NewWebhookChecker(pollingPeriod, webhooksLabelSelector, webhooksAnnotationSelector, kubeconfigPath, &exporters.WebhookExporter{})
 		go configChecker.StartChecking()
 	}
 

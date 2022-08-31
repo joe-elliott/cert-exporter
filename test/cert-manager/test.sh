@@ -121,5 +121,20 @@ validateMetrics 'cert_exporter_configmap_expires_in_seconds{cn="hms-test",config
 echo "** Killing $pid"
 kill $pid
 
+echo "** Testing Webhook checker"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --enable-webhook-cert-check=true \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics 'cert_exporter_webhook_not_after_timestamp{admission_review_version_name="mutating.test-webhook.com",cn="cert-manager-webhook-ca",issuer="cert-manager-webhook-ca",type_name="mutatingwebhookconfiguration",webhook_name="test-webhook-cfg"}'
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
 kind delete cluster --name=$KIND_CLUSTER_NAME --kubeconfig=$CONFIG_PATH
 rm $CONFIG_PATH
