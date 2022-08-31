@@ -1,6 +1,6 @@
 # cert-exporter
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![version](https://img.shields.io/badge/version-2.8.0-blue.svg?cacheSeconds=2592000)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![version](https://img.shields.io/badge/version-2.9.0-blue.svg?cacheSeconds=2592000)
 
 Kubernetes uses PKI certificates for authentication between all major components.  These certs are critical for the operation of your cluster but are often opaque to an administrator.  This application is designed to parse certificates and export expiration information for Prometheus to scrape.
 
@@ -12,7 +12,12 @@ cert-exporter can publish metrics about
 
 - x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) 
 - Certs embedded or referenced from kubeconfig files.
-- Certs stored in Kubernetes secrets.  This supports applications such as [cert-manager](https://github.com/jetstack/cert-manager).
+- Certs stored in Kubernetes 
+  - secrets 
+    - direct support for [cert-manager](https://github.com/jetstack/cert-manager)
+  - configmaps
+  - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
+- Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
 
