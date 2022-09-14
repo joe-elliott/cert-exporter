@@ -47,8 +47,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Globs to match against secret data keys (Default "*").
   -secrets-label-selector value
     	Label selector to find secrets to publish as metrics.
-  -secrets-namespace string
-    	Kubernetes namespace to list secrets.
+  -secrets-namespaces string
+    	Kubernetes namespaces to list secrets.
   -configmaps-annotation-selector string
     	Annotation selector to find configmaps to publish as metrics.
   -configmaps-exclude-glob value
@@ -57,8 +57,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Globs to match against configmap data keys (Default "*").
   -configmaps-label-selector value
     	Label selector to find configmaps to publish as metrics.
-  -configmaps-namespace string
-    	Kubernetes namespace to list configmaps.
+  -configmaps-namespaces string
+    	Kubernetes namespaces to list configmaps.
   -enable-webhook-cert-check bool
         Enable webhook client config CABundle cert check (Default "false").
   -webhooks-label-selector
