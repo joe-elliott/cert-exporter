@@ -21,7 +21,7 @@ type PeriodicSecretChecker struct {
 	labelSelectors          []string
 	kubeconfigPath          string
 	annotationSelectors     []string
-	namespace               string
+	namespaces              []string
 	exporter                *exporters.SecretExporter
 	includeSecretsDataGlobs []string
 	excludeSecretsDataGlobs []string
@@ -29,12 +29,12 @@ type PeriodicSecretChecker struct {
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.SecretExporter, includeSecretsTypes []string) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors, namespaces []string, kubeconfigPath string, e *exporters.SecretExporter, includeSecretsTypes []string) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:                  period,
 		labelSelectors:          labelSelectors,
 		annotationSelectors:     annotationSelectors,
-		namespace:               namespace,
+		namespaces:              namespaces,
 		kubeconfigPath:          kubeconfigPath,
 		exporter:                e,
 		includeSecretsDataGlobs: includeSecretsDataGlobs,
@@ -64,30 +64,31 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		var secrets []corev1.Secret
-		if len(p.labelSelectors) > 0 {
-			for _, labelSelector := range p.labelSelectors {
-				var s *corev1.SecretList
-				s, err = client.CoreV1().Secrets(p.namespace).List(context.TODO(), metav1.ListOptions{
-					LabelSelector: labelSelector,
-				})
-				if err != nil {
-					break
+		for _, ns := range p.namespaces {
+			if len(p.labelSelectors) > 0 {
+				for _, labelSelector := range p.labelSelectors {
+					var s *corev1.SecretList
+					s, err = client.CoreV1().Secrets(ns).List(context.TODO(), metav1.ListOptions{
+						LabelSelector: labelSelector,
+					})
+					if err != nil {
+						break
+					}
+
+					secrets = append(secrets, s.Items...)
 				}
-
-				secrets = append(secrets, s.Items...)
+			} else {
+				var s *corev1.SecretList
+				s, err = client.CoreV1().Secrets(ns).List(context.TODO(), metav1.ListOptions{})
+				if err == nil {
+					secrets = s.Items
+				}
 			}
-		} else {
-			var s *corev1.SecretList
-			s, err = client.CoreV1().Secrets(p.namespace).List(context.TODO(), metav1.ListOptions{})
-			if err == nil {
-				secrets = s.Items
+			if err != nil {
+				glog.Errorf("Error requesting secrets %v", err)
+				metrics.ErrorTotal.Inc()
+				continue
 			}
-		}
-
-		if err != nil {
-			glog.Errorf("Error requesting secrets %v", err)
-			metrics.ErrorTotal.Inc()
-			continue
 		}
 
 		for _, secret := range secrets {

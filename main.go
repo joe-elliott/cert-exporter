@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -35,13 +36,13 @@ var (
 	kubeconfigPath                    string
 	secretsLabelSelector              args.GlobArgs
 	secretsAnnotationSelector         args.GlobArgs
-	secretsNamespace                  string
+	secretsNamespaces                 string
 	includeSecretsDataGlobs           args.GlobArgs
 	excludeSecretsDataGlobs           args.GlobArgs
 	includeSecretsTypes               args.GlobArgs
 	configMapsLabelSelector           args.GlobArgs
 	configMapsAnnotationSelector      args.GlobArgs
-	configMapsNamespace               string
+	configMapsNamespaces              string
 	includeConfigMapsDataGlobs        args.GlobArgs
 	excludeConfigMapsDataGlobs        args.GlobArgs
 	webhookCheckEnabled               bool
@@ -65,14 +66,14 @@ func init() {
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
 	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
-	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
+	flag.StringVar(&secretsNamespaces, "secrets-namespaces", "", "Kubernetes namespaces to list secrets.")
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Secret globs to include when looking for secret data keys (Default \"*\").")
 	flag.Var(&includeSecretsTypes, "secret-include-types", "Select only specific a secret type (Default nil).")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
 
 	flag.Var(&configMapsLabelSelector, "configmaps-label-selector", "Label selector to find configmaps to publish as metrics.")
 	flag.Var(&configMapsAnnotationSelector, "configmaps-annotation-selector", "Annotation selector to find configmaps to publish as metrics.")
-	flag.StringVar(&configMapsNamespace, "configmaps-namespace", "", "Kubernetes namespace to list configmaps.")
+	flag.StringVar(&configMapsNamespaces, "configmaps-namespaces", "", "Kubernetes namespaces to list configmaps.")
 	flag.Var(&includeConfigMapsDataGlobs, "configmaps-include-glob", "Configmap globs to include when looking for configmap data keys (Default \"*\").")
 	flag.Var(&excludeConfigMapsDataGlobs, "configmaps-exclude-glob", "Configmap globs to exclude when looking for configmap data keys.")
 
@@ -105,7 +106,13 @@ func main() {
 		if len(includeSecretsDataGlobs) == 0 {
 			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 		}
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
+		var secretsNamespacesList []string
+		if len(secretsNamespaces) > 0 {
+			secretsNamespacesList = getSanitizedNamespaceList(secretsNamespaces)
+		} else {
+			secretsNamespacesList = append(secretsNamespacesList, "")
+		}
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespacesList, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
 		go configChecker.StartChecking()
 	}
 
@@ -119,7 +126,13 @@ func main() {
 		if len(includeConfigMapsDataGlobs) == 0 {
 			includeConfigMapsDataGlobs = args.GlobArgs([]string{"*"})
 		}
-		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespace, kubeconfigPath, &exporters.ConfigMapExporter{})
+		var configMapsNamespacesList []string
+		if len(secretsNamespaces) > 0 {
+			configMapsNamespacesList = getSanitizedNamespaceList(configMapsNamespaces)
+		} else {
+			configMapsNamespacesList = append(configMapsNamespacesList, "")
+		}
+		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespacesList, kubeconfigPath, &exporters.ConfigMapExporter{})
 		go configChecker.StartChecking()
 	}
 
@@ -136,4 +149,17 @@ func main() {
 
 	http.Handle(prometheusPath, handler)
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))
+}
+
+// Get the trimmed and sanitized list of namespaces
+func getSanitizedNamespaceList(rawListOfNamespaces string) []string {
+	provided := strings.Split(rawListOfNamespaces, ",")
+	var selected []string
+	for _, v := range provided {
+		v = strings.TrimSpace(v)
+		if v != "" {
+			selected = append(selected, v)
+		}
+	}
+	return selected
 }

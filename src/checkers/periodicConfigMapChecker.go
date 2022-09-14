@@ -21,19 +21,19 @@ type PeriodicConfigMapChecker struct {
 	labelSelectors             []string
 	kubeconfigPath             string
 	annotationSelectors        []string
-	namespace                  string
+	namespaces                 []string
 	exporter                   *exporters.ConfigMapExporter
 	includeConfigMapsDataGlobs []string
 	excludeConfigMapsDataGlobs []string
 }
 
 // NewConfigMapChecker is a factory method that returns a new PeriodicConfigMapChecker
-func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, annotationSelectors []string, namespace, kubeconfigPath string, e *exporters.ConfigMapExporter) *PeriodicConfigMapChecker {
+func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, annotationSelectors, namespaces []string, kubeconfigPath string, e *exporters.ConfigMapExporter) *PeriodicConfigMapChecker {
 	return &PeriodicConfigMapChecker{
 		period:                     period,
 		labelSelectors:             labelSelectors,
 		annotationSelectors:        annotationSelectors,
-		namespace:                  namespace,
+		namespaces:                 namespaces,
 		kubeconfigPath:             kubeconfigPath,
 		exporter:                   e,
 		includeConfigMapsDataGlobs: includeConfigMapsDataGlobs,
@@ -62,30 +62,31 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		var configMaps []corev1.ConfigMap
-		if len(p.labelSelectors) > 0 {
-			for _, labelSelector := range p.labelSelectors {
-				var c *corev1.ConfigMapList
-				c, err = client.CoreV1().ConfigMaps(p.namespace).List(context.TODO(), metav1.ListOptions{
-					LabelSelector: labelSelector,
-				})
-				if err != nil {
-					break
+		for _, ns := range p.namespaces {
+			if len(p.labelSelectors) > 0 {
+				for _, labelSelector := range p.labelSelectors {
+					var c *corev1.ConfigMapList
+					c, err = client.CoreV1().ConfigMaps(ns).List(context.TODO(), metav1.ListOptions{
+						LabelSelector: labelSelector,
+					})
+					if err != nil {
+						break
+					}
+
+					configMaps = append(configMaps, c.Items...)
 				}
-
-				configMaps = append(configMaps, c.Items...)
+			} else {
+				var c *corev1.ConfigMapList
+				c, err = client.CoreV1().ConfigMaps(ns).List(context.TODO(), metav1.ListOptions{})
+				if err == nil {
+					configMaps = c.Items
+				}
 			}
-		} else {
-			var c *corev1.ConfigMapList
-			c, err = client.CoreV1().ConfigMaps(p.namespace).List(context.TODO(), metav1.ListOptions{})
-			if err == nil {
-				configMaps = c.Items
+			if err != nil {
+				glog.Errorf("Error requesting configMaps %v", err)
+				metrics.ErrorTotal.Inc()
+				continue
 			}
-		}
-
-		if err != nil {
-			glog.Errorf("Error requesting configMaps %v", err)
-			metrics.ErrorTotal.Inc()
-			continue
 		}
 
 		for _, configMap := range configMaps {
