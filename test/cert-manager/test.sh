@@ -76,7 +76,7 @@ echo "** Testing Label Selector And Namespace"
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
-    --secrets-namespaces='cert-manager-test' \
+    --secrets-namespace='cert-manager-test' \
     --secrets-include-glob='*.crt' \
     --logtostderr &
 pid=$!
@@ -93,7 +93,7 @@ echo "** Testing Label Selector And Exclude Glob"
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
-    --secrets-namespaces='cert-manager-test' \
+    --secrets-namespace='cert-manager-test' \
     --secrets-exclude-glob='*.key' \
     --logtostderr &
 pid=$!
