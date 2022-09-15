@@ -113,7 +113,7 @@ func main() {
 		var secretsNamespaces []string
 		if len(secretsListOfNamespaces) > 0 {
 			secretsNamespaces = getSanitizedNamespaceList(secretsListOfNamespaces)
-		} else {
+		} else if len(secretsNamespace) == 0 {
 			secretsNamespaces = append(secretsNamespaces, "")
 		}
 		if len(secretsNamespace) > 0 {
@@ -136,7 +136,7 @@ func main() {
 		var configMapsNamespaces []string
 		if len(configMapsListOfNamespaces) > 0 {
 			configMapsNamespaces = getSanitizedNamespaceList(configMapsListOfNamespaces)
-		} else {
+		} else if len(configMapsNamespace) == 0 {
 			configMapsNamespaces = append(configMapsNamespaces, "")
 		}
 		if len(configMapsNamespace) > 0 {
