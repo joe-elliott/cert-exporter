@@ -49,8 +49,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Label selector to find secrets to publish as metrics.
   -secrets-namespace string # (Deprecated) Use `-secrets-list-of-namespaces`.
     	Kubernetes namespace to list secrets.
-  -secrets-list-of-namespaces string
-        Kubernetes list of namespaces to search for secrets.
+  -secrets-namespaces string
+        Kubernetes comma-delimited list of namespaces to search for secrets.
   -configmaps-annotation-selector string
     	Annotation selector to find configmaps to publish as metrics.
   -configmaps-exclude-glob value
@@ -61,8 +61,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Label selector to find configmaps to publish as metrics.
   -configmaps-namespace string # (Deprecated) Use `-configmaps-list-of-namespaces`.
     	Kubernetes namespace to list configmaps.
-  -configmaps-list-of-namespaces
-        Kubernetes list of namespaces to search for configmaps.
+  -configmaps-namespaces
+        Kubernetes comma-delimited list of namespaces to search for configmaps.
   -enable-webhook-cert-check bool
         Enable webhook client config CABundle cert check (Default "false").
   -webhooks-label-selector
