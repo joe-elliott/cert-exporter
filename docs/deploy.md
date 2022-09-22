@@ -59,7 +59,7 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Globs to match against configmap data keys (Default "*").
   -configmaps-label-selector value
     	Label selector to find configmaps to publish as metrics.
-  -configmaps-namespace string # (Deprecated) Use `-configmaps-list-of-namespaces`.
+  -configmaps-namespace string # (Deprecated) Use `-configmaps-namespaces`.
     	Kubernetes namespace to list configmaps.
   -configmaps-namespaces
         Kubernetes comma-delimited list of namespaces to search for configmaps.
