@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -36,12 +37,14 @@ var (
 	secretsLabelSelector              args.GlobArgs
 	secretsAnnotationSelector         args.GlobArgs
 	secretsNamespace                  string
+	secretsListOfNamespaces           string
 	includeSecretsDataGlobs           args.GlobArgs
 	excludeSecretsDataGlobs           args.GlobArgs
 	includeSecretsTypes               args.GlobArgs
 	configMapsLabelSelector           args.GlobArgs
 	configMapsAnnotationSelector      args.GlobArgs
 	configMapsNamespace               string
+	configMapsListOfNamespaces        string
 	includeConfigMapsDataGlobs        args.GlobArgs
 	excludeConfigMapsDataGlobs        args.GlobArgs
 	webhookCheckEnabled               bool
@@ -66,6 +69,7 @@ func init() {
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
 	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
+	flag.StringVar(&secretsListOfNamespaces, "secrets-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for secrets.")
 	flag.Var(&includeSecretsDataGlobs, "secrets-include-glob", "Secret globs to include when looking for secret data keys (Default \"*\").")
 	flag.Var(&includeSecretsTypes, "secret-include-types", "Select only specific a secret type (Default nil).")
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
@@ -73,6 +77,7 @@ func init() {
 	flag.Var(&configMapsLabelSelector, "configmaps-label-selector", "Label selector to find configmaps to publish as metrics.")
 	flag.Var(&configMapsAnnotationSelector, "configmaps-annotation-selector", "Annotation selector to find configmaps to publish as metrics.")
 	flag.StringVar(&configMapsNamespace, "configmaps-namespace", "", "Kubernetes namespace to list configmaps.")
+	flag.StringVar(&configMapsListOfNamespaces, "configmaps-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for configmaps.")
 	flag.Var(&includeConfigMapsDataGlobs, "configmaps-include-glob", "Configmap globs to include when looking for configmap data keys (Default \"*\").")
 	flag.Var(&excludeConfigMapsDataGlobs, "configmaps-exclude-glob", "Configmap globs to exclude when looking for configmap data keys.")
 
@@ -105,7 +110,9 @@ func main() {
 		if len(includeSecretsDataGlobs) == 0 {
 			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 		}
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespace, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
+		secretsNamespaces := getSanitizedNamespaceList(secretsListOfNamespaces, secretsNamespace)
+
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespaces, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
 		go configChecker.StartChecking()
 	}
 
@@ -119,7 +126,9 @@ func main() {
 		if len(includeConfigMapsDataGlobs) == 0 {
 			includeConfigMapsDataGlobs = args.GlobArgs([]string{"*"})
 		}
-		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespace, kubeconfigPath, &exporters.ConfigMapExporter{})
+		configMapsNamespaces := getSanitizedNamespaceList(configMapsListOfNamespaces, configMapsNamespace)
+
+		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespaces, kubeconfigPath, &exporters.ConfigMapExporter{})
 		go configChecker.StartChecking()
 	}
 
@@ -136,4 +145,29 @@ func main() {
 
 	http.Handle(prometheusPath, handler)
 	log.Fatal(http.ListenAndServe(prometheusListenAddress, nil))
+}
+
+// Get the trimmed and sanitized list of namespaces
+func getSanitizedNamespaceList(rawListOfNamespaces, namespace string) []string {
+	var selected []string
+
+	if len(rawListOfNamespaces) > 0 {
+		provided := strings.Split(rawListOfNamespaces, ",")
+		for _, v := range provided {
+			v = strings.TrimSpace(v)
+			if v != "" {
+				selected = append(selected, v)
+			}
+		}
+	}
+
+	if len(namespace) > 0 {
+		selected = append(selected, namespace)
+	}
+
+	if len(selected) == 0 {
+		return []string{""}
+	}
+
+	return selected
 }
