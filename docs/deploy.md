@@ -47,7 +47,7 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Globs to match against secret data keys (Default "*").
   -secrets-label-selector value
     	Label selector to find secrets to publish as metrics.
-  -secrets-namespace string # (Deprecated) Use `-secrets-list-of-namespaces`.
+  -secrets-namespace string # (Deprecated) Use `-secrets-namespaces`.
     	Kubernetes namespace to list secrets.
   -secrets-namespaces string
         Kubernetes comma-delimited list of namespaces to search for secrets.
