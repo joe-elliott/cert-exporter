@@ -2,7 +2,7 @@ certManager:
   # DaemonSet or Deployment
   kind: Deployment
   replicaCount: 1
-  # Adds additional labels to Daemonset/Deployments
+  # Adds additional labels to pods
   additionalPodLabels: {}
   # label1: test
   # label2: test
