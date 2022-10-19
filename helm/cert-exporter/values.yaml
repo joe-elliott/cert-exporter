@@ -2,6 +2,10 @@ certManager:
   # DaemonSet or Deployment
   kind: Deployment
   replicaCount: 1
+  # Adds additional labels to pods
+  additionalPodLabels: {}
+  # label1: test
+  # label2: test
 
   image:
     repository: joeelliott/cert-exporter
