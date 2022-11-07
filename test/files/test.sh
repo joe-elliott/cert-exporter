@@ -47,6 +47,7 @@ mkdir certs
 ./genCerts.sh certs $days >/dev/null 2>&1
 ./genKubeConfig.sh certs ./ >/dev/null 2>&1
 
+
 # run exporter
 $CERT_EXPORTER_PATH -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
 
@@ -59,6 +60,8 @@ validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certs
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certs/server.crt",issuer="root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="bundle-root",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example-bundle.be",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $days
+validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="bundle-root",filename="certs/bundle_pfx.crt",issuer="bundle-root",nodename="master0"}' $days
+
 
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="certs/kubeconfig",issuer="root",name="cluster1",nodename="master0",type="cluster"}' $days
 validateMetrics 'cert_exporter_kubeconfig_expires_in_seconds{cn="root",filename="certs/kubeconfig",issuer="root",name="cluster2",nodename="master0",type="cluster"}' $days
