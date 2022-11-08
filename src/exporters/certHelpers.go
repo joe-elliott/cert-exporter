@@ -55,6 +55,7 @@ func decodeFromPKCS(certBytes []byte) ([]*pem.Block, error) {
 func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
 	var metrics []certMetric
 	var blocks []*pem.Block
+	var last_err error
 
 	// Export the first certificates in the certificate chain
 	block, rest := pem.Decode(certBytes)
@@ -89,7 +90,13 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
 			metric.cn = cert.Subject.CommonName
 
 			metrics = append(metrics, metric)
+		} else {
+			last_err = err
 		}
+	}
+
+	if len(metrics) == 0 {
+		return metrics, last_err
 	}
 
 	return metrics, nil
