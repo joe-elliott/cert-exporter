@@ -3,6 +3,7 @@ package checkers
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -57,7 +58,9 @@ func (p *PeriodicSecretChecker) StartChecking() {
 	}
 
 	periodChannel := time.Tick(p.period)
-
+	if strings.Join(p.namespaces, ", ") != "" {
+		glog.Infof("Scan secrets in %v", strings.Join(p.namespaces, ", "))
+	}
 	for {
 		glog.Info("Begin periodic check")
 
@@ -72,22 +75,21 @@ func (p *PeriodicSecretChecker) StartChecking() {
 						LabelSelector: labelSelector,
 					})
 					if err != nil {
-						break
+						glog.Errorf("Error requesting secrets %v", err)
+						metrics.ErrorTotal.Inc()
+						continue
 					}
-
 					secrets = append(secrets, s.Items...)
 				}
 			} else {
 				var s *corev1.SecretList
 				s, err = client.CoreV1().Secrets(ns).List(context.TODO(), metav1.ListOptions{})
-				if err == nil {
-					secrets = s.Items
+				if err != nil {
+					glog.Errorf("Error requesting secrets %v", err)
+					metrics.ErrorTotal.Inc()
+					continue
 				}
-			}
-			if err != nil {
-				glog.Errorf("Error requesting secrets %v", err)
-				metrics.ErrorTotal.Inc()
-				continue
+				secrets = append(secrets, s.Items...)
 			}
 		}
 

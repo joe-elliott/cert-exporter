@@ -3,6 +3,7 @@ package checkers
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -56,6 +57,9 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 
 	periodChannel := time.Tick(p.period)
 
+	if strings.Join(p.namespaces, ", ") != "" {
+		glog.Infof("Scan configMaps in %v", strings.Join(p.namespaces, ", "))
+	}
 	for {
 		glog.Info("Begin periodic check")
 
@@ -70,22 +74,21 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 						LabelSelector: labelSelector,
 					})
 					if err != nil {
-						break
+						glog.Errorf("Error requesting configMaps %v", err)
+						metrics.ErrorTotal.Inc()
+						continue
 					}
-
 					configMaps = append(configMaps, c.Items...)
 				}
 			} else {
 				var c *corev1.ConfigMapList
 				c, err = client.CoreV1().ConfigMaps(ns).List(context.TODO(), metav1.ListOptions{})
-				if err == nil {
-					configMaps = c.Items
+				if err != nil {
+					glog.Errorf("Error requesting configMaps %v", err)
+					metrics.ErrorTotal.Inc()
+					continue
 				}
-			}
-			if err != nil {
-				glog.Errorf("Error requesting configMaps %v", err)
-				metrics.ErrorTotal.Inc()
-				continue
+				configMaps = append(configMaps, c.Items...)
 			}
 		}
 
