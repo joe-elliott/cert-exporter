@@ -75,7 +75,7 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
 		// Parse as PKCS ?
 		pfx_blocks, err := decodeFromPKCS(certBytes)
 		if err != nil {
-			return metrics, fmt.Errorf("Failed to parse certificate")
+			return metrics, fmt.Errorf("failed to parse as pem and pkcs12")
 		}
 		blocks = pfx_blocks	
 	}
