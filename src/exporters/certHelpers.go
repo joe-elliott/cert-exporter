@@ -37,67 +37,86 @@ func secondsToExpiryFromCertAsBase64String(s string) ([]certMetric, error) {
 	return secondsToExpiryFromCertAsBytes(certBytes)
 }
 
-func decodeFromPKCS(certBytes []byte) ([]*pem.Block, error) {
+func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
+	var metrics []certMetric
+	
+	parsed, metrics, err := parseAsPEM(certBytes)
+	if parsed {
+		return metrics, err
+	} else {
+		// Parse as PKCS ?
+		parsed, metrics, err := parseAsPKCS(certBytes)
+		if parsed {
+			return metrics, nil
+		}
+		return nil, fmt.Errorf("failed to parse as pem and pkcs12: %w", err)
+	}
+}
+
+func getCertificateMetrics(cert *x509.Certificate)(certMetric) {
+	var metric certMetric
+	metric.notAfter = float64(cert.NotAfter.Unix())
+	metric.durationUntilExpiry = time.Until(cert.NotAfter).Seconds()
+	metric.issuer = cert.Issuer.CommonName
+	metric.cn = cert.Subject.CommonName
+	return metric
+}
+
+func parseAsPKCS(certBytes []byte) (bool, []certMetric, error) {
+	var metrics []certMetric
 	var blocks []*pem.Block
+	var last_err error
+	
 	pfx_blocks, err := pkcs12.ToPEM(certBytes, "")
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
 	for _ , b := range pfx_blocks {
 		if b.Type == "CERTIFICATE" {
 			blocks = append(blocks, b)
 		}
 	}
-	return blocks, nil
-}
-
-
-func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
-	var metrics []certMetric
-	var blocks []*pem.Block
-	var last_err error
-
-	// Export the first certificates in the certificate chain
-	block, rest := pem.Decode(certBytes)
-	if block != nil {
-		blocks = append(blocks, block)
-		// Export the remaining certificates in the certificate chain
-		for len(rest) != 0 {
-			block, rest = pem.Decode(rest)
-			if block == nil {
-				return metrics, fmt.Errorf("Failed to parse intermediate as a pem")
-			}
-			if block.Type == "CERTIFICATE" {
-				blocks = append(blocks, block)
-			}
-		}
-	} else {
-		// Parse as PKCS ?
-		pfx_blocks, err := decodeFromPKCS(certBytes)
-		if err != nil {
-			return metrics, fmt.Errorf("failed to parse as pem and pkcs12")
-		}
-		blocks = pfx_blocks	
-	}
 
 	for _, block := range blocks {
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err == nil {
-			var metric certMetric
-			metric.notAfter = float64(cert.NotAfter.Unix())
-			metric.durationUntilExpiry = time.Until(cert.NotAfter).Seconds()
-			metric.issuer = cert.Issuer.CommonName
-			metric.cn = cert.Subject.CommonName
-
+			var metric = getCertificateMetrics(cert)
 			metrics = append(metrics, metric)
 		} else {
 			last_err = err
 		}
 	}
-
-	if len(metrics) == 0 {
-		return metrics, last_err
-	}
-
-	return metrics, nil
+	return true, metrics, last_err
 }
+
+func parseAsPEM(certBytes []byte)(bool, []certMetric, error) {
+	var metrics []certMetric
+	var blocks []*pem.Block
+	
+	block, rest := pem.Decode(certBytes)
+	if block == nil {
+		return false, metrics, fmt.Errorf("Failed to parse as a pem")
+	} 
+	blocks = append(blocks, block)
+	// Export the remaining certificates in the certificate chain
+	for len(rest) != 0 {
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			return true, metrics, fmt.Errorf("Failed to parse intermediate as a pem")
+		}
+		if block.Type == "CERTIFICATE" {
+			blocks = append(blocks, block)
+		}
+	}
+	for _, block := range blocks {
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return true, metrics ,err
+		} else {
+			var metric = getCertificateMetrics(cert)
+			metrics = append(metrics, metric)
+		}
+	}
+	return true, metrics, nil
+}
+
