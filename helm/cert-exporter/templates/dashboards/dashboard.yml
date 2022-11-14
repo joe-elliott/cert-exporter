@@ -86,7 +86,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "count(cert_exporter_cert_expires_in_seconds <= 15724800)+count(cert_exporter_kubeconfig_expires_in_seconds <= 15724800)+count(cert_exporter_secret_expires_in_seconds <= 15724800) OR on() vector(0)",
+              "expr": "(count(cert_exporter_cert_expires_in_seconds <= 15724800) OR on() vector(0)) + (count(cert_exporter_kubeconfig_expires_in_seconds <= 15724800) OR on() vector(0)) + (count(cert_exporter_secret_expires_in_seconds <= 15724800) OR on() vector(0))",
               "format": "time_series",
               "intervalFactor": 1,
               "refId": "A"
@@ -164,7 +164,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "count(15724800 < cert_exporter_cert_expires_in_seconds and cert_exporter_cert_expires_in_seconds <= 31536000)+count(15724800 < cert_exporter_kubeconfig_expires_in_seconds and cert_exporter_kubeconfig_expires_in_seconds <= 31536000)+count(15724800 < cert_exporter_secret_expires_in_seconds and cert_exporter_secret_expires_in_seconds <= 31536000) OR on() vector(0)",
+              "expr": "(count(15724800 < cert_exporter_cert_expires_in_seconds and cert_exporter_cert_expires_in_seconds <= 31536000) OR on() vector(0)) + (count(15724800 < cert_exporter_kubeconfig_expires_in_seconds and cert_exporter_kubeconfig_expires_in_seconds <= 31536000) OR on() vector(0)) + (count(15724800 < cert_exporter_secret_expires_in_seconds and cert_exporter_secret_expires_in_seconds <= 31536000) OR on() vector(0))",
               "format": "time_series",
               "intervalFactor": 1,
               "refId": "A"
@@ -242,7 +242,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "count(cert_exporter_cert_expires_in_seconds > 31536000)+count(cert_exporter_kubeconfig_expires_in_seconds > 31536000)+count(cert_exporter_secret_expires_in_seconds > 31536000) OR on() vector(0)",
+              "expr": "(count(cert_exporter_cert_expires_in_seconds > 31536000) OR on() vector(0)) + (count(cert_exporter_kubeconfig_expires_in_seconds > 31536000) OR on() vector(0)) + (count(cert_exporter_secret_expires_in_seconds > 31536000) OR on() vector(0))",
               "format": "time_series",
               "intervalFactor": 1,
               "refId": "A"
