@@ -43,14 +43,13 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
 	parsed, metrics, err := parseAsPEM(certBytes)
 	if parsed {
 		return metrics, err
-	} else {
-		// Parse as PKCS ?
-		parsed, metrics, err := parseAsPKCS(certBytes)
-		if parsed {
-			return metrics, nil
-		}
-		return nil, fmt.Errorf("failed to parse as pem and pkcs12: %w", err)
 	}
+	// Parse as PKCS ?
+	parsed, metrics, err = parseAsPKCS(certBytes)
+	if parsed {
+		return metrics, nil
+	}
+	return nil, fmt.Errorf("failed to parse as pem and pkcs12: %w", err)
 }
 
 func getCertificateMetrics(cert *x509.Certificate)(certMetric) {
@@ -112,10 +111,9 @@ func parseAsPEM(certBytes []byte)(bool, []certMetric, error) {
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			return true, metrics ,err
-		} else {
-			var metric = getCertificateMetrics(cert)
-			metrics = append(metrics, metric)
 		}
+		var metric = getCertificateMetrics(cert)
+		metrics = append(metrics, metric)
 	}
 	return true, metrics, nil
 }
