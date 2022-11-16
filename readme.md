@@ -10,7 +10,7 @@ Kubernetes uses PKI certificates for authentication between all major components
 
 cert-exporter can publish metrics about 
 
-- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) 
+- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) and [PKCS12 format](https://en.wikipedia.org/wiki/PKCS_12)
 - Certs embedded or referenced from kubeconfig files.
 - Certs stored in Kubernetes 
   - secrets 
