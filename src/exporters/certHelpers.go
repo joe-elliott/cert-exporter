@@ -9,7 +9,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 
-	"golang.org/x/crypto/pkcs12"
+	"software.sslmate.com/src/go-pkcs12" 
 )
 
 type certMetric struct {
