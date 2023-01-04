@@ -35,7 +35,7 @@ openssl req -new -sha256 -key bundle_server.key -subj "/C=BE/ST=EF/O=Org/CN=exam
 
 openssl x509 -req -in client.csr -CA root.crt -CAkey root.key -CAcreateserial -out client.crt -days $days -sha256
 openssl x509 -req -in server.csr -CA root.crt -CAkey root.key -CAcreateserial -out server.crt -days $days -sha256
-openssl x509 -req -in bundle_server.csr -CA bundle_root.cert -CAkey bundle_root.key -CAcreateserial -out bundle_server.cert -days $days -sha256
+openssl x509 -req -in bundle_server.csr -CA bundle_root.cert -CAkey bundle_root.key -CAcreateserial -out bundle_server.cert -days $days
 
 
 # create bundle
