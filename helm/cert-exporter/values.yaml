@@ -32,7 +32,7 @@ certManager:
 
   securityContext: {}
     # capabilities:
-    #   drop:s
+    #   drop:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
