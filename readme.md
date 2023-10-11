@@ -17,6 +17,7 @@ cert-exporter can publish metrics about
     - direct support for [cert-manager](https://github.com/jetstack/cert-manager)
   - configmaps
   - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
+  - cert-manager [CertificateRequest] (https://cert-manager.io/docs/usage/certificaterequest/)
 - Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
@@ -62,6 +63,7 @@ cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconf
 # TYPE cert_exporter_secret_expires_in_seconds gauge
 cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.6396867095666e+06
 cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="tls.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.639686709417423e+06
+
 ```
 
 **cert_exporter_error_total**  

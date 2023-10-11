@@ -53,6 +53,8 @@ sleep 10 # NB give the deploy more time to be ready. let us know if you know a b
 kubectl --kubeconfig=$CONFIG_PATH apply -f ./certs.yaml
 sleep 10 # NB give cert-manager time to create the certificates. let us know if you know a better way to do this!
 
+CERT_REQUEST=$(kubectl --kubeconfig=$CONFIG_PATH get certificaterequest -n cert-manager-test -l="testlabel=test" -o jsonpath={'.items[].metadata.name'})
+
 echo "** Testing Label Selector"
 # run exporter
 $CERT_EXPORTER_PATH \
@@ -131,6 +133,52 @@ pid=$!
 sleep 10
 
 validateMetrics 'cert_exporter_webhook_not_after_timestamp{admission_review_version_name="mutating.test-webhook.com",cn="cert-manager-webhook-ca",issuer="cert-manager-webhook-ca",type_name="mutatingwebhookconfiguration",webhook_name="test-webhook-cfg"}'
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
+echo "** Testing Certrequest Annotation and Namespace Selector"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --certrequests-annotation-selector='cert-manager.io/certificate-name' \
+    --certrequests-namespace='cert-manager-test' \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics "cert_exporter_certrequest_expires_in_seconds{cert_request=\""$CERT_REQUEST"\",certrequest_namespace=\"cert-manager-test\",cn=\"example.com\",issuer=\"example.com\"}" 100
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
+echo "** Testing Certrequest Label Selector"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --certrequests-label-selector='testlabel=test' \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics "cert_exporter_certrequest_expires_in_seconds{cert_request=\""$CERT_REQUEST"\",certrequest_namespace=\"cert-manager-test\",cn=\"example.com\",issuer=\"example.com\"}" 100
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
+echo "** Testing Certrequest bool"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --enable-certrequests-check=true \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics "cert_exporter_certrequest_expires_in_seconds{cert_request=\""$CERT_REQUEST"\",certrequest_namespace=\"cert-manager-test\",cn=\"example.com\",issuer=\"example.com\"}" 100
 
 # kill exporter
 echo "** Killing $pid"
