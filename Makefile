@@ -7,7 +7,7 @@ $(GORELEASER):
 	go install github.com/goreleaser/goreleaser@v1.9.2
 
 build: $(GORELEASER)
-	$(GORELEASER) build --skip-validate --rm-dist
+	$(GORELEASER) build --skip validate --rm-dist
 
 release-snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --skip-publish --rm-dist
