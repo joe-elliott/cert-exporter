@@ -31,6 +31,8 @@ metadata:
   name: test
   annotations:
     test: test
+  labels:
+    serviceline: test
 type: Opaque
 ---
 apiVersion: v1
@@ -85,4 +87,3 @@ webhooks:
         apiGroups: ["core", ""]
         apiVersions: ["*"]
         resources: ["persistentvolumeclaims"]
-
