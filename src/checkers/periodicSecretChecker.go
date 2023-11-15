@@ -2,6 +2,7 @@ package checkers
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"strings"
 	"time"
@@ -42,6 +43,20 @@ func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGl
 		excludeSecretsDataGlobs: excludeSecretsDataGlobs,
 		includeSecretsTypes:     includeSecretsTypes,
 	}
+}
+
+func getPasswordFromSecret(client kubernetes.Interface, namespace, secretName, passwordKey string) (string, error) {
+	secret, err := client.CoreV1().Secrets(namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	password, ok := secret.Data[passwordKey]
+	if !ok {
+		return "", errors.New("password not found in secret")
+	}
+
+	return string(password), nil
 }
 
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
@@ -162,7 +177,22 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 				if include && !exclude {
 					glog.Infof("Publishing %v/%v metrics %v", secret.Name, secret.Namespace, name)
-					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace, secret.GetLabels())
+
+					// Try to get password from same secret assuming "password" as key - JITBundleSecret
+					password, err := getPasswordFromSecret(client, secret.Namespace, secret.Name, "password")
+					if err != nil {
+						glog.Infof("Password not present within secret")
+					}
+
+					// Try to get password from another secret with name secret-name-password and "key.password" as key - Generic JIT
+					if password == "" {
+						password, err = getPasswordFromSecret(client, secret.Namespace, secret.Name+"-password", strings.Split(name, ".")[0]+".password")
+						if err != nil {
+							glog.Infof("Password not present in expected secret")
+						}
+					}
+
+					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace, password, secret.GetLabels())
 					if err != nil {
 						glog.Errorf("Error exporting secret %v", err)
 						metrics.ErrorTotal.Inc()
