@@ -144,7 +144,15 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 
 				if include && !exclude {
 					glog.Infof("Publishing %v/%v metrics %v", configMap.Name, configMap.Namespace, name)
-					err = p.exporter.ExportMetrics([]byte(data), name, configMap.Name, configMap.Namespace)
+
+					// Try to get password from a secret with name secret-name-password and "key.password" as key
+
+					password, err := getPasswordFromSecret(client, configMap.Namespace, configMap.Name+"-password", strings.Split(name, ".")[0]+".password")
+					if err != nil {
+						glog.Infof("Password not present in expected secret")
+					}
+
+					err = p.exporter.ExportMetrics([]byte(data), name, configMap.Name, configMap.Namespace, password)
 					if err != nil {
 						glog.Errorf("Error exporting configMap %v", err)
 						metrics.ErrorTotal.Inc()
