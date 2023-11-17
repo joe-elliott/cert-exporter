@@ -19,22 +19,22 @@ type certMetric struct {
 	cn                  string
 }
 
-func secondsToExpiryFromCertAsFile(file string, password string) ([]certMetric, error) {
+func secondsToExpiryFromCertAsFile(file string) ([]certMetric, error) {
 	certBytes, err := ioutil.ReadFile(file)
 	if err != nil {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes, password)
+	return secondsToExpiryFromCertAsBytes(certBytes, "")
 }
 
-func secondsToExpiryFromCertAsBase64String(s string, password string) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBase64String(s string) ([]certMetric, error) {
 	certBytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes, password)
+	return secondsToExpiryFromCertAsBytes(certBytes, "")
 }
 
 func secondsToExpiryFromCertAsBytes(certBytes []byte, password string) ([]certMetric, error) {

@@ -144,7 +144,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 
 				if include && !exclude {
 					glog.Infof("Publishing %v/%v metrics %v", configMap.Name, configMap.Namespace, name)
-					err = p.exporter.ExportMetrics([]byte(data), name, configMap.Name, configMap.Namespace)
+					err = p.exporter.ExportMetrics([]byte(data), name, configMap.Name, configMap.Namespace, "")
 					if err != nil {
 						glog.Errorf("Error exporting configMap %v", err)
 						metrics.ErrorTotal.Inc()
