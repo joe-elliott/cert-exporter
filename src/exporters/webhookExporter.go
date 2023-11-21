@@ -10,7 +10,7 @@ type WebhookExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *WebhookExporter) ExportMetrics(bytes []byte, typeName, webhookName, admissionReviewVersionName string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes)
+	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, "")
 	if err != nil {
 		return err
 	}

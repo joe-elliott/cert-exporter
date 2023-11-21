@@ -10,7 +10,7 @@ type ConfigMapExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *ConfigMapExporter) ExportMetrics(bytes []byte, keyName, configMapName, configMapNamespace string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes)
+	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, "")
 	if err != nil {
 		return err
 	}
