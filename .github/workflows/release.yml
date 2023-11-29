@@ -43,8 +43,9 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.ZF_DOCKER_USER }}
-          password: ${{ secrets.ZF_DOCKER_PASS }}
+          registry: docker.teledev.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -60,3 +61,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push-registry: docker.teledev.io
