@@ -76,6 +76,26 @@ var (
 		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
 	)
 
+	// CertRequestExpirySeconds is a prometheus gauge that indicates the number of seconds until a certificate in a cert-manager certificate request  expires
+	CertRequestExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "certrequest_expires_in_seconds",
+			Help:      "Number of seconds til the cert in the certrequest expires.",
+		},
+		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
+	)
+
+	// CertRequestNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
+	CertRequestNotAfterTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "certrequest_not_after_timestamp",
+			Help:      "Expiration timestamp for cert in the certrequest.",
+		},
+		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
+	)
+
 	// AwsCertExpirySeconds is a prometheus gauge that indicates the number of seconds until certificates on AWS expires.
 	AwsCertExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -141,6 +161,8 @@ func Init(prometheusExporterMetricsDisabled bool) {
 	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
 	prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(CertRequestExpirySeconds)
+	prometheus.MustRegister(CertRequestNotAfterTimestamp)
 	prometheus.MustRegister(ConfigMapExpirySeconds)
 	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
 	prometheus.MustRegister(WebhookExpirySeconds)
