@@ -63,7 +63,12 @@ cert_exporter_kubeconfig_expires_in_seconds{filename="kubeConfigSibling/kubeconf
 # TYPE cert_exporter_secret_expires_in_seconds gauge
 cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.6396867095666e+06
 cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="tls.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"} 8.639686709417423e+06
-
+# HELP certrequest_expires_in_seconds Number of seconds til the cert in the CertificateRequest expires.
+# TYPE certrequest_expires_in_seconds gauge
+cert_exporter_certrequest_expires_in_seconds{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
+# HELP certrequest_not_after_timestamp Timestamp when the cert in the CertificateRequest expires.
+# TYPE certrequest_not_after_timestamp gauge
+cert_exporter_certrequest_not_after_timestamp{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
 ```
 
 **cert_exporter_error_total**  
@@ -77,6 +82,12 @@ The number of seconds until a certificate stored in a kubeconfig expires.  The `
 
 **cert_exporter_secret_expires_in_seconds**
 The number of seconds until a certificate stored in a kubernetes secret expires.  The `key_name`, `issuer`, `cn`, `secret_name`, and `secret_namespace` labels indicate the secret key, name and namespace. 
+
+**cert_exporter_certrequest_expires_in_seconds**
+The number of seconds until a certificate stored in a cert-manager CertificateRequest expires.  The `cert_request`, `issuer`, `cn`, and `certrequest_namespace` labels indicate the CertificateRequest, comon name and namespace. 
+
+**cert_exporter_certrequest_not_after_timestamp**
+The timestamp when a certificate stored in a cert-manager CertificateRequest expires.   The `cert_request`, `issuer`, `cn`, and `certrequest_namespace` labels indicate the CertificateRequest, comon name and namespace. 
 
 ### Other Docs
 
