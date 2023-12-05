@@ -43,7 +43,8 @@ func (p *PeriodicAwsChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		// Create a Session with a custom region
-		svc := secretsmanager.New(session.New(), aws.NewConfig().WithRegion(p.awsRegion))
+		session, _ := session.NewSession()
+		svc := secretsmanager.New(session, aws.NewConfig().WithRegion(p.awsRegion))
 
 		for _, secretName := range p.awsSecrets {
 			glog.Info("Getting secret " + secretName + " from AWS Secrets Manager")
