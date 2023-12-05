@@ -43,7 +43,14 @@ func (p *PeriodicAwsChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		// Create a Session with a custom region
-		session, _ := session.NewSession()
+		session, err := session.NewSession()
+		
+		if err != nil {
+			glog.Error("Error initializing AWS session: ", err)
+			metrics.ErrorTotal.Inc()
+			continue
+		}
+
 		svc := secretsmanager.New(session, aws.NewConfig().WithRegion(p.awsRegion))
 
 		for _, secretName := range p.awsSecrets {
