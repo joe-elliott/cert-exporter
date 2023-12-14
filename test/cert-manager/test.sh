@@ -7,7 +7,7 @@ set -o errexit
 
 validateMetrics() {
     metrics=$1
-    expectedVal=$2    
+    expectedVal=$2
 
     raw=$(curl --silent http://localhost:8080/metrics | grep "$metrics" || true)
 
@@ -100,6 +100,22 @@ pid=$!
 sleep 10
 
 validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="example.com",issuer="example.com",key_name="ca.crt",secret_name="selfsigned-cert-tls",secret_namespace="cert-manager-test"}' 100
+
+# kill exporter
+echo "** Killing $pid"
+kill $pid
+
+echo "** Testing Secret checker"
+# run exporter
+$CERT_EXPORTER_PATH \
+    --kubeconfig=$CONFIG_PATH \
+    --secrets-include-glob='*.p12' \
+    --secrets-namespace='cert-manager-test' \
+    --logtostderr &
+pid=$!
+sleep 10
+
+validateMetrics 'cert_exporter_secret_expires_in_seconds{cn="",issuer="",key_name="store.p12",secret_name="example-crt-pw",secret_namespace="cert-manager-test"}'
 
 # kill exporter
 echo "** Killing $pid"
