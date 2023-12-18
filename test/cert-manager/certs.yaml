@@ -16,12 +16,26 @@ kind: Certificate
 metadata:
   name: example-crt
   namespace: cert-manager-test
+  labels:
+    testlabel: test
 spec:
   commonName: example.com
   secretName: selfsigned-cert-tls
   duration: 2400h
   issuerRef:
     name: selfsigning-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-crt-not-working
+  namespace: cert-manager-test
+spec:
+  commonName: example.com
+  secretName: example-crt-not-working
+  duration: 2400h
+  issuerRef:
+    name: notworking-issuer
 ---
 apiVersion: v1
 data:

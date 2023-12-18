@@ -53,6 +53,11 @@ var (
 	awsAccount                        string
 	awsRegion                         string
 	awsSecrets                        args.GlobArgs
+	certRequestsEnabled               bool
+	certRequestsLabelSelector         args.GlobArgs
+	certRequestsAnnotationSelector    args.GlobArgs
+	certRequestsNamespace             string
+	certRequestsListOfNamespaces      string
 )
 
 func init() {
@@ -88,6 +93,13 @@ func init() {
 	flag.StringVar(&awsAccount, "aws-account", "", "AWS account to search for secrets in")
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
 	flag.Var(&awsSecrets, "aws-secret", "AWS secrets to export")
+
+	flag.BoolVar(&certRequestsEnabled, "enable-certrequests-check", false, "Enable certrequests check.")
+	flag.Var(&certRequestsLabelSelector, "certrequests-label-selector", "Label selector to find certrequests to publish as metrics.")
+	flag.Var(&certRequestsAnnotationSelector, "certrequests-annotation-selector", "Annotation selector to find certrequests to publish as metrics.")
+	flag.StringVar(&certRequestsNamespace, "certrequests-namespace", "", "Kubernetes namespace to list certrequests.")
+	flag.StringVar(&certRequestsListOfNamespaces, "certrequests-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for certrequests.")
+
 }
 
 func main() {
@@ -114,6 +126,14 @@ func main() {
 
 		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespaces, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
 		go configChecker.StartChecking()
+	}
+
+	if len(certRequestsLabelSelector) > 0 || len(certRequestsAnnotationSelector) > 0 || certRequestsEnabled {
+		certRequestNamespaces := getSanitizedNamespaceList(certRequestsListOfNamespaces, certRequestsNamespace)
+
+		configChecker := checkers.NewCertRequestChecker(pollingPeriod, certRequestsLabelSelector, secretsAnnotationSelector, certRequestNamespaces, kubeconfigPath, &exporters.CertRequestExporter{})
+		go configChecker.StartChecking()
+
 	}
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
