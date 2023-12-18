@@ -10,13 +10,13 @@ type CertRequestExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certrequestNamespace string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes)
+	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, "")
 	if err != nil {
 		return err
 	}
 
 	for _, metric := range metricCollection {
-		metrics.CertRequestExpirySeconds.WithLabelValues( metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.durationUntilExpiry)
+		metrics.CertRequestExpirySeconds.WithLabelValues(metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.durationUntilExpiry)
 		metrics.CertRequestNotAfterTimestamp.WithLabelValues(metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.notAfter)
 	}
 
