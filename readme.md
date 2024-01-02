@@ -15,6 +15,7 @@ cert-exporter can publish metrics about
 - Certs stored in Kubernetes 
   - secrets 
     - direct support for [cert-manager](https://github.com/jetstack/cert-manager)
+    - support for password-protected certificates
   - configmaps
   - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
   - cert-manager [CertificateRequest] (https://cert-manager.io/docs/usage/certificaterequest/)

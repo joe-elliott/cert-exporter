@@ -7,9 +7,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"io/ioutil"
+	"os"
 
-	"software.sslmate.com/src/go-pkcs12" 
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 type certMetric struct {
@@ -20,12 +20,12 @@ type certMetric struct {
 }
 
 func secondsToExpiryFromCertAsFile(file string) ([]certMetric, error) {
-	certBytes, err := ioutil.ReadFile(file)
+	certBytes, err := os.ReadFile(file)
 	if err != nil {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes)
+	return secondsToExpiryFromCertAsBytes(certBytes, "")
 }
 
 func secondsToExpiryFromCertAsBase64String(s string) ([]certMetric, error) {
@@ -34,25 +34,25 @@ func secondsToExpiryFromCertAsBase64String(s string) ([]certMetric, error) {
 		return []certMetric{}, err
 	}
 
-	return secondsToExpiryFromCertAsBytes(certBytes)
+	return secondsToExpiryFromCertAsBytes(certBytes, "")
 }
 
-func secondsToExpiryFromCertAsBytes(certBytes []byte) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string) ([]certMetric, error) {
 	var metrics []certMetric
-	
+
 	parsed, metrics, err := parseAsPEM(certBytes)
 	if parsed {
 		return metrics, err
 	}
 	// Parse as PKCS ?
-	parsed, metrics, err = parseAsPKCS(certBytes)
+	parsed, metrics, err = parseAsPKCS(certBytes, certPassword)
 	if parsed {
 		return metrics, nil
 	}
 	return nil, fmt.Errorf("failed to parse as pem and pkcs12: %w", err)
 }
 
-func getCertificateMetrics(cert *x509.Certificate)(certMetric) {
+func getCertificateMetrics(cert *x509.Certificate) certMetric {
 	var metric certMetric
 	metric.notAfter = float64(cert.NotAfter.Unix())
 	metric.durationUntilExpiry = time.Until(cert.NotAfter).Seconds()
@@ -61,16 +61,16 @@ func getCertificateMetrics(cert *x509.Certificate)(certMetric) {
 	return metric
 }
 
-func parseAsPKCS(certBytes []byte) (bool, []certMetric, error) {
+func parseAsPKCS(certBytes []byte, certPassword string) (bool, []certMetric, error) {
 	var metrics []certMetric
 	var blocks []*pem.Block
 	var last_err error
-	
-	pfx_blocks, err := pkcs12.ToPEM(certBytes, "")
+
+	pfx_blocks, err := pkcs12.ToPEM(certBytes, certPassword)
 	if err != nil {
 		return false, nil, err
 	}
-	for _ , b := range pfx_blocks {
+	for _, b := range pfx_blocks {
 		if b.Type == "CERTIFICATE" {
 			blocks = append(blocks, b)
 		}
@@ -88,14 +88,14 @@ func parseAsPKCS(certBytes []byte) (bool, []certMetric, error) {
 	return true, metrics, last_err
 }
 
-func parseAsPEM(certBytes []byte)(bool, []certMetric, error) {
+func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	var metrics []certMetric
 	var blocks []*pem.Block
-	
+
 	block, rest := pem.Decode(certBytes)
 	if block == nil {
 		return false, metrics, fmt.Errorf("Failed to parse as a pem")
-	} 
+	}
 	blocks = append(blocks, block)
 	// Export the remaining certificates in the certificate chain
 	for len(rest) != 0 {
@@ -110,11 +110,10 @@ func parseAsPEM(certBytes []byte)(bool, []certMetric, error) {
 	for _, block := range blocks {
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			return true, metrics ,err
+			return true, metrics, err
 		}
 		var metric = getCertificateMetrics(cert)
 		metrics = append(metrics, metric)
 	}
 	return true, metrics, nil
 }
-

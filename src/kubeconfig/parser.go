@@ -2,7 +2,7 @@ package kubeconfig
 
 import (
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"os"
 )
 
 // KubeConfig is a partial description of a kubeconfig file.  It defines only the fields required by this application.
@@ -27,7 +27,7 @@ type KubeConfig struct {
 func ParseKubeConfig(file string) (*KubeConfig, error) {
 	k := &KubeConfig{}
 
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
