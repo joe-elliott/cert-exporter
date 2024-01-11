@@ -1,15 +1,15 @@
 package exporters
 
 import (
-	"fmt"
-	"time"
-
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"os"
-
 	"software.sslmate.com/src/go-pkcs12"
+	"strings"
+	"time"
+	"unicode"
 )
 
 type certMetric struct {
@@ -96,6 +96,8 @@ func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	if block == nil {
 		return false, metrics, fmt.Errorf("Failed to parse as a pem")
 	}
+	// Remove trailing whitespaces to prevent possible error in loop
+	rest = []byte(strings.TrimRightFunc(string(rest), unicode.IsSpace))
 	blocks = append(blocks, block)
 	// Export the remaining certificates in the certificate chain
 	for len(rest) != 0 {
