@@ -131,7 +131,7 @@ func main() {
 	if len(certRequestsLabelSelector) > 0 || len(certRequestsAnnotationSelector) > 0 || certRequestsEnabled {
 		certRequestNamespaces := getSanitizedNamespaceList(certRequestsListOfNamespaces, certRequestsNamespace)
 
-		configChecker := checkers.NewCertRequestChecker(pollingPeriod, certRequestsLabelSelector, secretsAnnotationSelector, certRequestNamespaces, kubeconfigPath, &exporters.CertRequestExporter{})
+		configChecker := checkers.NewCertRequestChecker(pollingPeriod, certRequestsLabelSelector, certRequestsAnnotationSelector, certRequestNamespaces, kubeconfigPath, &exporters.CertRequestExporter{})
 		go configChecker.StartChecking()
 
 	}
