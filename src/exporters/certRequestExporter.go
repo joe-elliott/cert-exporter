@@ -24,6 +24,6 @@ func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certreque
 }
 
 func (c *CertRequestExporter) ResetMetrics() {
-	metrics.SecretExpirySeconds.Reset()
-	metrics.SecretNotAfterTimestamp.Reset()
+	metrics.CertRequestExpirySeconds.Reset()
+	metrics.CertRequestNotAfterTimestamp.Reset()
 }
