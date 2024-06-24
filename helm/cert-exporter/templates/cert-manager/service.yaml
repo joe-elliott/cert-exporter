@@ -13,6 +13,6 @@ spec:
   ports:
     - port: {{ .Values.service.port }}
       name: {{ .Values.service.portName }}
-      targetPort: 8080
+      targetPort: {{ .Values.certManager.containerPort }}
   selector:
     {{ include "cert-exporter.certManagerSelectorLabels" . | nindent 6 }}
