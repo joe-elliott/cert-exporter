@@ -63,6 +63,8 @@ certManager:
     #   name: kubelet
     #   readOnly: true
 
+  containerPort: 8080
+
 service:
   type: ClusterIP
   port: 8080

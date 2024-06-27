@@ -45,12 +45,23 @@ spec:
           {{- end}}
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ .Values.certManager.containerPort }}
               protocol: TCP
           resources:
             {{- toYaml .Values.certManager.resources | nindent 12 }}
           volumeMounts:
            {{- toYaml .Values.certManager.volumeMounts | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.certManager.containerPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.certManager.containerPort }}
+              failureThreshold: 1
+              periodSeconds: 10
       {{- with .Values.certManager.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
