@@ -43,6 +43,9 @@ spec:
           args:
             {{- toYaml . | nindent 12}}
           {{- end}}
+          {{- with .Values.certManager.image.env }}
+          env: {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.certManager.containerPort }}
