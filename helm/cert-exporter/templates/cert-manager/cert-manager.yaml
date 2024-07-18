@@ -63,8 +63,8 @@ spec:
             httpGet:
               path: /metrics
               port: {{ .Values.certManager.containerPort }}
-              failureThreshold: 1
-              periodSeconds: 10
+            failureThreshold: 1
+            periodSeconds: 10
       {{- with .Values.certManager.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
