@@ -18,6 +18,7 @@ func (c *WebhookExporter) ExportMetrics(bytes []byte, typeName, webhookName, adm
 	for _, metric := range metricCollection {
 		metrics.WebhookExpirySeconds.WithLabelValues(typeName, metric.issuer, metric.cn, webhookName, admissionReviewVersionName).Set(metric.durationUntilExpiry)
 		metrics.WebhookNotAfterTimestamp.WithLabelValues(typeName, metric.issuer, metric.cn, webhookName, admissionReviewVersionName).Set(metric.notAfter)
+		metrics.WebhookNotBeforeTimestamp.WithLabelValues(typeName, metric.issuer, metric.cn, webhookName, admissionReviewVersionName).Set(metric.notBefore)
 	}
 
 	return nil
@@ -26,4 +27,5 @@ func (c *WebhookExporter) ExportMetrics(bytes []byte, typeName, webhookName, adm
 func (c *WebhookExporter) ResetMetrics() {
 	metrics.WebhookExpirySeconds.Reset()
 	metrics.WebhookNotAfterTimestamp.Reset()
+	metrics.WebhookNotBeforeTimestamp.Reset()
 }

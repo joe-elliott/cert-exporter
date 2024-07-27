@@ -5,9 +5,43 @@
 
 set -o errexit
 
+fetchMetricsTimestampValue() {
+    local metrics
+    metrics="$1"
+
+    curl --silent http://localhost:8080/metrics \
+    | grep -F "$metrics" \
+    | awk '{ printf("%.0f",$2) }'
+}
+
+validateTimestampBefore() {
+    local metrics
+    local want
+    local got
+    metrics="$1"
+    want="$2"
+    got=$(fetchMetricsTimestampValue "$metrics")
+
+    if [ "$got" == "" ]; then
+      echo "TEST FAILURE: $metrics" 
+      echo "  Unable to find metrics string"
+      return 0
+    fi
+
+    if [ "$got" -ge "$want" ]; then
+      echo "TEST FAILURE: $metrics"
+      echo "  Want      : $want"
+      echo "  Got       : $got"
+    else 
+      echo "TEST SUCCESS: $metrics"
+    fi
+}
+
 validateMetrics() {
+    local metrics
+    local expectedVal
     metrics=$1
-    expectedVal=$2    
+    expectedVal=$2
 
     raw=$(curl --silent http://localhost:8080/metrics | grep "$metrics")
 
@@ -55,6 +89,22 @@ sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
+activation=$(date +%s) # this timestamp is at least 2 seconds off from the actual cert NotBefore attribute ...
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="client",filename="certs/client.crt",issuer="root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="root",filename="certs/root.crt",issuer="root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="example.com",filename="certs/server.crt",issuer="root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="bundle-root",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="example-bundle.be",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="bundle-root",filename="certs/bundle_pfx.crt",issuer="bundle-root",nodename="master0"}' $activation
+
+expiration=$((activation + days * 24 * 60 * 60)) # ... and as a result, this values if off as well
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="client",filename="certs/client.crt",issuer="root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="root",filename="certs/root.crt",issuer="root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="example.com",filename="certs/server.crt",issuer="root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="bundle-root",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="example-bundle.be",filename="certs/bundle.crt",issuer="bundle-root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="bundle-root",filename="certs/bundle_pfx.crt",issuer="bundle-root",nodename="master0"}' $expiration
+
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certs/client.crt",issuer="root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certs/root.crt",issuer="root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="example.com",filename="certs/server.crt",issuer="root",nodename="master0"}' $days
@@ -86,6 +136,16 @@ $CERT_EXPORTER_PATH -include-cert-glob=certsSibling/*.crt  -include-kubeconfig-g
 sleep 2
 
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
+
+activation=$(date +%s) # this timestamp is at least 2 seconds off from the actual cert NotBefore attribute ...
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="client",filename="certsSibling/client.crt",issuer="root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="root",filename="certsSibling/root.crt",issuer="root",nodename="master0"}' $activation
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="example.com",filename="certsSibling/server.crt",issuer="root",nodename="master0"}' $activation
+
+expiration=$((activation + days * 24 * 60 * 60)) # ... and as a result, this values if off as well
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="client",filename="certsSibling/client.crt",issuer="root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="root",filename="certsSibling/root.crt",issuer="root",nodename="master0"}' $expiration
+validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="example.com",filename="certsSibling/server.crt",issuer="root",nodename="master0"}' $expiration
 
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="client",filename="certsSibling/client.crt",issuer="root",nodename="master0"}' $days
 validateMetrics 'cert_exporter_cert_expires_in_seconds{cn="root",filename="certsSibling/root.crt",issuer="root",nodename="master0"}' $days

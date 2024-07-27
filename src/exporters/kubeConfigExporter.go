@@ -43,6 +43,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		for _, metric := range metricCollection {
 			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "cluster", metric.cn, metric.issuer, c.Name, nodeName).Set(metric.durationUntilExpiry)
 			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "cluster", metric.cn, metric.issuer, c.Name, nodeName).Set(metric.notAfter)
+			metrics.KubeConfigNotBeforeTimestamp.WithLabelValues(file, "cluster", metric.cn, metric.issuer, c.Name, nodeName).Set(metric.notBefore)
 		}
 	}
 
@@ -69,6 +70,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		for _, metric := range metricCollection {
 			metrics.KubeConfigExpirySeconds.WithLabelValues(file, "user", metric.cn, metric.issuer, u.Name, nodeName).Set(metric.durationUntilExpiry)
 			metrics.KubeConfigNotAfterTimestamp.WithLabelValues(file, "user", metric.cn, metric.issuer, u.Name, nodeName).Set(metric.notAfter)
+			metrics.KubeConfigNotBeforeTimestamp.WithLabelValues(file, "user", metric.cn, metric.issuer, u.Name, nodeName).Set(metric.notBefore)
 		}
 	}
 
@@ -87,4 +89,5 @@ func pathToFileFromKubeConfig(file, kubeConfigFile string) string {
 func (c *KubeConfigExporter) ResetMetrics() {
 	metrics.KubeConfigExpirySeconds.Reset()
 	metrics.KubeConfigNotAfterTimestamp.Reset()
+	metrics.KubeConfigNotBeforeTimestamp.Reset()
 }

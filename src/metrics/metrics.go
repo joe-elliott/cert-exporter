@@ -36,6 +36,16 @@ var (
 		[]string{"filename", "issuer", "cn", "nodename"},
 	)
 
+	// CertNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	CertNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "cert_not_before_timestamp",
+			Help:      "Timestamp of when the certificate becomes valid.",
+		},
+		[]string{"filename", "issuer", "cn", "nodename"},
+	)
+
 	// KubeConfigExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubeconfig certificate expires.
 	KubeConfigExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -52,6 +62,16 @@ var (
 			Namespace: namespace,
 			Name:      "kubeconfig_not_after_timestamp",
 			Help:      "Expiration timestamp for cert in the kubeconfig.",
+		},
+		[]string{"filename", "type", "cn", "issuer", "name", "nodename"},
+	)
+
+	// KubeConfigNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	KubeConfigNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "kubeconfig_not_before_timestamp",
+			Help:      "Activation timestamp for cert in the kubeconfig.",
 		},
 		[]string{"filename", "type", "cn", "issuer", "name", "nodename"},
 	)
@@ -75,6 +95,16 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
 	)
+	
+	// SecretNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	SecretNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "secret_not_before_timestamp",
+			Help:      "Activation timestamp for cert in the secret.",
+		},
+		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
+	)
 
 	// CertRequestExpirySeconds is a prometheus gauge that indicates the number of seconds until a certificate in a cert-manager certificate request  expires
 	CertRequestExpirySeconds = prometheus.NewGaugeVec(
@@ -92,6 +122,16 @@ var (
 			Namespace: namespace,
 			Name:      "certrequest_not_after_timestamp",
 			Help:      "Expiration timestamp for cert in the certrequest.",
+		},
+		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
+	)
+	
+	// CertRequestNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	CertRequestNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "certrequest_not_before_timestamp",
+			Help:      "Activation timestamp for cert in the certrequest.",
 		},
 		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
 	)
@@ -125,6 +165,16 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
 	)
+	
+	// ConfigMapNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	ConfigMapNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "configmap_not_before_timestamp",
+			Help:      "Activation timestamp for cert in the configmap.",
+		},
+		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
+	)
 
 	// WebhookExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubernetes webhook certificate expires
 	WebhookExpirySeconds = prometheus.NewGaugeVec(
@@ -145,6 +195,16 @@ var (
 		},
 		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
 	)
+	
+	// WebhookNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
+	WebhookNotBeforeTimestamp = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "webhook_not_before_timestamp",
+			Help:      "Activation timestamp for cert in the webhook.",
+		},
+		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
+	)
 )
 
 func Init(prometheusExporterMetricsDisabled bool) {
@@ -157,15 +217,21 @@ func Init(prometheusExporterMetricsDisabled bool) {
 	prometheus.MustRegister(ErrorTotal)
 	prometheus.MustRegister(CertExpirySeconds)
 	prometheus.MustRegister(CertNotAfterTimestamp)
+	prometheus.MustRegister(CertNotBeforeTimestamp)
 	prometheus.MustRegister(KubeConfigExpirySeconds)
 	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
+	prometheus.MustRegister(KubeConfigNotBeforeTimestamp)
 	prometheus.MustRegister(SecretExpirySeconds)
 	prometheus.MustRegister(SecretNotAfterTimestamp)
+	prometheus.MustRegister(SecretNotBeforeTimestamp)
 	prometheus.MustRegister(CertRequestExpirySeconds)
 	prometheus.MustRegister(CertRequestNotAfterTimestamp)
+	prometheus.MustRegister(CertRequestNotBeforeTimestamp)
 	prometheus.MustRegister(ConfigMapExpirySeconds)
 	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
+	prometheus.MustRegister(ConfigMapNotBeforeTimestamp)
 	prometheus.MustRegister(WebhookExpirySeconds)
 	prometheus.MustRegister(WebhookNotAfterTimestamp)
+	prometheus.MustRegister(WebhookNotBeforeTimestamp)
 	prometheus.MustRegister(AwsCertExpirySeconds)
 }
