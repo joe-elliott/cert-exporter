@@ -18,6 +18,7 @@ func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certreque
 	for _, metric := range metricCollection {
 		metrics.CertRequestExpirySeconds.WithLabelValues(metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.durationUntilExpiry)
 		metrics.CertRequestNotAfterTimestamp.WithLabelValues(metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.notAfter)
+		metrics.CertRequestNotBeforeTimestamp.WithLabelValues(metric.issuer, metric.cn, certrequest, certrequestNamespace).Set(metric.notBefore)
 	}
 
 	return nil
@@ -26,4 +27,5 @@ func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certreque
 func (c *CertRequestExporter) ResetMetrics() {
 	metrics.CertRequestExpirySeconds.Reset()
 	metrics.CertRequestNotAfterTimestamp.Reset()
+	metrics.CertRequestNotBeforeTimestamp.Reset()
 }

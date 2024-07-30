@@ -18,6 +18,7 @@ func (c *ConfigMapExporter) ExportMetrics(bytes []byte, keyName, configMapName, 
 	for _, metric := range metricCollection {
 		metrics.ConfigMapExpirySeconds.WithLabelValues(keyName, metric.issuer, metric.cn, configMapName, configMapNamespace).Set(metric.durationUntilExpiry)
 		metrics.ConfigMapNotAfterTimestamp.WithLabelValues(keyName, metric.issuer, metric.cn, configMapName, configMapNamespace).Set(metric.notAfter)
+		metrics.ConfigMapNotBeforeTimestamp.WithLabelValues(keyName, metric.issuer, metric.cn, configMapName, configMapNamespace).Set(metric.notBefore)
 	}
 
 	return nil
@@ -26,4 +27,5 @@ func (c *ConfigMapExporter) ExportMetrics(bytes []byte, keyName, configMapName, 
 func (c *ConfigMapExporter) ResetMetrics() {
 	metrics.ConfigMapExpirySeconds.Reset()
 	metrics.ConfigMapNotAfterTimestamp.Reset()
+	metrics.ConfigMapNotBeforeTimestamp.Reset()
 }

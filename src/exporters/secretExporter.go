@@ -18,6 +18,7 @@ func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secret
 	for _, metric := range metricCollection {
 		metrics.SecretExpirySeconds.WithLabelValues(keyName, metric.issuer, metric.cn, secretName, secretNamespace).Set(metric.durationUntilExpiry)
 		metrics.SecretNotAfterTimestamp.WithLabelValues(keyName, metric.issuer, metric.cn, secretName, secretNamespace).Set(metric.notAfter)
+		metrics.SecretNotBeforeTimestamp.WithLabelValues(keyName, metric.issuer, metric.cn, secretName, secretNamespace).Set(metric.notBefore)
 	}
 
 	return nil
@@ -26,4 +27,5 @@ func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secret
 func (c *SecretExporter) ResetMetrics() {
 	metrics.SecretExpirySeconds.Reset()
 	metrics.SecretNotAfterTimestamp.Reset()
+	metrics.SecretNotBeforeTimestamp.Reset()
 }

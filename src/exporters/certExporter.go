@@ -18,6 +18,7 @@ func (c *CertExporter) ExportMetrics(file, nodeName string) error {
 	for _, metric := range metricCollection {
 		metrics.CertExpirySeconds.WithLabelValues(file, metric.issuer, metric.cn, nodeName).Set(metric.durationUntilExpiry)
 		metrics.CertNotAfterTimestamp.WithLabelValues(file, metric.issuer, metric.cn, nodeName).Set(metric.notAfter)
+		metrics.CertNotBeforeTimestamp.WithLabelValues(file, metric.issuer, metric.cn, nodeName).Set(metric.notBefore)
 	}
 
 	return nil
@@ -26,4 +27,5 @@ func (c *CertExporter) ExportMetrics(file, nodeName string) error {
 func (c *CertExporter) ResetMetrics() {
 	metrics.CertExpirySeconds.Reset()
 	metrics.CertNotAfterTimestamp.Reset()
+	metrics.CertNotBeforeTimestamp.Reset()
 }

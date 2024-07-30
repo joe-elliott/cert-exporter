@@ -70,6 +70,9 @@ cert_exporter_certrequest_expires_in_seconds{cert_request="example-crt-gn762",ce
 # HELP certrequest_not_after_timestamp Timestamp when the cert in the CertificateRequest expires.
 # TYPE certrequest_not_after_timestamp gauge
 cert_exporter_certrequest_not_after_timestamp{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
+# HELP certrequest_not_before_timestamp Activation timestamp for cert in the certrequest.
+# TYPE certrequest_not_before_timestamp gauge
+cert_exporter_certrequest_not_before_timestamp{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
 ```
 
 **cert_exporter_error_total**  
@@ -89,6 +92,9 @@ The number of seconds until a certificate stored in a cert-manager CertificateRe
 
 **cert_exporter_certrequest_not_after_timestamp**
 The timestamp when a certificate stored in a cert-manager CertificateRequest expires.   The `cert_request`, `issuer`, `cn`, and `certrequest_namespace` labels indicate the CertificateRequest, comon name and namespace. 
+
+**cert_exporter_certrequest_not_before_timestamp**
+The timestamp when a certificate stored in a cert-manager CertificateRequest becomes valid.   The `cert_request`, `issuer`, `cn`, and `certrequest_namespace` labels indicate the CertificateRequest, comon name and namespace. 
 
 ### Other Docs
 
