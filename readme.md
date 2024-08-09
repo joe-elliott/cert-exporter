@@ -1,6 +1,6 @@
 # cert-exporter
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![binary version](https://img.shields.io/badge/binary%20version-2.12.0-blue) ![helm version](https://img.shields.io/badge/helm%20version-3.6.0-blue)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![binary version](https://img.shields.io/badge/binary%20version-2.13.0-blue) ![helm version](https://img.shields.io/badge/helm%20version-3.7.0-blue)
 
 Kubernetes uses PKI certificates for authentication between all major components.  These certs are critical for the operation of your cluster but are often opaque to an administrator.  This application is designed to parse certificates and export expiration information for Prometheus to scrape.
 
