@@ -162,5 +162,5 @@ dashboards:
   additionalLabels:
     grafana_dashboard: "1"
   certManagerDashboard:
-    create: false
+    create: true
   namespace: monitoring
