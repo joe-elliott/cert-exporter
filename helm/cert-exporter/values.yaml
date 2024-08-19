@@ -133,10 +133,34 @@ rbac:
   clusterRoleBinding:
     create: true
 
+# Extra manifests to deploy as an array
+extraManifests: []
+  # - |
+  #   apiVersion: rbac.authorization.k8s.io/v1
+  #   kind: Role
+  #   metadata:
+  #     name: cert-exporter
+  #   rules:
+  #   - apiGroups: [""]
+  #     resources: ["configmaps", "secrets"]
+  #     verbs: ["get", "list"]
+  # - |
+  #   apiVersion: rbac.authorization.k8s.io/v1
+  #   kind: RoleBinding
+  #   metadata:
+  #     name: cert-exporter
+  #   roleRef:
+  #     apiGroup: rbac.authorization.k8s.io
+  #     kind: Role
+  #     name: cert-exporter
+  #   subjects:
+  #     - kind: ServiceAccount
+  #       name: cert-exporter
+
 dashboards:
   # Labels to add to all dashboard ConfigMaps
   additionalLabels:
     grafana_dashboard: "1"
   certManagerDashboard:
-    create: true
+    create: false
   namespace: monitoring
