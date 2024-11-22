@@ -1,5 +1,6 @@
 .vscode
 .idea
+.nvim-spell
 dist/
 test/files/certs
 test/files/certsSibling

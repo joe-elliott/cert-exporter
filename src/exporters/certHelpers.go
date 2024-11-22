@@ -6,10 +6,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
-	"software.sslmate.com/src/go-pkcs12"
 	"strings"
 	"time"
 	"unicode"
+
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 type certMetric struct {
@@ -64,29 +65,17 @@ func getCertificateMetrics(cert *x509.Certificate) certMetric {
 
 func parseAsPKCS(certBytes []byte, certPassword string) (bool, []certMetric, error) {
 	var metrics []certMetric
-	var blocks []*pem.Block
-	var last_err error
-
-	pfx_blocks, err := pkcs12.ToPEM(certBytes, certPassword)
+	_, cert, caCerts, err := pkcs12.DecodeChain(certBytes, certPassword)
 	if err != nil {
 		return false, nil, err
 	}
-	for _, b := range pfx_blocks {
-		if b.Type == "CERTIFICATE" {
-			blocks = append(blocks, b)
-		}
+	metric := getCertificateMetrics(cert)
+	metrics = append(metrics, metric)
+	for _, cert := range caCerts {
+		metric := getCertificateMetrics(cert)
+		metrics = append(metrics, metric)
 	}
-
-	for _, block := range blocks {
-		cert, err := x509.ParseCertificate(block.Bytes)
-		if err == nil {
-			var metric = getCertificateMetrics(cert)
-			metrics = append(metrics, metric)
-		} else {
-			last_err = err
-		}
-	}
-	return true, metrics, last_err
+	return true, metrics, nil
 }
 
 func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
@@ -115,7 +104,7 @@ func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 		if err != nil {
 			return true, metrics, err
 		}
-		var metric = getCertificateMetrics(cert)
+		metric := getCertificateMetrics(cert)
 		metrics = append(metrics, metric)
 	}
 	return true, metrics, nil
