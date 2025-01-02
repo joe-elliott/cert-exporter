@@ -19,8 +19,10 @@ spec:
         {{- with .Values.certManager.additionalPodLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- if .Values.certManager.podAnnotations }}
       annotations:
         {{- toYaml .Values.certManager.podAnnotations | nindent 8 }}
+      {{- end }}
     spec:
     {{- with .Values.certManager.imagePullSecrets }}
       imagePullSecrets:
