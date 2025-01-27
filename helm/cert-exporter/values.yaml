@@ -1,6 +1,7 @@
 certManager:
   # DaemonSet or Deployment
   kind: Deployment
+  namespace: monitoring
   replicaCount: 1
   # Adds additional labels to pods
   additionalPodLabels: {}
@@ -10,7 +11,7 @@ certManager:
   image:
     repository: joeelliott/cert-exporter
     # The default tag is ".Chart.AppVersion", only set "tag" to override that
-    tag: 
+    tag:
     pullPolicy: IfNotPresent
     command: ["./app"]
     args:
