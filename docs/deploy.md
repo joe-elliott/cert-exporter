@@ -28,7 +28,7 @@ cert-exporter also supports certificates stored in Kubernetes secrets and config
 `--secrets-annotation-selector=cert-manager.io/certificate-name`
 
 ### flags
-The following 15 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
+The following 17 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
 
 ```
   -exclude-cert-glob value
@@ -51,6 +51,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Kubernetes namespace to list secrets.
   -secrets-namespaces string
         Kubernetes comma-delimited list of namespaces to search for secrets.
+  -secrets-namespace-label-selector value
+        Label selector to find namespaces in which to find secrets to publish as metrics.
   -configmaps-annotation-selector string
     	Annotation selector to find configmaps to publish as metrics.
   -configmaps-exclude-glob value
@@ -63,6 +65,8 @@ The following 15 flags are the most commonly used to control cert-exporter behav
     	Kubernetes namespace to list configmaps.
   -configmaps-namespaces
         Kubernetes comma-delimited list of namespaces to search for configmaps.
+  -configmaps-namespace-label-selector value
+        Label selector to find namespaces in which to find configmaps to publish as metrics.
   -enable-webhook-cert-check bool
         Enable webhook client config CABundle cert check (Default "false").
   -webhooks-label-selector

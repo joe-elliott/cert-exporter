@@ -129,6 +129,9 @@ rbac:
     - apiGroups: [""]
       resources: ["secrets"]
       verbs: ["get", "list"]
+    - apiGroups: [""]
+      resources: ["namespaces"]
+      verbs: ["get", "list"]
 
   clusterRoleBinding:
     create: true
