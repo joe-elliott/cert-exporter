@@ -35,6 +35,7 @@ var (
 	pollingPeriod                     time.Duration
 	kubeconfigPath                    string
 	secretsLabelSelector              args.GlobArgs
+	secretsNamespaceLabelSelector     args.GlobArgs
 	secretsAnnotationSelector         args.GlobArgs
 	secretsNamespace                  string
 	secretsListOfNamespaces           string
@@ -42,6 +43,7 @@ var (
 	excludeSecretsDataGlobs           args.GlobArgs
 	includeSecretsTypes               args.GlobArgs
 	configMapsLabelSelector           args.GlobArgs
+	configMapsNamespaceLabelSelector  args.GlobArgs
 	configMapsAnnotationSelector      args.GlobArgs
 	configMapsNamespace               string
 	configMapsListOfNamespaces        string
@@ -72,6 +74,7 @@ func init() {
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.Var(&secretsLabelSelector, "secrets-label-selector", "Label selector to find secrets to publish as metrics.")
+	flag.Var(&secretsNamespaceLabelSelector, "secrets-namespace-label-selector", "Label selector to find namespaces in which to find secrets to publish as metrics.")
 	flag.Var(&secretsAnnotationSelector, "secrets-annotation-selector", "Annotation selector to find secrets to publish as metrics.")
 	flag.StringVar(&secretsNamespace, "secrets-namespace", "", "Kubernetes namespace to list secrets.")
 	flag.StringVar(&secretsListOfNamespaces, "secrets-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for secrets.")
@@ -80,6 +83,7 @@ func init() {
 	flag.Var(&excludeSecretsDataGlobs, "secrets-exclude-glob", "Secret globs to exclude when looking for secret data keys.")
 
 	flag.Var(&configMapsLabelSelector, "configmaps-label-selector", "Label selector to find configmaps to publish as metrics.")
+	flag.Var(&configMapsNamespaceLabelSelector, "configmaps-namespace-label-selector", "Label selector to find namespaces in which to find configmaps to publish as metrics.")
 	flag.Var(&configMapsAnnotationSelector, "configmaps-annotation-selector", "Annotation selector to find configmaps to publish as metrics.")
 	flag.StringVar(&configMapsNamespace, "configmaps-namespace", "", "Kubernetes namespace to list configmaps.")
 	flag.StringVar(&configMapsListOfNamespaces, "configmaps-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for configmaps.")
@@ -118,13 +122,13 @@ func main() {
 		go configChecker.StartChecking()
 	}
 
-	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 || len(includeSecretsDataGlobs) > 0 {
+	if len(secretsLabelSelector) > 0 || len(secretsAnnotationSelector) > 0 || len(includeSecretsDataGlobs) > 0 || len(secretsNamespaceLabelSelector) > 0 {
 		if len(includeSecretsDataGlobs) == 0 {
 			includeSecretsDataGlobs = args.GlobArgs([]string{"*"})
 		}
 		secretsNamespaces := getSanitizedNamespaceList(secretsListOfNamespaces, secretsNamespace)
 
-		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespaces, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
+		configChecker := checkers.NewSecretChecker(pollingPeriod, secretsLabelSelector, includeSecretsDataGlobs, excludeSecretsDataGlobs, secretsAnnotationSelector, secretsNamespaces, secretsNamespaceLabelSelector, kubeconfigPath, &exporters.SecretExporter{}, includeSecretsTypes)
 		go configChecker.StartChecking()
 	}
 
@@ -142,13 +146,13 @@ func main() {
 		go awsChecker.StartChecking()
 	}
 
-	if len(configMapsLabelSelector) > 0 || len(configMapsAnnotationSelector) > 0 || len(includeConfigMapsDataGlobs) > 0 {
+	if len(configMapsLabelSelector) > 0 || len(configMapsAnnotationSelector) > 0 || len(includeConfigMapsDataGlobs) > 0 || len(configMapsNamespaceLabelSelector) > 0 {
 		if len(includeConfigMapsDataGlobs) == 0 {
 			includeConfigMapsDataGlobs = args.GlobArgs([]string{"*"})
 		}
 		configMapsNamespaces := getSanitizedNamespaceList(configMapsListOfNamespaces, configMapsNamespace)
 
-		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespaces, kubeconfigPath, &exporters.ConfigMapExporter{})
+		configChecker := checkers.NewConfigMapChecker(pollingPeriod, configMapsLabelSelector, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, configMapsAnnotationSelector, configMapsNamespaces, configMapsNamespaceLabelSelector, kubeconfigPath, &exporters.ConfigMapExporter{})
 		go configChecker.StartChecking()
 	}
 

@@ -26,10 +26,11 @@ type PeriodicConfigMapChecker struct {
 	exporter                   *exporters.ConfigMapExporter
 	includeConfigMapsDataGlobs []string
 	excludeConfigMapsDataGlobs []string
+	nsLabelSelector            []string
 }
 
 // NewConfigMapChecker is a factory method that returns a new PeriodicConfigMapChecker
-func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, annotationSelectors, namespaces []string, kubeconfigPath string, e *exporters.ConfigMapExporter) *PeriodicConfigMapChecker {
+func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMapsDataGlobs, excludeConfigMapsDataGlobs, annotationSelectors, namespaces, nsLabelSelector []string, kubeconfigPath string, e *exporters.ConfigMapExporter) *PeriodicConfigMapChecker {
 	return &PeriodicConfigMapChecker{
 		period:                     period,
 		labelSelectors:             labelSelectors,
@@ -39,6 +40,7 @@ func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMaps
 		exporter:                   e,
 		includeConfigMapsDataGlobs: includeConfigMapsDataGlobs,
 		excludeConfigMapsDataGlobs: excludeConfigMapsDataGlobs,
+		nsLabelSelector:            nsLabelSelector,
 	}
 }
 
@@ -66,7 +68,29 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		var configMaps []corev1.ConfigMap
-		for _, ns := range p.namespaces {
+		var namespacesToCheck []string
+
+		if len(p.nsLabelSelector) > 0 { // re-discover namespaces each tick to notice new NSs
+			for _, nsLabelSelector := range p.nsLabelSelector {
+				var nss *corev1.NamespaceList
+				nss, err = client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{
+					LabelSelector: nsLabelSelector,
+				})
+				if err != nil {
+					glog.Errorf("Error requesting namespaces %v", err)
+					metrics.ErrorTotal.Inc()
+				}
+
+				for _, ns := range nss.Items {
+					namespacesToCheck = append(namespacesToCheck, ns.GetObjectMeta().GetName())
+					glog.Infof("Adding namespace %v to check", ns.GetObjectMeta().GetName())
+				}
+			}
+		} else {
+			copy(namespacesToCheck, p.namespaces)
+		}
+
+		for _, ns := range namespacesToCheck {
 			if len(p.labelSelectors) > 0 {
 				for _, labelSelector := range p.labelSelectors {
 					var c *corev1.ConfigMapList

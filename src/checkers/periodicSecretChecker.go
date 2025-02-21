@@ -27,10 +27,11 @@ type PeriodicSecretChecker struct {
 	includeSecretsDataGlobs []string
 	excludeSecretsDataGlobs []string
 	includeSecretsTypes     []string
+	nsLabelSelector         []string
 }
 
 // NewSecretChecker is a factory method that returns a new PeriodicSecretChecker
-func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors, namespaces []string, kubeconfigPath string, e *exporters.SecretExporter, includeSecretsTypes []string) *PeriodicSecretChecker {
+func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGlobs, excludeSecretsDataGlobs, annotationSelectors, namespaces, nsLabelSelector []string, kubeconfigPath string, e *exporters.SecretExporter, includeSecretsTypes []string) *PeriodicSecretChecker {
 	return &PeriodicSecretChecker{
 		period:                  period,
 		labelSelectors:          labelSelectors,
@@ -41,6 +42,7 @@ func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGl
 		includeSecretsDataGlobs: includeSecretsDataGlobs,
 		excludeSecretsDataGlobs: excludeSecretsDataGlobs,
 		includeSecretsTypes:     includeSecretsTypes,
+		nsLabelSelector:         nsLabelSelector,
 	}
 }
 
@@ -67,7 +69,29 @@ func (p *PeriodicSecretChecker) StartChecking() {
 		p.exporter.ResetMetrics()
 
 		var secrets []corev1.Secret
-		for _, ns := range p.namespaces {
+		var namespacesToCheck []string
+
+		if len(p.nsLabelSelector) > 0 { // re-discover namespaces each tick to notice new NSs
+			for _, nsLabelSelector := range p.nsLabelSelector {
+				var nss *corev1.NamespaceList
+				nss, err = client.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{
+					LabelSelector: nsLabelSelector,
+				})
+				if err != nil {
+					glog.Errorf("Error requesting namespaces %v", err)
+					metrics.ErrorTotal.Inc()
+				}
+
+				for _, ns := range nss.Items {
+					namespacesToCheck = append(namespacesToCheck, ns.GetObjectMeta().GetName())
+					glog.Infof("Adding namespace %v to check", ns.GetObjectMeta().GetName())
+				}
+			}
+		} else {
+			copy(namespacesToCheck, p.namespaces)
+		}
+
+		for _, ns := range namespacesToCheck {
 			if len(p.labelSelectors) > 0 {
 				for _, labelSelector := range p.labelSelectors {
 					var s *corev1.SecretList
