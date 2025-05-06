@@ -5,6 +5,10 @@ metadata:
   name: "{{- include "cert-exporter.fullname" . -}}-cert-manager"
   labels:
     {{- include "cert-exporter.certManagerLabels" . | nindent 4 }}
+  {{- if .Values.certManager.deploymentAnnotations }}
+  annotations:
+  {{- toYaml .Values.certManager.deploymentAnnotations | nindent 4 }}
+  {{- end }}
 spec:
   {{- if eq .Values.certManager.kind "Deployment" }}
   replicas: {{ .Values.certManager.replicaCount }}
