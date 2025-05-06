@@ -27,6 +27,9 @@ certManager:
   nameOverride: ""
   fullnameOverride: ""
 
+  deploymentAnnotations: {}
+  # environment: prod
+
   podAnnotations: {}
   # environment: prod
   # prometheus.io/scrape: true
