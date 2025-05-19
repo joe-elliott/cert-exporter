@@ -10,7 +10,8 @@ type AwsExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *AwsExporter) ExportMetrics(file, secretName, key string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBase64String(file)
+	// 'file' here is actually the base64 encoded certificate string
+	metricCollection, err := secondsToExpiryFromCertAsBase64String(file, "") // Pass "" as password for AWS certs unless a specific mechanism is added
 	if err != nil {
 		return err
 	}
