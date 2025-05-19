@@ -23,7 +23,7 @@ var (
 			Name:      "cert_expires_in_seconds",
 			Help:      "Number of seconds til the cert expires.",
 		},
-		[]string{"filename", "issuer", "cn", "nodename"},
+		[]string{"filename", "issuer", "cn", "nodename", "alias"},
 	)
 
 	// CertNotAfterTimestamp is a prometheus gauge that indicates the NotAfter timestamp.
@@ -33,7 +33,7 @@ var (
 			Name:      "cert_not_after_timestamp",
 			Help:      "Timestamp of when the certificate expires.",
 		},
-		[]string{"filename", "issuer", "cn", "nodename"},
+		[]string{"filename", "issuer", "cn", "nodename", "alias"},
 	)
 
 	// CertNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
@@ -43,7 +43,7 @@ var (
 			Name:      "cert_not_before_timestamp",
 			Help:      "Timestamp of when the certificate becomes valid.",
 		},
-		[]string{"filename", "issuer", "cn", "nodename"},
+		[]string{"filename", "issuer", "cn", "nodename", "alias"},
 	)
 
 	// KubeConfigExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubeconfig certificate expires.
@@ -95,7 +95,7 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "secret_name", "secret_namespace"},
 	)
-	
+
 	// SecretNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
 	SecretNotBeforeTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -125,7 +125,7 @@ var (
 		},
 		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
 	)
-	
+
 	// CertRequestNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
 	CertRequestNotBeforeTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -165,7 +165,7 @@ var (
 		},
 		[]string{"key_name", "issuer", "cn", "configmap_name", "configmap_namespace"},
 	)
-	
+
 	// ConfigMapNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
 	ConfigMapNotBeforeTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -195,7 +195,7 @@ var (
 		},
 		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
 	)
-	
+
 	// WebhookNotBeforeTimestamp is a prometheus gauge that indicates the NotBefore timestamp.
 	WebhookNotBeforeTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
