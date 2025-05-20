@@ -8,9 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
-	"unicode"
 
 	"github.com/golang/glog"
 	"github.com/joe-elliott/cert-exporter/src/args"
@@ -212,32 +210,44 @@ func parseAsJKS(certBytes []byte, certPassword string) (bool, []certMetric, erro
 
 func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	var metrics []certMetric
-	var blocks []*pem.Block
+	var pemBlockDecoded bool // Tracks if at least one PEM block was successfully decoded
 
-	block, rest := pem.Decode(certBytes)
-	if block == nil {
-		return false, metrics, fmt.Errorf("Failed to parse as a pem")
-	}
-	// Remove trailing whitespaces to prevent possible error in loop
-	rest = []byte(strings.TrimRightFunc(string(rest), unicode.IsSpace))
-	blocks = append(blocks, block)
-	// Export the remaining certificates in the certificate chain
-	for len(rest) != 0 {
-		block, rest = pem.Decode(rest)
+	data := certBytes
+	for len(data) > 0 {
+		block, rest := pem.Decode(data)
 		if block == nil {
-			return true, metrics, fmt.Errorf("Failed to parse intermediate as a pem")
+			// No more PEM blocks can be decoded from the remaining data.
+			// If 'rest' is not empty here, it means there was trailing non-PEM data,
+			// which is acceptable if we've already found PEM blocks.
+			break
 		}
+		pemBlockDecoded = true // Mark that we've found at least one PEM block
+
 		if block.Type == "CERTIFICATE" {
-			blocks = append(blocks, block)
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				// Log the error for this specific certificate but continue processing others.
+				glog.Warningf("Error parsing an X.509 certificate from a PEM block: %v", err)
+			} else {
+				metric := getCertificateMetrics(cert)
+				metrics = append(metrics, metric)
+			}
+		} else {
+			// A PEM block was found, but it's not of type "CERTIFICATE".
+			// Log this information if verbose logging is enabled and skip it.
+			glog.V(2).Infof("Skipping PEM block of type '%s'", block.Type)
 		}
+
+		// Move to the rest of the data for the next iteration.
+		data = rest
 	}
-	for _, block := range blocks {
-		cert, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			return true, metrics, err
-		}
-		metric := getCertificateMetrics(cert)
-		metrics = append(metrics, metric)
+
+	if !pemBlockDecoded {
+		// If no PEM blocks were decoded at all, the input is not considered PEM.
+		return false, nil, fmt.Errorf("no PEM data found in input")
 	}
+
+	// If at least one PEM block was decoded, the input is considered to be PEM.
+	// 'metrics' will contain all successfully parsed certificates.
 	return true, metrics, nil
 }
