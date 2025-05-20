@@ -10,7 +10,7 @@ type CertRequestExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certrequestNamespace string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, "")
+	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, "", nil, nil, nil) // No CN/Alias/Issuer specific filters for CertRequest certs
 	if err != nil {
 		return err
 	}
