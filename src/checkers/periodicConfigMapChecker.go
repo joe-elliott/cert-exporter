@@ -87,7 +87,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 				}
 			}
 		} else {
-			copy(namespacesToCheck, p.namespaces)
+			namespacesToCheck = append(namespacesToCheck, p.namespaces...)
 		}
 
 		for _, ns := range namespacesToCheck {
