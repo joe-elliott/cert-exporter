@@ -17,7 +17,7 @@ spec:
         name: cert-exporter-nodes
     spec:
       containers:
-      - image: joeelliott/cert-exporter:v2.15.0
+      - image: joeelliott/cert-exporter:v2.15.1
         name: cert-exporter-nodes
         command: ["./app"]
         args:
