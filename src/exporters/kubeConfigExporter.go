@@ -11,13 +11,22 @@ import (
 
 // KubeConfigExporter exports kubeconfig certs
 type KubeConfigExporter struct {
-	PasswordSpecs   []args.PasswordSpec
-	DefaultPassword string
+	PasswordSpecs      []args.PasswordSpec
+	DefaultPassword    string
+	ExcludeCNGlobs     args.GlobArgs
+	ExcludeAliasGlobs  args.GlobArgs
+	ExcludeIssuerGlobs args.GlobArgs
 }
 
 // NewKubeConfigExporter creates a new KubeConfigExporter with an optional password.
-func NewKubeConfigExporter(specs []args.PasswordSpec, defaultPassword string) *KubeConfigExporter {
-	return &KubeConfigExporter{PasswordSpecs: specs, DefaultPassword: defaultPassword}
+func NewKubeConfigExporter(specs []args.PasswordSpec, defaultPassword string, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) *KubeConfigExporter {
+	return &KubeConfigExporter{
+		PasswordSpecs:      specs,
+		DefaultPassword:    defaultPassword,
+		ExcludeCNGlobs:     excludeCNGlobs,
+		ExcludeAliasGlobs:  excludeAliasGlobs,
+		ExcludeIssuerGlobs: excludeIssuerGlobs,
+	}
 }
 
 // ExportMetrics exports all certs in the passed in kubeconfig file
@@ -35,7 +44,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 	for _, clusterConfig := range k.Clusters {
 		var metricCollection []certMetric
 		if clusterConfig.Cluster.CertificateAuthorityData != "" {
-			metricCollection, err = secondsToExpiryFromCertAsBase64String(clusterConfig.Cluster.CertificateAuthorityData, passwordForKubeconfigItself)
+			metricCollection, err = secondsToExpiryFromCertAsBase64String(clusterConfig.Cluster.CertificateAuthorityData, passwordForKubeconfigItself, c.ExcludeCNGlobs, c.ExcludeAliasGlobs, c.ExcludeIssuerGlobs)
 
 			if err != nil {
 				return err
@@ -43,7 +52,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		} else if clusterConfig.Cluster.CertificateAuthority != "" {
 			certFile := pathToFileFromKubeConfig(clusterConfig.Cluster.CertificateAuthority, file)
 			passwordForCertFile := GetPasswordForFile(certFile, c.PasswordSpecs, c.DefaultPassword)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, passwordForCertFile)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, passwordForCertFile, c.ExcludeCNGlobs, c.ExcludeAliasGlobs, c.ExcludeIssuerGlobs)
 
 			if err != nil {
 				return err
@@ -63,7 +72,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		var metricCollection []certMetric
 
 		if u.User.ClientCertificateData != "" {
-			metricCollection, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData, passwordForKubeconfigItself)
+			metricCollection, err = secondsToExpiryFromCertAsBase64String(u.User.ClientCertificateData, passwordForKubeconfigItself, c.ExcludeCNGlobs, c.ExcludeAliasGlobs, c.ExcludeIssuerGlobs)
 
 			if err != nil {
 				return err
@@ -71,7 +80,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 		} else if u.User.ClientCertificate != "" {
 			certFile := pathToFileFromKubeConfig(u.User.ClientCertificate, file)
 			passwordForCertFile := GetPasswordForFile(certFile, c.PasswordSpecs, c.DefaultPassword)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, passwordForCertFile)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, passwordForCertFile, c.ExcludeCNGlobs, c.ExcludeAliasGlobs, c.ExcludeIssuerGlobs)
 
 			if err != nil {
 				return err

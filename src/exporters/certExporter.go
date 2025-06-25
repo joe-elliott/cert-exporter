@@ -7,19 +7,28 @@ import (
 
 // CertExporter exports PEM file certs
 type CertExporter struct {
-	PasswordSpecs   []args.PasswordSpec
-	DefaultPassword string
+	PasswordSpecs      []args.PasswordSpec
+	DefaultPassword    string
+	ExcludeCNGlobs     args.GlobArgs
+	ExcludeAliasGlobs  args.GlobArgs
+	ExcludeIssuerGlobs args.GlobArgs
 }
 
 // NewCertExporter creates a new CertExporter with an optional password.
-func NewCertExporter(specs []args.PasswordSpec, defaultPassword string) *CertExporter {
-	return &CertExporter{PasswordSpecs: specs, DefaultPassword: defaultPassword}
+func NewCertExporter(specs []args.PasswordSpec, defaultPassword string, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) *CertExporter {
+	return &CertExporter{
+		PasswordSpecs:      specs,
+		DefaultPassword:    defaultPassword,
+		ExcludeCNGlobs:     excludeCNGlobs,
+		ExcludeAliasGlobs:  excludeAliasGlobs,
+		ExcludeIssuerGlobs: excludeIssuerGlobs,
+	}
 }
 
 // ExportMetrics exports the provided PEM file
 func (c *CertExporter) ExportMetrics(file, nodeName string) error {
 	resolvedPassword := GetPasswordForFile(file, c.PasswordSpecs, c.DefaultPassword)
-	metricCollection, err := secondsToExpiryFromCertAsFile(file, resolvedPassword)
+	metricCollection, err := secondsToExpiryFromCertAsFile(file, resolvedPassword, c.ExcludeCNGlobs, c.ExcludeAliasGlobs, c.ExcludeIssuerGlobs)
 	if err != nil {
 		return err
 	}

@@ -7,10 +7,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 	"time"
-	"unicode"
 
+	"github.com/golang/glog"
+	"github.com/joe-elliott/cert-exporter/src/args"
 	"github.com/pavlo-v-chernykh/keystore-go/v4"
 	"software.sslmate.com/src/go-pkcs12"
 )
@@ -23,24 +24,70 @@ type certMetric struct {
 	Alias               string // New field for JKS alias
 }
 
-func secondsToExpiryFromCertAsFile(file string, password string) ([]certMetric, error) {
+func matchGlobs(s string, globs args.GlobArgs) bool {
+	if s == "" { // An empty string (e.g. alias for non-JKS or empty CN) should not match unless glob is explicitly "" or "*"
+		for _, pattern := range globs {
+			if pattern == "" || pattern == "*" { // only match if glob is "" or "*"
+				return true
+			}
+		}
+		return false
+	}
+	for _, pattern := range globs {
+		matched, err := filepath.Match(pattern, s)
+		if err != nil {
+			glog.Warningf("Malformed glob pattern '%s' while matching string '%s': %v", pattern, s, err)
+			continue // Treat malformed pattern as non-matching for this specific pattern
+		}
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+func filterMetrics(metrics []certMetric, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) []certMetric {
+	if len(excludeCNGlobs) == 0 && len(excludeAliasGlobs) == 0 && len(excludeIssuerGlobs) == 0 {
+		return metrics
+	}
+
+	var filtered []certMetric
+	for _, m := range metrics {
+		excluded := false
+		if len(excludeCNGlobs) > 0 && matchGlobs(m.cn, excludeCNGlobs) {
+			excluded = true
+		}
+		if !excluded && len(excludeAliasGlobs) > 0 && m.Alias != "" && matchGlobs(m.Alias, excludeAliasGlobs) {
+			excluded = true
+		}
+		if !excluded && len(excludeIssuerGlobs) > 0 && matchGlobs(m.issuer, excludeIssuerGlobs) {
+			excluded = true
+		}
+
+		if !excluded {
+			filtered = append(filtered, m)
+		}
+	}
+	return filtered
+}
+
+func secondsToExpiryFromCertAsFile(file string, password string, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) ([]certMetric, error) {
 	certBytes, err := os.ReadFile(file)
 	if err != nil {
 		return []certMetric{}, err
 	}
-
-	return secondsToExpiryFromCertAsBytes(certBytes, password)
+	return secondsToExpiryFromCertAsBytes(certBytes, password, excludeCNGlobs, excludeAliasGlobs, excludeIssuerGlobs)
 }
 
-func secondsToExpiryFromCertAsBase64String(s string, password string) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBase64String(s string, password string, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) ([]certMetric, error) {
 	certBytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return []certMetric{}, err
 	}
-	return secondsToExpiryFromCertAsBytes(certBytes, password)
+	return secondsToExpiryFromCertAsBytes(certBytes, password, excludeCNGlobs, excludeAliasGlobs, excludeIssuerGlobs)
 }
 
-func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string) ([]certMetric, error) {
+func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string, excludeCNGlobs args.GlobArgs, excludeAliasGlobs args.GlobArgs, excludeIssuerGlobs args.GlobArgs) ([]certMetric, error) {
 	var pemMetrics, pkcsMetrics, jksMetrics []certMetric
 	var errPem, errPkcs, errJks error
 	var parsedPem, parsedPkcs, parsedJks bool
@@ -50,7 +97,7 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string) ([]ce
 	if parsedPem {
 		// If parsedPem is true, it means the data was recognized as PEM.
 		// errPem might be non-nil if there was an issue with intermediate certs.
-		return pemMetrics, errPem
+		return filterMetrics(pemMetrics, excludeCNGlobs, excludeAliasGlobs, excludeIssuerGlobs), errPem
 	}
 	// errPem contains the reason it wasn't parsed as PEM (e.g., "Failed to parse as a pem")
 
@@ -59,7 +106,7 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string) ([]ce
 	if parsedPkcs {
 		// If parsedPkcs is true, it means pkcs12.DecodeChain succeeded.
 		// errPkcs should be nil in this case according to its implementation.
-		return pkcsMetrics, errPkcs
+		return filterMetrics(pkcsMetrics, excludeCNGlobs, excludeAliasGlobs, excludeIssuerGlobs), errPkcs
 	}
 	// errPkcs contains the reason it wasn't parsed as PKCS12
 
@@ -68,7 +115,7 @@ func secondsToExpiryFromCertAsBytes(certBytes []byte, certPassword string) ([]ce
 	if parsedJks {
 		// If parsedJks is true, it means ks.Load succeeded.
 		// errJks might be non-nil if there was an issue processing an entry or cert within the JKS.
-		return jksMetrics, errJks
+		return filterMetrics(jksMetrics, excludeCNGlobs, excludeAliasGlobs, excludeIssuerGlobs), errJks
 	}
 	// errJks contains the reason it wasn't parsed as JKS
 
@@ -163,32 +210,44 @@ func parseAsJKS(certBytes []byte, certPassword string) (bool, []certMetric, erro
 
 func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	var metrics []certMetric
-	var blocks []*pem.Block
+	var pemBlockDecoded bool // Tracks if at least one PEM block was successfully decoded
 
-	block, rest := pem.Decode(certBytes)
-	if block == nil {
-		return false, metrics, fmt.Errorf("Failed to parse as a pem")
-	}
-	// Remove trailing whitespaces to prevent possible error in loop
-	rest = []byte(strings.TrimRightFunc(string(rest), unicode.IsSpace))
-	blocks = append(blocks, block)
-	// Export the remaining certificates in the certificate chain
-	for len(rest) != 0 {
-		block, rest = pem.Decode(rest)
+	data := certBytes
+	for len(data) > 0 {
+		block, rest := pem.Decode(data)
 		if block == nil {
-			return true, metrics, fmt.Errorf("Failed to parse intermediate as a pem")
+			// No more PEM blocks can be decoded from the remaining data.
+			// If 'rest' is not empty here, it means there was trailing non-PEM data,
+			// which is acceptable if we've already found PEM blocks.
+			break
 		}
+		pemBlockDecoded = true // Mark that we've found at least one PEM block
+
 		if block.Type == "CERTIFICATE" {
-			blocks = append(blocks, block)
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				// Log the error for this specific certificate but continue processing others.
+				glog.Warningf("Error parsing an X.509 certificate from a PEM block: %v", err)
+			} else {
+				metric := getCertificateMetrics(cert)
+				metrics = append(metrics, metric)
+			}
+		} else {
+			// A PEM block was found, but it's not of type "CERTIFICATE".
+			// Log this information if verbose logging is enabled and skip it.
+			glog.V(2).Infof("Skipping PEM block of type '%s'", block.Type)
 		}
+
+		// Move to the rest of the data for the next iteration.
+		data = rest
 	}
-	for _, block := range blocks {
-		cert, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			return true, metrics, err
-		}
-		metric := getCertificateMetrics(cert)
-		metrics = append(metrics, metric)
+
+	if !pemBlockDecoded {
+		// If no PEM blocks were decoded at all, the input is not considered PEM.
+		return false, nil, fmt.Errorf("no PEM data found in input")
 	}
+
+	// If at least one PEM block was decoded, the input is considered to be PEM.
+	// 'metrics' will contain all successfully parsed certificates.
 	return true, metrics, nil
 }
