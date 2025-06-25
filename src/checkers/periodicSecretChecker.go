@@ -88,7 +88,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				}
 			}
 		} else {
-			copy(namespacesToCheck, p.namespaces)
+			namespacesToCheck = p.namespaces
 		}
 
 		for _, ns := range namespacesToCheck {
