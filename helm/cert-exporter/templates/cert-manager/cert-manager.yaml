@@ -13,6 +13,7 @@ spec:
   {{- if eq .Values.certManager.kind "Deployment" }}
   replicas: {{ .Values.certManager.replicaCount }}
   {{- end }}
+  revisionHistoryLimit: {{ .Values.certManager.revisionHistoryLimit }}
   selector:
     matchLabels:
       {{- include "cert-exporter.certManagerSelectorLabels" . | nindent 6 }}
