@@ -82,3 +82,36 @@ For a full flag listing run the application with the `--help` parameter.
 ### environment variables
 
 cert-exporter respects the `NODE_NAME` environment variable.  If present it will add this value as label to file metrics.  See one of the [deployment yamls](./kops-nodes.yaml) for an example of using the [Kubernetes Downward API](https://kubernetes.io/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/) to make use of this feature.
+
+### AWS
+
+cert-exporter is able to check secrets in AWS Secret Manager. The following arguments exist for monitoring certificates in AWS Secret Manager:
+
+```
+  -aws-account string
+        AWS account to search for secrets in
+  -aws-key-string string
+        Name of the key to check in secrets (default ".pem")
+  -aws-region string
+        AWS region to search for secrets in
+  -aws-secret value
+        AWS secrets to export
+```
+
+Multiple `-aws-secret` arguments can be provided to monitor more than 1 secret. Example of 2 possible cases when using AWS Secret Manager:
+
+```json
+{
+    "tls.pem": "-----BEGIN CERTIFICATE-----\nMIID7TCCAtWgAwIBAgIUUC0QZlGksaxYSfvF7RoC9O44VYEwDQYJKoZIhvcNAQEL\n...\n-----END CERTIFICATE-----",
+    "tls.key": "-----BEGIN PRIVATE KEY-----\MIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQwlrvimumxjmK50ne\n...\n-----END PRIVATE KEY-----",
+}
+```
+
+or base64 encoded:
+
+```json
+{
+    "tls.pem": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ3VENDQXRXZ0F3SUJBZ0lVVUMwUVpsR2tzYXhZU2Z2RjdSb0M5TzQ0VllFd0RRWUpLb1pJaHZjTkFRRUw...",
+    "tls.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXE1JSUZOVEJmQmdrcWhraUc5dzBCQlEwd1VqQXhCZ2txaGtpRzl3MEJCUXd3SkFRUXdscnZpbXVteGptSzUwbmU...",
+}
+```

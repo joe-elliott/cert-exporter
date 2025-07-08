@@ -54,6 +54,7 @@ var (
 	webhooksAnnotationSelector        args.GlobArgs
 	awsAccount                        string
 	awsRegion                         string
+	awsKeyString                      string
 	awsSecrets                        args.GlobArgs
 	certRequestsEnabled               bool
 	certRequestsLabelSelector         args.GlobArgs
@@ -96,6 +97,7 @@ func init() {
 
 	flag.StringVar(&awsAccount, "aws-account", "", "AWS account to search for secrets in")
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
+	flag.StringVar(&awsKeyString, "aws-key-string", ".pem", "Name of the key to check in secrets")
 	flag.Var(&awsSecrets, "aws-secret", "AWS secrets to export")
 
 	flag.BoolVar(&certRequestsEnabled, "enable-certrequests-check", false, "Enable certrequests check.")
@@ -142,7 +144,7 @@ func main() {
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
 		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
-		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
+		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeyString, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
 		go awsChecker.StartChecking()
 	}
 
