@@ -76,7 +76,6 @@ func (p *PeriodicAwsChecker) StartChecking() {
 			json.Unmarshal([]byte(secretString), &secretMap)
 
 			for key, value := range secretMap {
-				// if strings.Contains(key, ".pem") {
 				if strings.Contains(key, p.awsKeyString) {
 					stringValue := value.(string)
 
