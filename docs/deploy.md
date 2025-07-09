@@ -103,11 +103,11 @@ Multiple `-aws-secret` arguments can be provided to monitor more than 1 secret. 
 ```json
 {
     "tls.pem": "-----BEGIN CERTIFICATE-----\nMIID7TCCAtWgAwIBAgIUUC0QZlGksaxYSfvF7RoC9O44VYEwDQYJKoZIhvcNAQEL\n...\n-----END CERTIFICATE-----",
-    "tls.key": "-----BEGIN PRIVATE KEY-----\MIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQwlrvimumxjmK50ne\n...\n-----END PRIVATE KEY-----",
+    "tls.key": "-----BEGIN PRIVATE KEY-----\nMIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQwlrvimumxjmK50ne\n...\n-----END PRIVATE KEY-----",
 }
 ```
 
-or base64 encoded:
+or the values to be base64 encoded:
 
 ```json
 {
