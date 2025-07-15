@@ -90,8 +90,8 @@ cert-exporter is able to check secrets in AWS Secret Manager. The following argu
 ```
   -aws-account string
         AWS account to search for secrets in
-  -aws-key-string string
-        Name of the key to check in secrets (default ".pem")
+  -aws-key-substring string
+        Substring to search for in the key name. Matched keys are parsed as certs. (default ".pem")
   -aws-region string
         AWS region to search for secrets in
   -aws-secret value

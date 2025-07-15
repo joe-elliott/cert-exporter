@@ -18,21 +18,21 @@ import (
 
 // PeriodicAwsChecker is an object designed to check for .pem files in AWS Secrets Manager
 type PeriodicAwsChecker struct {
-	awsAccount, awsRegion, awsKeyString string
-	awsSecrets                          []string
-	period                              time.Duration
-	exporter                            *exporters.AwsExporter
+	awsAccount, awsRegion, awsKeySubString string
+	awsSecrets                             []string
+	period                                 time.Duration
+	exporter                               *exporters.AwsExporter
 }
 
 // NewCertChecker is a factory method that returns a new AwsCertChecker
-func NewAwsChecker(awsAccount, awsRegion, awsKeyString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
+func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
 	return &PeriodicAwsChecker{
-		awsAccount:   awsAccount,
-		awsRegion:    awsRegion,
-		awsKeyString: awsKeyString,
-		awsSecrets:   awsSecrets,
-		period:       period,
-		exporter:     e,
+		awsAccount:      awsAccount,
+		awsRegion:       awsRegion,
+		awsKeySubString: awsKeySubString,
+		awsSecrets:      awsSecrets,
+		period:          period,
+		exporter:        e,
 	}
 }
 
@@ -76,10 +76,13 @@ func (p *PeriodicAwsChecker) StartChecking() {
 			json.Unmarshal([]byte(secretString), &secretMap)
 
 			for key, value := range secretMap {
-				if strings.Contains(key, p.awsKeyString) {
+				if strings.Contains(key, p.awsKeySubString) {
 					stringValue := value.(string)
 
 					if strings.HasPrefix(stringValue, "-----BEGIN CERTIFICATE-----") {
+						// There are 2 ways to store a certificate in aws, base64 encoded or on a single
+						// line. As the 'ExportMetrics' does the decoding, adding this check would make
+						// it the easiest change without changing a lot of other code.
 						stringValue = base64.StdEncoding.EncodeToString([]byte(stringValue))
 					}
 
