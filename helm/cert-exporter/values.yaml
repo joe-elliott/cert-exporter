@@ -2,6 +2,8 @@ certManager:
   # DaemonSet or Deployment
   kind: Deployment
   replicaCount: 1
+  # Adds a custom revisionHistoryLimit for either Deployment or DaemonSet
+  revisionHistoryLimit: 10
   # Adds additional labels to pods
   additionalPodLabels: {}
   # label1: test
