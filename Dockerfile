@@ -14,4 +14,5 @@ USER app
 
 COPY --from=build /src/app .
 
-CMD ["./app"] 
+ENTRYPOINT ["./app"]
+CMD []
