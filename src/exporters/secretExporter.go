@@ -10,7 +10,7 @@ type SecretExporter struct {
 
 // ExportMetrics exports the provided PEM file
 func (c *SecretExporter) ExportMetrics(bytes []byte, keyName, secretName, secretNamespace, certPassword string) error {
-	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, certPassword)
+	metricCollection, err := secondsToExpiryFromCertAsBytes(bytes, certPassword, nil, nil, nil) // No CN/Alias/Issuer specific filters for Secret certs
 	if err != nil {
 		return err
 	}
