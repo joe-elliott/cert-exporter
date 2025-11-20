@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
@@ -20,17 +22,19 @@ import (
 type PeriodicAwsChecker struct {
 	awsAccount, awsRegion, awsKeySubString string
 	awsSecrets                             []string
+	awsIncludeFileInMetrics                bool
 	period                                 time.Duration
 	exporter                               *exporters.AwsExporter
 }
 
 // NewCertChecker is a factory method that returns a new AwsCertChecker
-func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
+func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, awsIncludeFileInMetrics bool, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
 	return &PeriodicAwsChecker{
 		awsAccount:      awsAccount,
 		awsRegion:       awsRegion,
 		awsKeySubString: awsKeySubString,
 		awsSecrets:      awsSecrets,
+		awsIncludeFileInMetrics: awsIncludeFileInMetrics,
 		period:          period,
 		exporter:        e,
 	}
@@ -39,6 +43,7 @@ func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []s
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicAwsChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
+	fmt.Println(p.awsIncludeFileInMetrics, " is the value of awsIncludeFileInMetrics")
 	for {
 		glog.Info("AWS Checker: Begin periodic check")
 
@@ -89,7 +94,7 @@ func (p *PeriodicAwsChecker) StartChecking() {
 					}
 
 					glog.Info("Exporting metrics from ", key)
-					err := p.exporter.ExportMetrics(stringValue, secretName, key)
+					err := p.exporter.ExportMetrics(stringValue, secretName, key, p.awsIncludeFileInMetrics)
 					if err != nil {
 						metrics.ErrorTotal.Inc()
 						glog.Error("Error exporting certificate metrics for ", key)

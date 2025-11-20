@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,6 +57,7 @@ var (
 	awsRegion                         string
 	awsKeySubString                   string
 	awsSecrets                        args.GlobArgs
+	awsIncludeFileInMetrics           bool
 	certRequestsEnabled               bool
 	certRequestsLabelSelector         args.GlobArgs
 	certRequestsAnnotationSelector    args.GlobArgs
@@ -99,6 +101,7 @@ func init() {
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
 	flag.StringVar(&awsKeySubString, "aws-key-substring", ".pem", "Substring to search for in the key name. Matched keys are parsed as certs.")
 	flag.Var(&awsSecrets, "aws-secret", "AWS secrets to export")
+	flag.BoolVar(&awsIncludeFileInMetrics, "aws-include-file-in-metrics", true, "Include the PEM file content in the exported metrics.")
 
 	flag.BoolVar(&certRequestsEnabled, "enable-certrequests-check", false, "Enable certrequests check.")
 	flag.Var(&certRequestsLabelSelector, "certrequests-label-selector", "Label selector to find certrequests to publish as metrics.")
@@ -110,7 +113,7 @@ func init() {
 
 func main() {
 	flag.Parse()
-	metrics.Init(prometheusExporterMetricsDisabled)
+	metrics.Init(prometheusExporterMetricsDisabled, awsIncludeFileInMetrics)
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
@@ -144,7 +147,8 @@ func main() {
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
 		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
-		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
+		fmt.Println(awsIncludeFileInMetrics, " is the value of awsIncludeFileInMetrics")
+		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, awsIncludeFileInMetrics, pollingPeriod, &exporters.AwsExporter{})
 		go awsChecker.StartChecking()
 	}
 
