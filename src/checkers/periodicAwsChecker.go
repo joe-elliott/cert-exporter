@@ -1,14 +1,16 @@
 package checkers
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
 	"github.com/golang/glog"
 
@@ -20,17 +22,19 @@ import (
 type PeriodicAwsChecker struct {
 	awsAccount, awsRegion, awsKeySubString string
 	awsSecrets                             []string
+	awsIncludeFileInMetrics                bool
 	period                                 time.Duration
 	exporter                               *exporters.AwsExporter
 }
 
 // NewCertChecker is a factory method that returns a new AwsCertChecker
-func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
+func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, awsIncludeFileInMetrics bool, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
 	return &PeriodicAwsChecker{
 		awsAccount:      awsAccount,
 		awsRegion:       awsRegion,
 		awsKeySubString: awsKeySubString,
 		awsSecrets:      awsSecrets,
+		awsIncludeFileInMetrics: awsIncludeFileInMetrics,
 		period:          period,
 		exporter:        e,
 	}
@@ -39,30 +43,32 @@ func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []s
 // StartChecking starts the periodic file check.  Most likely you want to run this as an independent go routine.
 func (p *PeriodicAwsChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
+	fmt.Println(p.awsIncludeFileInMetrics, " is the value of awsIncludeFileInMetrics")
 	for {
 		glog.Info("AWS Checker: Begin periodic check")
 
 		p.exporter.ResetMetrics()
 
-		// Create a Session with a custom region
-		session, err := session.NewSession()
+		// Create AWS config with custom region
+		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(p.awsRegion))
 
 		if err != nil {
-			glog.Error("Error initializing AWS session: ", err)
+			glog.Error("Error initializing AWS config: ", err)
 			metrics.ErrorTotal.Inc()
 			continue
 		}
 
-		svc := secretsmanager.New(session, aws.NewConfig().WithRegion(p.awsRegion))
+		svc := secretsmanager.NewFromConfig(cfg)
 
 		for _, secretName := range p.awsSecrets {
 			glog.Info("Getting secret " + secretName + " from AWS Secrets Manager")
 
 			input := &secretsmanager.GetSecretValueInput{
-				SecretId: aws.String("arn:aws:secretsmanager:" + p.awsRegion + ":" + p.awsAccount + ":secret:" + secretName),
+				SecretId: &[]string{"arn:aws:secretsmanager:" + p.awsRegion + ":" + p.awsAccount + ":secret:" + secretName}[0],
 			}
 
-			secretValue, err := svc.GetSecretValue(input)
+			secretValue, err := svc.GetSecretValue(context.TODO(), input)
+
 
 			if err != nil {
 				glog.Error("Error in GetSecretValue: ", err)
@@ -79,6 +85,7 @@ func (p *PeriodicAwsChecker) StartChecking() {
 				if strings.Contains(key, p.awsKeySubString) {
 					stringValue := value.(string)
 
+
 					if strings.HasPrefix(stringValue, "-----BEGIN CERTIFICATE-----") {
 						// There are 2 ways to store a certificate in aws, base64 encoded or on a single
 						// line. As the 'ExportMetrics' does the decoding, adding this check would make
@@ -87,10 +94,10 @@ func (p *PeriodicAwsChecker) StartChecking() {
 					}
 
 					glog.Info("Exporting metrics from ", key)
-					err := p.exporter.ExportMetrics(stringValue, secretName, key)
+					err := p.exporter.ExportMetrics(stringValue, secretName, key, p.awsIncludeFileInMetrics)
 					if err != nil {
 						metrics.ErrorTotal.Inc()
-						glog.Error("Error exporting certificate metrics")
+						glog.Error("Error exporting certificate metrics for ", key)
 					}
 				}
 			}
