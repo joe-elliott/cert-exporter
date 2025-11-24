@@ -25,15 +25,11 @@ jobs:
       - name: Build
         run: make build
 
-      - name: Test certificate and kubeconfig
-        run: |
-          cd test/files
-          ./test.sh
+      - name: Run unit tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
-      - name: Test cert-manager
-        run: |
-          cd test/cert-manager
-          ./test.sh
+      - name: Run integration tests
+        run: go test -v -tags=integration ./integration_test.go
 
       - name: Release
         env:
