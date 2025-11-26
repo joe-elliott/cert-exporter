@@ -31,6 +31,16 @@ jobs:
       - name: Run integration tests
         run: go test -v -tags=integration ./integration_test.go
 
+      - name: Test certificate and kubeconfig
+        run: |
+          cd test/files
+          ./test.sh
+
+      - name: Test cert-manager
+        run: |
+          cd test/cert-manager
+          ./test.sh
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

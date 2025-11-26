@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager-test
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigning-issuer
+  namespace: cert-manager-test
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-crt
+  namespace: cert-manager-test
+  labels:
+    testlabel: test
+spec:
+  commonName: example.com
+  secretName: selfsigned-cert-tls
+  duration: 2400h
+  issuerRef:
+    name: selfsigning-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-crt-not-working
+  namespace: cert-manager-test
+spec:
+  commonName: example.com
+  secretName: example-crt-not-working
+  duration: 2400h
+  issuerRef:
+    name: notworking-issuer
+---
+apiVersion: v1
+data:
+  password: bXlQYXNzd29yZB==
+  store.p12: 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
+kind: Secret
+metadata:
+  name: example-crt-pw
+  namespace: cert-manager-test
+type: Opaque
+---
+apiVersion: v1
+data:
+  test.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCekNDQWUrZ0F3SUJBZ0lVTDVRNCs0YkdFMkpJSDI1dk9hTEtsNmFmWmJRd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0V6RVJNQThHQTFVRUF3d0lhRzF6TFhSbGMzUXdIaGNOTWpBd016RXpNVEV4TlRVeldoY05NakV3TXpFegpNVEV4TlRVeldqQVRNUkV3RHdZRFZRUUREQWhvYlhNdGRHVnpkRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFECmdnRVBBRENDQVFvQ2dnRUJBTVVNZDg5di9EbjNBTUVWcHBoL2FETElYdE80eEdZYWtocit2RDVid3RFTmkzOHgKeG5nWWh3WmJwYUkrTkhHZlJxVnhnQTIvUXJQSG9LUHE2eHhMK1VUa3prYVB0aCtZUVJqM3lqYTBud3pTZzZJYgo0ZTIvK3lya2J0M29RK2k5SjlkZ2lLbFdvVk56clV2U3hoRkFBMnlvclEremhmb1JEdHNsR2xScWQ3Qng2K3hvCm1pVUpUZVNYUVh1ZmVZVmxSNExKNThlZjFHaUJ5U2p4MVVBekpYbEE2ek5MVU5BeHZSbEd1WEs3QUc1NmVHRGsKNkxKbURTMHpWNzFQb0EzZmIvUXFTZ1F2U013amlzdzhXWUNoQUxQei9OWXErQTJwM051aHhyTVdETnhNdnFTRQpKdGxySmt2emRmb3VpY2o5cXoyZTNwTmV1bnZtaDY5UU1WdGo1NzBDQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFCkZKanpZb1l0TU9qejFkVVlSSFhJaitCOWF2U3ZNQjhHQTFVZEl3UVlNQmFBRkpqellvWXRNT2p6MWRVWVJIWEkKaitCOWF2U3ZNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBSlR2RDdFRgpVd3dLS2VFYVlFelJLSDhWanlSd08xRTFkN3EwVXhDOU9ubC9mTHU0L0RYU20vTCtvbSt5QWsrV2pzVWtmNkdzClZ1dE5sbUNEME5xZWU1RnNWYy82RnlhQUZSUG45UTJlNTNwUERQTVJwSWgwdHRkcXdQdVk3UUhqMUFFclFrRisKMC9ZOFdoTllrQStyVFR5cG10YTB4dXUrc0JXMURrRDliei9HUWpqZm52U0wyVTJIM2Z1L0tycERQM3RKb2NtNApQczBYZ29vK2k2Q0JGY3Q4dEtQYWsrZTVNSGtyTXZVNHZNV1Q1aTlKNzVpWUR3R1BkZWlvSlE3NFlSSXo0SWo1CmdVb3VqemVIN01qK3FpNTl0VHU3bnVRZHlVeEhwR3hlUlJrRmQvZFVqbXVtZDVMbTJTb2JDSDZoeXVBbHVrRC8KWDJWTmI0MXp5Ri8wazA0PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+kind: Secret
+metadata:
+  name: test
+  annotations:
+    test: test
+type: Opaque
+---
+apiVersion: v1
+data:
+  test.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDBzCCAe+gAwIBAgIUL5Q4+4bGE2JIH25vOaLKl6afZbQwDQYJKoZIhvcNAQEL
+    BQAwEzERMA8GA1UEAwwIaG1zLXRlc3QwHhcNMjAwMzEzMTExNTUzWhcNMjEwMzEz
+    MTExNTUzWjATMREwDwYDVQQDDAhobXMtdGVzdDCCASIwDQYJKoZIhvcNAQEBBQAD
+    ggEPADCCAQoCggEBAMUMd89v/Dn3AMEVpph/aDLIXtO4xGYakhr+vD5bwtENi38x
+    xngYhwZbpaI+NHGfRqVxgA2/QrPHoKPq6xxL+UTkzkaPth+YQRj3yja0nwzSg6Ib
+    4e2/+yrkbt3oQ+i9J9dgiKlWoVNzrUvSxhFAA2yorQ+zhfoRDtslGlRqd7Bx6+xo
+    miUJTeSXQXufeYVlR4LJ58ef1GiBySjx1UAzJXlA6zNLUNAxvRlGuXK7AG56eGDk
+    6LJmDS0zV71PoA3fb/QqSgQvSMwjisw8WYChALPz/NYq+A2p3NuhxrMWDNxMvqSE
+    JtlrJkvzdfouicj9qz2e3pNeunvmh69QMVtj570CAwEAAaNTMFEwHQYDVR0OBBYE
+    FJjzYoYtMOjz1dUYRHXIj+B9avSvMB8GA1UdIwQYMBaAFJjzYoYtMOjz1dUYRHXI
+    j+B9avSvMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAJTvD7EF
+    UwwKKeEaYEzRKH8VjyRwO1E1d7q0UxC9Onl/fLu4/DXSm/L+om+yAk+WjsUkf6Gs
+    VutNlmCD0Nqee5FsVc/6FyaAFRPn9Q2e53pPDPMRpIh0ttdqwPuY7QHj1AErQkF+
+    0/Y8WhNYkA+rTTypmta0xuu+sBW1DkD9bz/GQjjfnvSL2U2H3fu/KrpDP3tJocm4
+    Ps0Xgoo+i6CBFct8tKPak+e5MHkrMvU4vMWT5i9J75iYDwGPdeioJQ74YRIz4Ij5
+    gUoujzeH7Mj+qi59tTu7nuQdyUxHpGxeRRkFd/dUjmumd5Lm2SobCH6hyuAlukD/
+    X2VNb41zyF/0k04=
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: test
+  annotations:
+    test: test
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: test-webhook-cfg
+  annotations:
+    test: test
+webhooks:
+  - admissionReviewVersions:
+      - v1
+      - v1beta
+    name: mutating.test-webhook.com
+    clientConfig:
+      service:
+        name: test-webhook-svc
+        namespace: default
+        path: "/mutate"
+      caBundle: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ3RENDQVVlZ0F3SUJBZ0lRSnpWYTZ6TC92a2ZTMU12NXZhelRwakFLQmdncWhrak9QUVFEQXpBaU1TQXcKSGdZRFZRUURFeGRqWlhKMExXMWhibUZuWlhJdGQyVmlhRzl2YXkxallUQWVGdzB5TWpBNE1qWXdNekl6TURGYQpGdzB5TXpBNE1qWXdNekl6TURGYU1DSXhJREFlQmdOVkJBTVRGMk5sY25RdGJXRnVZV2RsY2kxM1pXSm9iMjlyCkxXTmhNSFl3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0lEWWdBRXpwVjg3cUd2bXZMZ2FOSnhFUGVUbW1hMFgrcnEKNkdwNEZJNDZFeUtJQjNOb3dMQ1BTMUttcXo2VGtCbFFSbnovczZCdWp0dW9zZjd6L2lpSTJoSnFRVTRldnNwbQpUaHRPVzA4eCs1Y3lxbmEzdzJ1TFp0ZjZiMnRNV0Vpd21zeUpvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3CkR3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVVBSOGRkS3h2NlJWL3ZDaU1rZmJJdkRscGJrOHcKQ2dZSUtvWkl6ajBFQXdNRFp3QXdaQUl3QlVsTmtzR2tVWHRFb0tzTG1CdHNDN2NQcit4cHFIVjRnSGdpVVc0awpPdmNOazdLSU0vK0pOQzlDL3ZOZXRCUFBBakFGZEhDM1Z0eU5kNXVHdEY3dXVTcGxHbVJRYmIxWVdFTU5QbHkzCjhIRTliT09nZ09wYWNydDY5NnNwWVpsaGlDOD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+    failurePolicy: Ignore
+    sideEffects: None
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: ["core", ""]
+        apiVersions: ["*"]
+        resources: ["persistentvolumeclaims"]
