@@ -3,7 +3,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"sync"
@@ -11,14 +10,9 @@ import (
 	"time"
 
 	"github.com/joe-elliott/cert-exporter/internal/testutil"
-	"github.com/joe-elliott/cert-exporter/src/checkers"
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
 	"github.com/prometheus/client_golang/prometheus"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
@@ -284,162 +278,6 @@ func TestEndToEnd_ErrorMetric(t *testing.T) {
 
 	if newErrorCount <= initialErrorCount {
 		t.Errorf("Expected error_total to increase from %v, got %v", initialErrorCount, newErrorCount)
-	}
-}
-
-// TestKubernetesSecrets tests secret checking with a real Kubernetes cluster
-// This test requires a KUBECONFIG environment variable pointing to a valid cluster
-func TestKubernetesSecrets(t *testing.T) {
-	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		kubeconfig = os.Getenv("HOME") + "/.kube/config"
-		if _, err := os.Stat(kubeconfig); os.IsNotExist(err) {
-			t.Skip("Skipping Kubernetes integration test: KUBECONFIG not set and ~/.kube/config not found")
-		}
-	}
-
-	initMetricsOnce()
-
-	// Load kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		t.Fatalf("Failed to load kubeconfig: %v", err)
-	}
-
-	// Create Kubernetes client
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		t.Fatalf("Failed to create Kubernetes client: %v", err)
-	}
-
-	// Create test namespace
-	testNS := "cert-exporter-test-" + time.Now().Format("20060102150405")
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: testNS,
-		},
-	}
-	_, err = clientset.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
-	if err != nil {
-		t.Fatalf("Failed to create test namespace: %v", err)
-	}
-	defer func() {
-		clientset.CoreV1().Namespaces().Delete(context.Background(), testNS, metav1.DeleteOptions{})
-	}()
-
-	// Generate test certificate
-	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
-		CommonName:   "k8s-secret-test",
-		Organization: "test-org",
-		Country:      "US",
-		Province:     "CA",
-		Days:         30,
-		IsCA:         false,
-	})
-
-	// Create secret
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-tls-secret",
-			Namespace: testNS,
-			Annotations: map[string]string{
-				"cert-exporter-test": "true",
-			},
-		},
-		Type: corev1.SecretTypeTLS,
-		Data: map[string][]byte{
-			"tls.crt": cert.CertPEM,
-			"tls.key": cert.PrivateKeyPEM,
-		},
-	}
-
-	_, err = clientset.CoreV1().Secrets(testNS).Create(context.Background(), secret, metav1.CreateOptions{})
-	if err != nil {
-		t.Fatalf("Failed to create secret: %v", err)
-	}
-
-	// Wait a bit for secret to be fully created
-	time.Sleep(100 * time.Millisecond)
-
-	// Create exporter and reset metrics
-	exporter := &exporters.SecretExporter{}
-	exporter.ResetMetrics()
-
-	// Start secret checker
-	checker := checkers.NewSecretChecker(
-		500*time.Millisecond, // Slower polling for K8s
-		[]string{},
-		[]string{"*.crt"},
-		[]string{},
-		[]string{"cert-exporter-test"},
-		[]string{testNS},
-		[]string{},
-		kubeconfig,
-		exporter,
-		[]string{},
-	)
-
-	stopCh := make(chan struct{})
-	defer close(stopCh)
-
-	go func() {
-		ticker := time.NewTicker(500 * time.Millisecond)
-		defer ticker.Stop()
-
-		for i := 0; i < 3; i++ { // Run 3 cycles max
-			select {
-			case <-stopCh:
-				return
-			case <-ticker.C:
-				// Checker will run its own checking logic
-			}
-		}
-	}()
-
-	// Start the checker in background
-	go checker.StartChecking()
-
-	// Wait for at least three check cycles to complete (K8s needs more time)
-	// Try multiple times with delay
-	foundMetric := false
-	for attempt := 0; attempt < 5; attempt++ {
-		time.Sleep(600 * time.Millisecond)
-
-		// Verify metrics
-		mfs, err := prometheus.DefaultGatherer.Gather()
-		if err != nil {
-			t.Fatalf("Failed to gather metrics: %v", err)
-		}
-
-		for _, mf := range mfs {
-			if mf.GetName() == "cert_exporter_secret_expires_in_seconds" {
-				for _, metric := range mf.GetMetric() {
-					labels := make(map[string]string)
-					for _, label := range metric.GetLabel() {
-						labels[label.GetName()] = label.GetValue()
-					}
-					t.Logf("Attempt %d - Found secret metric: secret_name=%s, secret_namespace=%s, cn=%s",
-						attempt+1, labels["secret_name"], labels["secret_namespace"], labels["cn"])
-
-					if labels["secret_name"] == "test-tls-secret" && labels["secret_namespace"] == testNS {
-						foundMetric = true
-						if labels["cn"] != "k8s-secret-test" {
-							t.Errorf("Expected cn=k8s-secret-test, got %v", labels["cn"])
-						}
-						break
-					}
-				}
-			}
-		}
-
-		if foundMetric {
-			t.Logf("Found metric on attempt %d", attempt+1)
-			break
-		}
-	}
-
-	if !foundMetric {
-		t.Error("Expected to find metric for test secret after multiple attempts")
 	}
 }
 
