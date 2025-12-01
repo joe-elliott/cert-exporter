@@ -6,3 +6,9 @@ test/files/certs
 test/files/certsSibling
 test/files/kubeConfigSibling
 run.sh
+
+# Output of the go coverage tool
+*.xml
+*.html
+*.txt
+*.out
