@@ -10,7 +10,7 @@ Kubernetes uses PKI certificates for authentication between all major components
 
 cert-exporter can publish metrics about 
 
-- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) and [PKCS12 format](https://en.wikipedia.org/wiki/PKCS_12)
+- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail), [PKCS12 format](https://en.wikipedia.org/wiki/PKCS_12) and [JKS (Java KeyStore) format](https://en.wikipedia.org/wiki/Java_KeyStore)
 - Certs embedded or referenced from kubeconfig files.
 - Certs stored in Kubernetes 
   - secrets 
@@ -22,6 +22,18 @@ cert-exporter can publish metrics about
 - Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
+
+#### Handling Password-Protected Certificate Files
+
+For certificate files on disk (PEM, PKCS#12, JKS) or those referenced in kubeconfig files that are password-protected, `cert-exporter` offers flexible password management:
+
+- **Specific Passwords per File/Glob:**
+  Use the `-cert-password-spec "glob_pattern:password"` flag. This can be specified multiple times. The first pattern that matches a file's path determines its password.
+  Example: `-cert-password-spec "/secure/mycerts/*.jks:jksSecret123" -cert-password-spec "*.p12:p12Password"`
+- **Default Password:**
+  Use the `-cert-file-password "default_password"` flag to set a fallback password if no `-cert-password-spec` rule matches a file.
+
+If a file is password-protected and no matching password is provided (either via a specific spec or the default), parsing will likely fail for that file, and an error will be logged.
 
 See [custom-secrets](./docs/examples/custom-secrets) for examples of how to run `cert-exporter` to scrape certificates in secrets managed by you (not cert-manager).
 
