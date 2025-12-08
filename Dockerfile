@@ -5,7 +5,7 @@ COPY . .
 RUN go mod download && \
     CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 RUN addgroup -g 1000 app && \
     adduser -u 1000 -h /app -G app -S app
