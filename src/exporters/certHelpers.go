@@ -88,7 +88,9 @@ func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	}
 	// Remove trailing whitespaces to prevent possible error in loop
 	rest = []byte(strings.TrimRightFunc(string(rest), unicode.IsSpace))
-	blocks = append(blocks, block)
+	if block.Type == "CERTIFICATE" {
+		blocks = append(blocks, block)
+	}
 	// Export the remaining certificates in the certificate chain
 	for len(rest) != 0 {
 		block, rest = pem.Decode(rest)
