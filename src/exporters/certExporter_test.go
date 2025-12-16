@@ -12,8 +12,9 @@ import (
 )
 
 func TestCertExporter_ExportMetrics(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tests := []struct {
 		name     string
@@ -112,7 +113,7 @@ func TestCertExporter_ExportMetrics(t *testing.T) {
 
 			if !tt.wantErr {
 				// Verify metrics were set
-				mfs, err := prometheus.DefaultGatherer.Gather()
+				mfs, err := testRegistry.Gather()
 				if err != nil {
 					t.Fatalf("Failed to gather metrics: %v", err)
 				}
@@ -150,8 +151,9 @@ func TestCertExporter_ExportMetrics(t *testing.T) {
 }
 
 func TestCertExporter_MetricsValues(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 	certFile := tmpDir + "/test.crt"
@@ -178,7 +180,7 @@ func TestCertExporter_MetricsValues(t *testing.T) {
 	}
 
 	// Gather metrics
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -223,8 +225,9 @@ func TestCertExporter_MetricsValues(t *testing.T) {
 }
 
 func TestCertExporter_PKCS12(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 	certFile := tmpDir + "/test.p12"
@@ -264,7 +267,7 @@ func TestCertExporter_PKCS12(t *testing.T) {
 	}
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -285,8 +288,9 @@ func TestCertExporter_PKCS12(t *testing.T) {
 }
 
 func TestCertExporter_ResetMetrics(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 	certFile := tmpDir + "/test.crt"
@@ -311,7 +315,7 @@ func TestCertExporter_ResetMetrics(t *testing.T) {
 	}
 
 	// Verify metrics exist
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -335,7 +339,7 @@ func TestCertExporter_ResetMetrics(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	// Verify metrics were reset
-	mfs, err = prometheus.DefaultGatherer.Gather()
+	mfs, err = testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}

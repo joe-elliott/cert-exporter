@@ -109,7 +109,8 @@ func TestNewAwsChecker_MultipleSecrets(t *testing.T) {
 }
 
 func TestPeriodicAwsChecker_ProcessSecret_Success(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -154,7 +155,7 @@ func TestPeriodicAwsChecker_ProcessSecret_Success(t *testing.T) {
 	}
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -181,7 +182,8 @@ func TestPeriodicAwsChecker_ProcessSecret_Success(t *testing.T) {
 }
 
 func TestPeriodicAwsChecker_ProcessSecret_RawPEM(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -220,7 +222,7 @@ func TestPeriodicAwsChecker_ProcessSecret_RawPEM(t *testing.T) {
 	}
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -247,7 +249,8 @@ func TestPeriodicAwsChecker_ProcessSecret_RawPEM(t *testing.T) {
 }
 
 func TestPeriodicAwsChecker_ProcessSecret_KeyFiltering(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -288,7 +291,7 @@ func TestPeriodicAwsChecker_ProcessSecret_KeyFiltering(t *testing.T) {
 	}
 
 	// Verify only .pem keys were processed
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -370,7 +373,8 @@ func TestPeriodicAwsChecker_ProcessSecret_InvalidJSON(t *testing.T) {
 }
 
 func TestPeriodicAwsChecker_CheckSecrets_MultipleSecrets(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificates
 	cert1 := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -417,7 +421,7 @@ func TestPeriodicAwsChecker_CheckSecrets_MultipleSecrets(t *testing.T) {
 	}
 
 	// Verify metrics for both secrets
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}

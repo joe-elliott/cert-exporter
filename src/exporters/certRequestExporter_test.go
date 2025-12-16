@@ -10,7 +10,8 @@ import (
 )
 
 func TestCertRequestExporter_ExportMetrics(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -32,7 +33,7 @@ func TestCertRequestExporter_ExportMetrics(t *testing.T) {
 	}
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -83,7 +84,8 @@ func TestCertRequestExporter_ExportMetrics(t *testing.T) {
 }
 
 func TestCertRequestExporter_ExportMetrics_Bundle(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate CA and signed cert
 	caCert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -117,7 +119,7 @@ func TestCertRequestExporter_ExportMetrics_Bundle(t *testing.T) {
 	}
 
 	// Verify metrics for both certs in bundle
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -150,7 +152,8 @@ func TestCertRequestExporter_ExportMetrics_Bundle(t *testing.T) {
 }
 
 func TestCertRequestExporter_ExportMetrics_MultipleNamespaces(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificates
 	cert1 := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -176,7 +179,7 @@ func TestCertRequestExporter_ExportMetrics_MultipleNamespaces(t *testing.T) {
 	}
 
 	// Verify metrics for both namespaces
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -207,7 +210,8 @@ func TestCertRequestExporter_ExportMetrics_MultipleNamespaces(t *testing.T) {
 }
 
 func TestCertRequestExporter_ExportMetrics_InvalidCert(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	exporter := &CertRequestExporter{}
 	exporter.ResetMetrics()
@@ -220,7 +224,8 @@ func TestCertRequestExporter_ExportMetrics_InvalidCert(t *testing.T) {
 }
 
 func TestCertRequestExporter_ResetMetrics(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate and export test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -236,7 +241,7 @@ func TestCertRequestExporter_ResetMetrics(t *testing.T) {
 	}
 
 	// Verify metric exists
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -258,7 +263,7 @@ func TestCertRequestExporter_ResetMetrics(t *testing.T) {
 	exporter.ResetMetrics()
 
 	// Verify metrics are reset
-	mfs, err = prometheus.DefaultGatherer.Gather()
+	mfs, err = testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -273,7 +278,8 @@ func TestCertRequestExporter_ResetMetrics(t *testing.T) {
 }
 
 func TestCertRequestExporter_LabelValues(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate with specific issuer
 	caCert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -306,7 +312,7 @@ func TestCertRequestExporter_LabelValues(t *testing.T) {
 	}
 
 	// Verify label values
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}

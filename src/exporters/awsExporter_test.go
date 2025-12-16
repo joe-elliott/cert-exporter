@@ -10,7 +10,8 @@ import (
 )
 
 func TestAwsExporter_ExportMetrics(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -35,7 +36,7 @@ func TestAwsExporter_ExportMetrics(t *testing.T) {
 	}
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -62,7 +63,8 @@ func TestAwsExporter_ExportMetrics(t *testing.T) {
 }
 
 func TestAwsExporter_ExportMetrics_InvalidBase64(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	exporter := &AwsExporter{}
 	exporter.ResetMetrics()
@@ -75,7 +77,8 @@ func TestAwsExporter_ExportMetrics_InvalidBase64(t *testing.T) {
 }
 
 func TestAwsExporter_ExportMetrics_InvalidCertificate(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	exporter := &AwsExporter{}
 	exporter.ResetMetrics()
@@ -89,7 +92,8 @@ func TestAwsExporter_ExportMetrics_InvalidCertificate(t *testing.T) {
 }
 
 func TestAwsExporter_ResetMetrics(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate and export test certificate
 	cert := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -107,7 +111,7 @@ func TestAwsExporter_ResetMetrics(t *testing.T) {
 	}
 
 	// Verify metric exists
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -129,7 +133,7 @@ func TestAwsExporter_ResetMetrics(t *testing.T) {
 	exporter.ResetMetrics()
 
 	// Verify metrics are reset
-	mfs, err = prometheus.DefaultGatherer.Gather()
+	mfs, err = testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -144,7 +148,8 @@ func TestAwsExporter_ResetMetrics(t *testing.T) {
 }
 
 func TestAwsExporter_MultipleSecrets(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	// Generate multiple certificates
 	cert1 := testutil.GenerateCertificate(t, testutil.CertConfig{
@@ -173,7 +178,7 @@ func TestAwsExporter_MultipleSecrets(t *testing.T) {
 	}
 
 	// Verify both metrics exist
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}

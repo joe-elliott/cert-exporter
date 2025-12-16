@@ -8,20 +8,10 @@ import (
 
 func TestInit_WithDefaultRegistry(t *testing.T) {
 	// Create a new registry for testing to avoid conflicts with global state
-	originalRegisterer := prometheus.DefaultRegisterer
-	originalGatherer := prometheus.DefaultGatherer
-	defer func() {
-		prometheus.DefaultRegisterer = originalRegisterer
-		prometheus.DefaultGatherer = originalGatherer
-	}()
-
-	// Set up a fresh registry
 	testRegistry := prometheus.NewRegistry()
-	prometheus.DefaultRegisterer = testRegistry
-	prometheus.DefaultGatherer = testRegistry
 
-	// Call Init with default settings
-	Init(false)
+	// Call Init with a custom registry
+	Init(false, testRegistry)
 
 	// Verify that metrics were registered by checking the gatherer
 	metricFamilies, err := testRegistry.Gather()
@@ -57,8 +47,9 @@ func TestInit_WithEmptyRegistry(t *testing.T) {
 		prometheus.DefaultGatherer = originalGatherer
 	}()
 
-	// Call Init with prometheusExporterMetricsDisabled=true
-	Init(true)
+	// Call Init with prometheusExporterMetricsDisabled=true and nil registry
+	// This should create an empty registry and set it as the default
+	Init(true, nil)
 
 	// Verify that a new empty registry was created
 	// The default registerer should now be an empty registry

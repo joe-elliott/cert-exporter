@@ -110,7 +110,7 @@ func init() {
 
 func main() {
 	flag.Parse()
-	metrics.Init(prometheusExporterMetricsDisabled)
+	metrics.Init(prometheusExporterMetricsDisabled, nil)
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 

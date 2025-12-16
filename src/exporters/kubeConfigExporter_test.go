@@ -11,10 +11,11 @@ import (
 )
 
 func TestKubeConfigExporter_ExportMetrics(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
-	tests := []struct {
+	tests := []struct{
 		name     string
 		setup    func(t *testing.T) string
 		nodeName string
@@ -177,7 +178,7 @@ func TestKubeConfigExporter_ExportMetrics(t *testing.T) {
 
 			if !tt.wantErr {
 				// Verify metrics were set
-				mfs, err := prometheus.DefaultGatherer.Gather()
+				mfs, err := testRegistry.Gather()
 				if err != nil {
 					t.Fatalf("Failed to gather metrics: %v", err)
 				}
@@ -228,8 +229,9 @@ func TestKubeConfigExporter_ExportMetrics(t *testing.T) {
 }
 
 func TestKubeConfigExporter_MetricsLabels(t *testing.T) {
-	// Initialize metrics
-	metrics.Init(true)
+	// Create a custom registry for this test to avoid collisions
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 	kubeConfigFile := filepath.Join(tmpDir, "kubeconfig")
@@ -277,7 +279,7 @@ func TestKubeConfigExporter_MetricsLabels(t *testing.T) {
 	}
 
 	// Verify metric labels
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}

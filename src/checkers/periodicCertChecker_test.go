@@ -114,7 +114,8 @@ func TestPeriodicCertChecker_GetMatches(t *testing.T) {
 }
 
 func TestPeriodicCertChecker_StartChecking(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 
@@ -148,7 +149,7 @@ func TestPeriodicCertChecker_StartChecking(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 
 	// Verify metrics were created
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -173,7 +174,8 @@ func TestPeriodicCertChecker_StartChecking(t *testing.T) {
 }
 
 func TestPeriodicCertChecker_ErrorHandling(t *testing.T) {
-	metrics.Init(true)
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 
@@ -198,23 +200,56 @@ func TestPeriodicCertChecker_ErrorHandling(t *testing.T) {
 	// Start checking
 	go checker.StartChecking()
 
-	// Wait for checker to run multiple cycles
-	time.Sleep(250 * time.Millisecond)
+	// Poll for metrics with timeout (allows time for async processing)
+	maxWait := 500 * time.Millisecond
+	checkInterval := 50 * time.Millisecond
+	deadline := time.Now().Add(maxWait)
 
-	// Verify error metric was incremented
-	mfs, err := prometheus.DefaultGatherer.Gather()
-	if err != nil {
-		t.Fatalf("Failed to gather metrics: %v", err)
-	}
+	var errorCount float64
+	var validMetricFound bool
 
-	errorCount := float64(0)
-	for _, mf := range mfs {
-		if mf.GetName() == "cert_exporter_error_total" {
-			if len(mf.GetMetric()) > 0 {
-				errorCount = mf.GetMetric()[0].GetCounter().GetValue()
+	for time.Now().Before(deadline) {
+		mfs, err := testRegistry.Gather()
+		if err != nil {
+			t.Fatalf("Failed to gather metrics: %v", err)
+		}
+
+		// Check error count
+		for _, mf := range mfs {
+			if mf.GetName() == "cert_exporter_error_total" {
+				if len(mf.GetMetric()) > 0 {
+					errorCount = mf.GetMetric()[0].GetCounter().GetValue()
+				}
+				break
 			}
+		}
+
+		// Check for valid certificate metric
+		validMetricFound = false
+		for _, mf := range mfs {
+			if mf.GetName() == "cert_exporter_cert_expires_in_seconds" {
+				for _, metric := range mf.GetMetric() {
+					labels := make(map[string]string)
+					for _, label := range metric.GetLabel() {
+						labels[label.GetName()] = label.GetValue()
+					}
+					if labels["cn"] == "valid-cert" && labels["nodename"] == nodeName {
+						validMetricFound = true
+						break
+					}
+				}
+				if validMetricFound {
+					break
+				}
+			}
+		}
+
+		// If we have both error count and valid metric, we're done
+		if errorCount >= 1 && validMetricFound {
 			break
 		}
+
+		time.Sleep(checkInterval)
 	}
 
 	// Should have at least one error from the invalid certificate
@@ -222,28 +257,7 @@ func TestPeriodicCertChecker_ErrorHandling(t *testing.T) {
 		t.Errorf("Expected error_total >= 1, got %v", errorCount)
 	}
 
-	// Should still have metrics for the valid certificate (filter by nodename)
-	validMetricFound := false
-	for _, mf := range mfs {
-		if mf.GetName() == "cert_exporter_cert_expires_in_seconds" {
-			for _, metric := range mf.GetMetric() {
-				labels := make(map[string]string)
-				for _, label := range metric.GetLabel() {
-					labels[label.GetName()] = label.GetValue()
-				}
-				if labels["cn"] == "valid-cert" && labels["nodename"] == nodeName {
-					validMetricFound = true
-					break
-				}
-			}
-		}
-	}
-
 	if !validMetricFound {
-		t.Logf("Note: Could not verify valid cert metric (may be interference from other tests). Error count verified: %v", errorCount)
-		// Don't fail the test if we at least got the error count
-		if errorCount < 1 {
-			t.Error("Expected to find metrics for valid certificate despite error in invalid certificate")
-		}
+		t.Error("Expected to find metrics for valid certificate despite error in invalid certificate")
 	}
 }

@@ -5,7 +5,6 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -15,21 +14,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var (
-	initOnce sync.Once
-)
-
-// initMetricsOnce ensures metrics are only initialized once for all integration tests
-func initMetricsOnce() {
-	initOnce.Do(func() {
-		// Use default registry (not disabled) for integration tests
-		metrics.Init(false)
-	})
-}
-
 // TestEndToEnd tests the complete flow of cert-exporter with certificates on disk
 func TestEndToEnd_FileBasedCerts(t *testing.T) {
-	initMetricsOnce()
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(false, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 
@@ -104,7 +92,7 @@ func TestEndToEnd_FileBasedCerts(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	// Verify all metrics
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -152,7 +140,8 @@ func TestEndToEnd_FileBasedCerts(t *testing.T) {
 
 // TestEndToEnd_Kubeconfig tests kubeconfig parsing and metric export
 func TestEndToEnd_Kubeconfig(t *testing.T) {
-	initMetricsOnce()
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(false, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 	certDir := filepath.Join(tmpDir, "certs")
@@ -201,7 +190,7 @@ func TestEndToEnd_Kubeconfig(t *testing.T) {
 	}
 
 	// Verify metrics
-	mfs, err := prometheus.DefaultGatherer.Gather()
+	mfs, err := testRegistry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
@@ -248,7 +237,8 @@ func TestEndToEnd_Kubeconfig(t *testing.T) {
 
 // TestEndToEnd_ErrorMetric tests that error metrics are properly incremented
 func TestEndToEnd_ErrorMetric(t *testing.T) {
-	initMetricsOnce()
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(false, testRegistry)
 
 	tmpDir := testutil.CreateTempCertDir(t)
 
@@ -259,7 +249,7 @@ func TestEndToEnd_ErrorMetric(t *testing.T) {
 	}
 
 	// Get initial error count
-	initialErrorCount := getErrorCount(t)
+	initialErrorCount := getErrorCount(t, testRegistry)
 
 	// Create exporter
 	exporter := &exporters.CertExporter{}
@@ -274,7 +264,7 @@ func TestEndToEnd_ErrorMetric(t *testing.T) {
 	metrics.ErrorTotal.Inc()
 
 	// Verify error metric was incremented
-	newErrorCount := getErrorCount(t)
+	newErrorCount := getErrorCount(t, testRegistry)
 
 	if newErrorCount <= initialErrorCount {
 		t.Errorf("Expected error_total to increase from %v, got %v", initialErrorCount, newErrorCount)
@@ -291,8 +281,8 @@ func getKeys(m map[string]float64) []string {
 }
 
 // Helper function to get current error count
-func getErrorCount(t *testing.T) float64 {
-	mfs, err := prometheus.DefaultGatherer.Gather()
+func getErrorCount(t *testing.T, registry *prometheus.Registry) float64 {
+	mfs, err := registry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
 	}
