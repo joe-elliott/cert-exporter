@@ -25,6 +25,12 @@ jobs:
       - name: Build
         run: make build
 
+      - name: Run unit tests
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Run integration tests
+        run: go test -v -tags=integration ./integration_test.go
+
       - name: Test certificate and kubeconfig
         run: |
           cd test/files
