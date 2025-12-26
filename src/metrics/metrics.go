@@ -229,7 +229,7 @@ func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry)
 	}
 
 	registerer.MustRegister(ErrorTotal)
-  registerer.MustRegister(Discovered)
+    registerer.MustRegister(Discovered)
 	registerer.MustRegister(CertExpirySeconds)
 	registerer.MustRegister(CertNotAfterTimestamp)
 	registerer.MustRegister(CertNotBeforeTimestamp)
