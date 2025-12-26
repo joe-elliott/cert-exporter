@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"log"
+	"log/slog"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -113,8 +113,8 @@ func main() {
 	flag.Parse()
 	metrics.Init(prometheusExporterMetricsDisabled, nil)
 
-	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
-	glog.Info("pprof profiling endpoints available at /debug/pprof/")
+	slog.Info("Starting cert-exporter", "version", version, "commit", commit, "date", date)
+	slog.Info("pprof profiling endpoints available at /debug/pprof/")
 
 	if len(includeCertGlobs) > 0 {
 		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
@@ -145,7 +145,7 @@ func main() {
 	}
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
-		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
+		slog.Info("Starting check for AWS Secrets Manager", "account", awsAccount, "region", awsRegion, "secrets", awsSecrets)
 		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
 		go awsChecker.StartChecking()
 	}
