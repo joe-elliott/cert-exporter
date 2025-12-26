@@ -214,32 +214,39 @@ var (
 	)
 )
 
-func Init(prometheusExporterMetricsDisabled bool) {
-	if prometheusExporterMetricsDisabled {
+func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry) {
+	var registerer prometheus.Registerer
+
+	if registry != nil {
+		registerer = registry
+	} else if prometheusExporterMetricsDisabled {
 		emptyRegistry := prometheus.NewRegistry()
 		prometheus.DefaultRegisterer = emptyRegistry
 		prometheus.DefaultGatherer = emptyRegistry
+		registerer = emptyRegistry
+	} else {
+		registerer = prometheus.DefaultRegisterer
 	}
 
-	prometheus.MustRegister(ErrorTotal)
-	prometheus.MustRegister(Discovered)
-	prometheus.MustRegister(CertExpirySeconds)
-	prometheus.MustRegister(CertNotAfterTimestamp)
-	prometheus.MustRegister(CertNotBeforeTimestamp)
-	prometheus.MustRegister(KubeConfigExpirySeconds)
-	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
-	prometheus.MustRegister(KubeConfigNotBeforeTimestamp)
-	prometheus.MustRegister(SecretExpirySeconds)
-	prometheus.MustRegister(SecretNotAfterTimestamp)
-	prometheus.MustRegister(SecretNotBeforeTimestamp)
-	prometheus.MustRegister(CertRequestExpirySeconds)
-	prometheus.MustRegister(CertRequestNotAfterTimestamp)
-	prometheus.MustRegister(CertRequestNotBeforeTimestamp)
-	prometheus.MustRegister(ConfigMapExpirySeconds)
-	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
-	prometheus.MustRegister(ConfigMapNotBeforeTimestamp)
-	prometheus.MustRegister(WebhookExpirySeconds)
-	prometheus.MustRegister(WebhookNotAfterTimestamp)
-	prometheus.MustRegister(WebhookNotBeforeTimestamp)
-	prometheus.MustRegister(AwsCertExpirySeconds)
+	registerer.MustRegister(ErrorTotal)
+  registerer.MustRegister(Discovered)
+	registerer.MustRegister(CertExpirySeconds)
+	registerer.MustRegister(CertNotAfterTimestamp)
+	registerer.MustRegister(CertNotBeforeTimestamp)
+	registerer.MustRegister(KubeConfigExpirySeconds)
+	registerer.MustRegister(KubeConfigNotAfterTimestamp)
+	registerer.MustRegister(KubeConfigNotBeforeTimestamp)
+	registerer.MustRegister(SecretExpirySeconds)
+	registerer.MustRegister(SecretNotAfterTimestamp)
+	registerer.MustRegister(SecretNotBeforeTimestamp)
+	registerer.MustRegister(CertRequestExpirySeconds)
+	registerer.MustRegister(CertRequestNotAfterTimestamp)
+	registerer.MustRegister(CertRequestNotBeforeTimestamp)
+	registerer.MustRegister(ConfigMapExpirySeconds)
+	registerer.MustRegister(ConfigMapNotAfterTimestamp)
+	registerer.MustRegister(ConfigMapNotBeforeTimestamp)
+	registerer.MustRegister(WebhookExpirySeconds)
+	registerer.MustRegister(WebhookNotAfterTimestamp)
+	registerer.MustRegister(WebhookNotBeforeTimestamp)
+	registerer.MustRegister(AwsCertExpirySeconds)
 }
