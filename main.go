@@ -62,6 +62,7 @@ var (
 	certRequestsAnnotationSelector    args.GlobArgs
 	certRequestsNamespace             string
 	certRequestsListOfNamespaces      string
+	deprecatedLogtostderr             bool
 )
 
 func init() {
@@ -107,11 +108,19 @@ func init() {
 	flag.StringVar(&certRequestsNamespace, "certrequests-namespace", "", "Kubernetes namespace to list certrequests.")
 	flag.StringVar(&certRequestsListOfNamespaces, "certrequests-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for certrequests.")
 
+	flag.BoolVar(&deprecatedLogtostderr, "logtostderr", true, "DEPRECATED: This flag is no longer used. Logs are always written to stderr.")
 }
 
 func main() {
 	flag.Parse()
 	metrics.Init(prometheusExporterMetricsDisabled, nil)
+
+	// Check if --logtostderr was explicitly set
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "logtostderr" {
+			slog.Warn("Flag --logtostderr is deprecated and has no effect. Logs are always written to stderr. This flag will be removed in a future version.")
+		}
+	})
 
 	slog.Info("Starting cert-exporter", "version", version, "commit", commit, "date", date)
 	slog.Info("pprof profiling endpoints available at /debug/pprof/")
