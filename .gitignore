@@ -12,6 +12,3 @@ run.sh
 *.html
 *.txt
 *.out
-
-# binary
-cert-exporter
