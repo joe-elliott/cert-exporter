@@ -127,6 +127,12 @@ func (p *PeriodicCertChecker) getMatches() []string {
 		}
 	}
 
+	if len(set) == 0 {
+		glog.Info("No certificate files matched the provided globs")
+	}
+
+	metrics.Discovered.Set(float64(len(set)))
+
 	res := make([]string, len(set))
 	i := 0
 	for k := range set {

@@ -15,7 +15,14 @@ var (
 			Help:      "Cert Exporter Errors",
 		},
 	)
-
+	// Discovered is a prometheus guage that indicates the sum of discovered certificates after taking into account include and exclude globs
+	Discovered = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "discovered",
+			Help:      "Cert Exporter Discovered Certificates",
+		},
+	)
 	// CertExpirySeconds is a prometheus gauge that indicates the number of seconds until certificates on disk expires.
 	CertExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -222,6 +229,7 @@ func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry)
 	}
 
 	registerer.MustRegister(ErrorTotal)
+    registerer.MustRegister(Discovered)
 	registerer.MustRegister(CertExpirySeconds)
 	registerer.MustRegister(CertNotAfterTimestamp)
 	registerer.MustRegister(CertNotBeforeTimestamp)
