@@ -2,11 +2,11 @@ package checkers
 
 import (
 	"context"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -50,21 +50,21 @@ func NewSecretChecker(period time.Duration, labelSelectors, includeSecretsDataGl
 func (p *PeriodicSecretChecker) StartChecking() {
 	config, err := clientcmd.BuildConfigFromFlags("", p.kubeconfigPath)
 	if err != nil {
-		glog.Fatalf("Error building kubeconfig: %s", err.Error())
+		slog.Error("Error building kubeconfig", "error", err)
 	}
 
 	// creates the clientset
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("kubernetes.NewForConfig failed: %v", err)
+		slog.Error("kubernetes.NewForConfig failed", "error", err)
 	}
 
 	periodChannel := time.Tick(p.period)
 	if strings.Join(p.namespaces, ", ") != "" {
-		glog.Infof("Scan secrets in %v", strings.Join(p.namespaces, ", "))
+		slog.Info("Scan secrets", "target", strings.Join(p.namespaces, ", "))
 	}
 	for {
-		glog.Info("Begin periodic check")
+		slog.Info("Begin periodic check")
 
 		p.exporter.ResetMetrics()
 
@@ -78,13 +78,13 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					LabelSelector: nsLabelSelector,
 				})
 				if err != nil {
-					glog.Errorf("Error requesting namespaces %v", err)
+					slog.Error("Error requesting namespaces", "error", err)
 					metrics.ErrorTotal.Inc()
 				}
 
 				for _, ns := range nss.Items {
 					namespacesToCheck = append(namespacesToCheck, ns.GetObjectMeta().GetName())
-					glog.Infof("Adding namespace %v to check", ns.GetObjectMeta().GetName())
+					slog.Info("Adding namespace to check", "namespace", ns.GetObjectMeta().GetName())
 				}
 			}
 		} else {
@@ -99,7 +99,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 						LabelSelector: labelSelector,
 					})
 					if err != nil {
-						glog.Errorf("Error requesting secrets %v", err)
+						slog.Error("Error requesting secrets", "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -109,7 +109,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				var s *corev1.SecretList
 				s, err = client.CoreV1().Secrets(ns).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
-					glog.Errorf("Error requesting secrets %v", err)
+					slog.Error("Error requesting secrets", "error", err)
 					metrics.ErrorTotal.Inc()
 					continue
 				}
@@ -131,12 +131,12 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					}
 				}
 				if !include {
-					glog.Infof("Ignoring secret %s in %s because %s is not included in your secret-include-types %v", secret.GetName(), secret.GetNamespace(), secret.Type, p.includeSecretsTypes)
+					slog.Info("Ignoring secret - not in include-types", "secret", secret.GetName(), "namespace", secret.GetNamespace(), "type", secret.Type, "include_types", p.includeSecretsTypes)
 					continue
 				}
 			}
 
-			glog.Infof("Reviewing secret %v in %v", secret.GetName(), secret.GetNamespace())
+			slog.Info("Reviewing secret", "name", secret.GetName(), "namespace", secret.GetNamespace())
 
 			if len(p.annotationSelectors) > 0 {
 				matches := false
@@ -153,7 +153,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 					continue
 				}
 			}
-			glog.Infof("Annotations matched. Parsing Secret.")
+			slog.Info("Annotations matched. Parsing Secret.")
 
 			for name, bytes := range secret.Data {
 				include, exclude = false, false
@@ -161,7 +161,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				for _, glob := range p.includeSecretsDataGlobs {
 					include, err = filepath.Match(glob, name)
 					if err != nil {
-						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						slog.Error("Error matching glob", "glob", glob, "name", name, "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -174,7 +174,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				for _, glob := range p.excludeSecretsDataGlobs {
 					exclude, err = filepath.Match(glob, name)
 					if err != nil {
-						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						slog.Error("Error matching glob", "glob", glob, "name", name, "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -185,7 +185,7 @@ func (p *PeriodicSecretChecker) StartChecking() {
 				}
 
 				if include && !exclude {
-					glog.Infof("Publishing %v/%v metrics %v", secret.Name, secret.Namespace, name)
+					slog.Info("Publishing metrics", "secret", secret.Name, "namespace", secret.Namespace, "key", name)
 					certPassword := ""
 					if certPasswortBytes, found := secret.Data["password"]; found {
 						certPassword = string(certPasswortBytes)
@@ -193,11 +193,11 @@ func (p *PeriodicSecretChecker) StartChecking() {
 
 					err = p.exporter.ExportMetrics(bytes, name, secret.Name, secret.Namespace, certPassword)
 					if err != nil {
-						glog.Errorf("Error exporting secret %v", err)
+						slog.Error("Error exporting secret", "error", err)
 						metrics.ErrorTotal.Inc()
 					}
 				} else {
-					glog.Infof("Ignoring %v. Does not match %v or matches %v.", name, p.includeSecretsDataGlobs, p.excludeSecretsDataGlobs)
+					slog.Info("Ignoring key - does not match filters", "key", name, "include_globs", p.includeSecretsDataGlobs, "exclude_globs", p.excludeSecretsDataGlobs)
 				}
 			}
 		}

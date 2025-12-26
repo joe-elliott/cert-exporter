@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface"
 
-	"github.com/golang/glog"
+	"log/slog"
 
 	"github.com/joe-elliott/cert-exporter/src/exporters"
 	"github.com/joe-elliott/cert-exporter/src/metrics"
@@ -60,11 +60,11 @@ func NewAwsCheckerWithClientFactory(awsAccount, awsRegion, awsKeySubString strin
 func (p *PeriodicAwsChecker) StartChecking() {
 	periodChannel := time.Tick(p.period)
 	for {
-		glog.Info("AWS Checker: Begin periodic check")
+		slog.Info("AWS Checker: Begin periodic check")
 		p.exporter.ResetMetrics()
 
 		if err := p.checkSecrets(); err != nil {
-			glog.Error("Error checking secrets: ", err)
+			slog.Error("Error checking secrets", "error", err)
 			metrics.ErrorTotal.Inc()
 		}
 
@@ -77,7 +77,7 @@ func (p *PeriodicAwsChecker) checkSecrets() error {
 	// Create AWS client
 	client, err := p.clientFactory(p.awsRegion)
 	if err != nil {
-		glog.Error("Error initializing AWS client: ", err)
+		slog.Error("Error initializing AWS client", "error", err)
 		metrics.ErrorTotal.Inc()
 		return err
 	}
@@ -85,7 +85,7 @@ func (p *PeriodicAwsChecker) checkSecrets() error {
 	// Process each secret
 	for _, secretName := range p.awsSecrets {
 		if err := p.processSecret(client, secretName); err != nil {
-			glog.Errorf("Error processing secret %s: %v", secretName, err)
+			slog.Error("Error processing secret", "secret", secretName, "error", err)
 			metrics.ErrorTotal.Inc()
 			// Continue processing other secrets
 		}
@@ -96,7 +96,7 @@ func (p *PeriodicAwsChecker) checkSecrets() error {
 
 // processSecret retrieves and processes a single secret - extracted for testability
 func (p *PeriodicAwsChecker) processSecret(client secretsmanageriface.SecretsManagerAPI, secretName string) error {
-	glog.Info("Getting secret " + secretName + " from AWS Secrets Manager")
+	slog.Info("Getting secret " + secretName + " from AWS Secrets Manager")
 
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId: aws.String("arn:aws:secretsmanager:" + p.awsRegion + ":" + p.awsAccount + ":secret:" + secretName),
@@ -108,7 +108,7 @@ func (p *PeriodicAwsChecker) processSecret(client secretsmanageriface.SecretsMan
 	}
 
 	if secretValue.SecretString == nil {
-		glog.Infof("Secret %s has no string value", secretName)
+		slog.Info("Secret has no string value", "secret", secretName)
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func (p *PeriodicAwsChecker) processSecret(client secretsmanageriface.SecretsMan
 	for key, value := range secretMap {
 		if strings.Contains(key, p.awsKeySubString) {
 			if err := p.processCertificateKey(secretName, key, value); err != nil {
-				glog.Errorf("Error processing certificate key %s in secret %s: %v", key, secretName, err)
+				slog.Error("Error processing certificate key", "key", key, "secret", secretName, "error", err)
 				metrics.ErrorTotal.Inc()
 				// Continue processing other keys
 			}
@@ -146,6 +146,6 @@ func (p *PeriodicAwsChecker) processCertificateKey(secretName, key string, value
 		stringValue = base64.StdEncoding.EncodeToString([]byte(stringValue))
 	}
 
-	glog.Info("Exporting metrics from ", key)
+	slog.Info("Exporting metrics from key", "key", key)
 	return p.exporter.ExportMetrics(stringValue, secretName, key)
 }

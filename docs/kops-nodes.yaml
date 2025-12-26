@@ -23,7 +23,6 @@ spec:
         args:
         - --include-kubeconfig-glob=/var/lib/*/kubeconfig
         - --include-cert-glob=/srv/kubernetes/*.crt
-        - --logtostderr
         env:
         - name: NODE_NAME
           valueFrom:

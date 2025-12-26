@@ -7,7 +7,7 @@ import (
 
 	cmapiv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmClientSet "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
-	"github.com/golang/glog"
+	"log/slog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -41,21 +41,21 @@ func NewCertRequestChecker(period time.Duration, labelSelectors, annotationSelec
 func (p *PeriodicCertRequestChecker) StartChecking() {
 	config, err := clientcmd.BuildConfigFromFlags("", p.kubeconfigPath)
 	if err != nil {
-		glog.Fatalf("Error building kubeconfig: %s", err.Error())
+		slog.Error("Error building kubeconfig", "error", err)
 	}
 
 	// creates the certmanager client
 	certmanagerClient, err := cmClientSet.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("certmanager.NewForConfig failed: %v", err)
+		slog.Error("certmanager.NewForConfig failed", "error", err)
 	}
 
 	periodChannel := time.Tick(p.period)
 	if strings.Join(p.namespaces, ", ") != "" {
-		glog.Infof("Scan certrequests in %v", strings.Join(p.namespaces, ", "))
+		slog.Info("Scan certrequests", "target", strings.Join(p.namespaces, ", "))
 	}
 	for {
-		glog.Info("Begin periodic check")
+		slog.Info("Begin periodic check")
 
 		p.exporter.ResetMetrics()
 
@@ -68,7 +68,7 @@ func (p *PeriodicCertRequestChecker) StartChecking() {
 				for _, labelSelector := range p.labelSelectors {
 					c, err = certmanagerClient.CertificateRequests(ns).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 					if err != nil {
-						glog.Errorf("Error requesting certrequest %v", err)
+						slog.Error("Error requesting certrequest", "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -77,7 +77,7 @@ func (p *PeriodicCertRequestChecker) StartChecking() {
 			} else {
 				c, err = certmanagerClient.CertificateRequests(ns).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
-					glog.Errorf("Error requesting certrequest %v", err)
+					slog.Error("Error requesting certrequest", "error", err)
 					metrics.ErrorTotal.Inc()
 					continue
 				}
@@ -95,11 +95,11 @@ func (p *PeriodicCertRequestChecker) StartChecking() {
 				}
 			}
 			if !include {
-				glog.Infof("Ignoring certrequest %s in %s because it is not ready", certrequest.GetName(), certrequest.GetNamespace())
+				slog.Info("Ignoring certrequest - not ready", "name", certrequest.GetName(), "namespace", certrequest.GetNamespace())
 				continue
 			}
 
-			glog.Infof("Reviewing certrequest %v in %v", certrequest.GetName(), certrequest.GetNamespace())
+			slog.Info("Reviewing certrequest", "name", certrequest.GetName(), "namespace", certrequest.GetNamespace())
 
 			if len(p.annotationSelectors) > 0 {
 				matches := false
@@ -116,12 +116,12 @@ func (p *PeriodicCertRequestChecker) StartChecking() {
 					continue
 				}
 			}
-			glog.Infof("Annotations matched. Parsing certrequest.")
+			slog.Info("Annotations matched. Parsing certrequest.")
 
-			glog.Infof("Publishing %v/%v metrics", certrequest.Name, certrequest.Namespace)
+			slog.Info("Publishing metrics", "name", certrequest.Name, "namespace", certrequest.Namespace)
 			err = p.exporter.ExportMetrics(certrequest.Status.Certificate, certrequest.Name, certrequest.Namespace)
 			if err != nil {
-				glog.Errorf("Error exporting certrequest %v", err)
+				slog.Error("Error exporting certrequest", "error", err)
 				metrics.ErrorTotal.Inc()
 			}
 
