@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"
@@ -113,6 +114,7 @@ func main() {
 	metrics.Init(prometheusExporterMetricsDisabled, nil)
 
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
+	glog.Info("pprof profiling endpoints available at /debug/pprof/")
 
 	if len(includeCertGlobs) > 0 {
 		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
