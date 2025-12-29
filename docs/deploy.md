@@ -79,33 +79,6 @@ The following 17 flags are the most commonly used to control cert-exporter behav
 
 For a full flag listing run the application with the `--help` parameter.
 
-### profiling
-
-cert-exporter includes Go's built-in pprof profiling endpoints to help diagnose performance and memory issues. The following profiling endpoints are available on the same port as Prometheus metrics:
-
-- `/debug/pprof/` - Index page with available profiles
-- `/debug/pprof/heap` - Memory allocation profile
-- `/debug/pprof/goroutine` - Stack traces of all current goroutines
-- `/debug/pprof/threadcreate` - Stack traces that led to creation of new OS threads
-- `/debug/pprof/block` - Stack traces that led to blocking on synchronization primitives
-- `/debug/pprof/mutex` - Stack traces of holders of contended mutexes
-- `/debug/pprof/profile` - CPU profile (30-second sample by default)
-
-Example usage to capture a heap profile for memory leak investigation:
-
-```bash
-# Port-forward to the cert-exporter pod
-kubectl port-forward <pod-name> 8080:8080
-
-# Capture heap profile
-curl http://localhost:8080/debug/pprof/heap > heap.prof
-
-# Analyze with pprof
-go tool pprof heap.prof
-```
-
-For detailed profiling documentation, see the [Go pprof documentation](https://pkg.go.dev/net/http/pprof).
-
 ### environment variables
 
 cert-exporter respects the `NODE_NAME` environment variable.  If present it will add this value as label to file metrics.  See one of the [deployment yamls](./kops-nodes.yaml) for an example of using the [Kubernetes Downward API](https://kubernetes.io/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/) to make use of this feature.
