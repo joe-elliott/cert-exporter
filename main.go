@@ -61,6 +61,11 @@ var (
 	certRequestsAnnotationSelector    args.GlobArgs
 	certRequestsNamespace             string
 	certRequestsListOfNamespaces      string
+	defaultCertFilePassword           string
+	passwordSpecs                     args.PasswordSpecFlag
+	excludeCertCNGlobs                args.GlobArgs
+	excludeCertAliasGlobs             args.GlobArgs
+	excludeCertIssuerGlobs            args.GlobArgs
 )
 
 func init() {
@@ -71,6 +76,11 @@ func init() {
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
 	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":8080", "The address to listen on for Prometheus scrapes.")
 	flag.BoolVar(&prometheusExporterMetricsDisabled, "prometheus-disable-exporter-metrics", false, "Exclude metrics about the exporter itself (promhttp_*, process_*, go_*).")
+	flag.StringVar(&defaultCertFilePassword, "cert-file-password", "", "Default password for certificate files (PEM, PKCS12, JKS) if no specific rule from -cert-password-spec matches.")
+	flag.Var(&passwordSpecs, "cert-password-spec", "Per-file/glob password specification in 'glob:password' format. Can be specified multiple times. Applied in order; first match wins. Example: '/path/*.jks:myjkspass'")
+	flag.Var(&excludeCertCNGlobs, "exclude-cert-cn-glob", "Glob patterns for Common Names (CNs) to exclude from certificate metrics. Can be specified multiple times.")
+	flag.Var(&excludeCertAliasGlobs, "exclude-cert-alias-glob", "Glob patterns for JKS aliases to exclude from certificate metrics. Can be specified multiple times.")
+	flag.Var(&excludeCertIssuerGlobs, "exclude-cert-issuer-glob", "Glob patterns for Issuers to exclude from certificate metrics. Can be specified multiple times.")
 	flag.DurationVar(&pollingPeriod, "polling-period", time.Hour, "Periodic interval in which to check certs.")
 
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
@@ -115,12 +125,12 @@ func main() {
 	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
 
 	if len(includeCertGlobs) > 0 {
-		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), exporters.NewCertExporter(passwordSpecs, defaultCertFilePassword, excludeCertCNGlobs, excludeCertAliasGlobs, excludeCertIssuerGlobs))
 		go certChecker.StartChecking()
 	}
 
 	if len(includeKubeConfigGlobs) > 0 {
-		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), &exporters.KubeConfigExporter{})
+		configChecker := checkers.NewCertChecker(pollingPeriod, includeKubeConfigGlobs, excludeKubeConfigGlobs, os.Getenv("NODE_NAME"), exporters.NewKubeConfigExporter(passwordSpecs, defaultCertFilePassword, excludeCertCNGlobs, excludeCertAliasGlobs, excludeCertIssuerGlobs))
 		go configChecker.StartChecking()
 	}
 
