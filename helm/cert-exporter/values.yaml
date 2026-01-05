@@ -18,7 +18,6 @@ certManager:
     args:
       - --secrets-annotation-selector=cert-manager.io/certificate-name
       - --secrets-include-glob=*.crt
-      - --logtostderr
     env: []
     # - name: NODE_NAME
     #   valueFrom:
