@@ -18,7 +18,7 @@ cert-exporter can publish metrics about
     - support for password-protected certificates
   - configmaps
   - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
-  - cert-manager [CertificateRequest] (https://cert-manager.io/docs/usage/certificaterequest/)
+  - cert-manager [CertificateRequest](https://cert-manager.io/docs/usage/certificaterequest/)
 - Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
@@ -50,6 +50,9 @@ After running cert-exporter in your cluster it's easy to build a [custom dashboa
 cert-exporter exports the following metrics
 
 ```
+# HELP cert_exporter_discovered Cert Exporter Discovered Certificates
+# TYPE cert_exporter_discovered gauge
+cert_exporter_discovered 0
 # HELP cert_exporter_error_total Cert Exporter Errors
 # TYPE cert_exporter_error_total counter
 cert_exporter_error_total 0
@@ -74,6 +77,9 @@ cert_exporter_certrequest_not_after_timestamp{cert_request="example-crt-gn762",c
 # TYPE certrequest_not_before_timestamp gauge
 cert_exporter_certrequest_not_before_timestamp{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
 ```
+
+**cert_exporter_discovered**
+The number of discovered certs after the include and exclude globs are factored in. The `nodename` can be used as a label to compare values.
 
 **cert_exporter_error_total**  
 The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.
