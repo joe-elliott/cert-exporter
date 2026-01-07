@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"testing"
-
+	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -105,6 +105,7 @@ func TestMetricsDefinitions(t *testing.T) {
 		"WebhookExpirySeconds":            WebhookExpirySeconds,
 		"WebhookNotAfterTimestamp":        WebhookNotAfterTimestamp,
 		"WebhookNotBeforeTimestamp":       WebhookNotBeforeTimestamp,
+		"BuildInfo":			   BuildInfo,		   
 	}
 
 	for name, metric := range metrics {
@@ -417,7 +418,31 @@ func TestWebhookNotBeforeTimestampLabels(t *testing.T) {
 		t.Error("Expected gauge to be created")
 	}
 	gauge.Set(1704067200)
+	t.Logf("The OTHER object details: %T", gauge)
 }
+
+func TestBuildInfo(t *testing.T) {
+	collector := BuildInfo
+	if collector == nil {
+		t.Error("Expected gauge to be created")
+	}
+	// 1. Collect the metric from the channel
+	ch := make(chan prometheus.Metric, 1)
+	collector.Collect(ch)
+	m := <-ch
+
+	// 2. Write the metric data into a DTO struct
+	pb := &dto.Metric{}
+	m.Write(pb)
+
+	// 3. Format and Log the labels to the test console
+	t.Log("--- Labels Found in NewCollector ---")
+	for _, lp := range pb.GetLabel() {
+		t.Logf("Label: %-10s | Value: %s", lp.GetName(), lp.GetValue())
+	}
+	t.Log("------------------------------------")
+}
+
 
 func TestErrorTotalCounter(t *testing.T) {
 	// Test that ErrorTotal counter can be incremented
