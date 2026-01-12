@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: {{ .Values.certManager.kind }}
 metadata:
   name: "{{- include "cert-exporter.fullname" . -}}-cert-manager"
+  namespace: {{ .Values.dashboards.namespace }}
   labels:
     {{- include "cert-exporter.certManagerLabels" . | nindent 4 }}
   {{- if .Values.certManager.deploymentAnnotations }}

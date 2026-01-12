@@ -3,6 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ template "cert-exporter.fullname" . }}-cert-manager
+  namespace: {{ .Values.dashboards.namespace }}
   labels:
     {{- toYaml .Values.service.serviceMonitor.additionalLabels | nindent 4 }}
     {{- include "cert-exporter.certManagerLabels" . | nindent 4 }}
