@@ -436,7 +436,7 @@ func TestBuildInfo(t *testing.T) {
 	m.Write(pb)
 
 	// 3. Format and Log the labels to the test console
-	t.Log("--- Labels Found in NewCollector ---")
+	t.Log("--- Labels Found in BuildInfo Collector ---")
 	for _, lp := range pb.GetLabel() {
 		t.Logf("Label: %-10s | Value: %s", lp.GetName(), lp.GetValue())
 	}
