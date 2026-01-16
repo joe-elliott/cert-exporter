@@ -87,6 +87,7 @@ $CERT_EXPORTER_PATH -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=cer
 
 sleep 2
 
+curl --silent http://localhost:8080/metrics | grep 'cert_exporter_discovered 5'
 curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
 
 activation=$(date +%s) # this timestamp is at least 2 seconds off from the actual cert NotBefore attribute ...
