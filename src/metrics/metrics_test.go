@@ -418,29 +418,46 @@ func TestWebhookNotBeforeTimestampLabels(t *testing.T) {
 		t.Error("Expected gauge to be created")
 	}
 	gauge.Set(1704067200)
-	t.Logf("The OTHER object details: %T", gauge)
 }
 
 func TestBuildInfo(t *testing.T) {
 	collector := BuildInfo
-	if collector == nil {
-		t.Error("Expected gauge to be created")
-	}
-	// 1. Collect the metric from the channel
+	
+	// Collect build_info metric from the channel
 	ch := make(chan prometheus.Metric, 1)
 	collector.Collect(ch)
 	m := <-ch
 
-	// 2. Write the metric data into a DTO struct
+	// Write the metric data into a DTO struct
 	pb := &dto.Metric{}
 	m.Write(pb)
 
-	// 3. Format and Log the labels to the test console
+	// Format and Log the labels to the test console
+	actualLabels := make(map[string]string)
 	t.Log("--- Labels Found in BuildInfo Collector ---")
 	for _, lp := range pb.GetLabel() {
 		t.Logf("Label: %-10s | Value: %s", lp.GetName(), lp.GetValue())
+		actualLabels[lp.GetName()] = lp.GetValue()
 	}
 	t.Log("------------------------------------")
+	
+	// Define expected labels (common build_info labels)
+	expectedLabels := []string{
+		"version",
+		"revision",
+		"branch",
+		"goversion",
+		"goarch",
+		"goos",
+		"tags",
+	}
+	// Note: Compile ldflags in goreleaser populate labels, some will be empty
+	// but we can verify each expected label exists
+	for _, expectedLabel := range expectedLabels {
+		if _, exists := actualLabels[expectedLabel]; !exists {
+			t.Errorf("Expected label %q not found in build_info metric", expectedLabel)
+		}
+	}
 }
 
 
