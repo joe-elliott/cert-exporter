@@ -51,6 +51,8 @@ cert-exporter exports the following metrics
 
 ```
 # HELP cert_exporter_error_total Cert Exporter Errors
+# TYPE cert_exporter_build_info gauge
+cert_exporter_build_info{branch="feat-add-build-info-metric",goarch="arm64",goos="darwin",goversion="go1.23.3",revision="7e7d2c6b1e757394375e3cd5918e61d37d3234bd",tags="unknown",version="2.17.0"} 1
 # TYPE cert_exporter_error_total counter
 cert_exporter_error_total 0
 # HELP cert_exporter_cert_expires_in_seconds Number of seconds til the cert expires.

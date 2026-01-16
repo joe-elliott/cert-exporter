@@ -1,6 +1,7 @@
 package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
+import versioncollector "github.com/prometheus/client_golang/prometheus/collectors/version"
 
 const (
 	namespace = "cert_exporter"
@@ -205,6 +206,9 @@ var (
 		},
 		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
 	)
+
+	// BuildInfo is a prometheus gauge that shows build information about the cert-exporter 
+	BuildInfo = versioncollector.NewCollector("cert_exporter")
 )
 
 func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry) {
@@ -241,4 +245,5 @@ func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry)
 	registerer.MustRegister(WebhookNotAfterTimestamp)
 	registerer.MustRegister(WebhookNotBeforeTimestamp)
 	registerer.MustRegister(AwsCertExpirySeconds)
+	registerer.MustRegister(BuildInfo)
 }
