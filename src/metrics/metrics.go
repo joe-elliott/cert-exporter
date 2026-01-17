@@ -136,14 +136,13 @@ var (
 		[]string{"issuer", "cn", "cert_request", "certrequest_namespace"},
 	)
 
-	// AwsCertExpirySeconds is a prometheus gauge that indicates the number of seconds until certificates on AWS expires.
 	AwsCertExpirySeconds = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "cert_expires_in_seconds_aws",
 			Help:      "Number of seconds til the cert expires.",
 		},
-		[]string{"secretName", "key", "file", "issuer", "cn"},
+		[]string{"secretName", "key", "issuer", "cn"},
 	)
 
 	// ConfigMapExpirySeconds is a prometheus gauge that indicates the number of seconds until a kubernetes configmap certificate expires
@@ -207,7 +206,7 @@ var (
 	)
 )
 
-func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry) {
+func Init(prometheusExporterMetricsDisabled bool, includeFileInMetrics bool, registry *prometheus.Registry) {
 	var registerer prometheus.Registerer
 
 	if registry != nil {
@@ -220,6 +219,21 @@ func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry)
 	} else {
 		registerer = prometheus.DefaultRegisterer
 	}
+
+	// Build label set for AWS metrics dynamically
+	awsLabels := []string{"secretName", "key", "issuer", "cn"}
+	if includeFileInMetrics {
+		awsLabels = append(awsLabels, "file")
+	}
+
+	AwsCertExpirySeconds = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "cert_expires_in_seconds_aws",
+			Help:      "Number of seconds til the cert expires.",
+		},
+		awsLabels,
+	)
 
 	registerer.MustRegister(ErrorTotal)
 	registerer.MustRegister(CertExpirySeconds)

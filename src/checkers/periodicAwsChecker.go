@@ -1,6 +1,7 @@
 package checkers
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"strings"
@@ -24,6 +25,7 @@ type SecretsManagerClientFactory func(region string) (secretsmanageriface.Secret
 type PeriodicAwsChecker struct {
 	awsAccount, awsRegion, awsKeySubString string
 	awsSecrets                             []string
+	awsIncludeFileInMetrics                bool
 	period                                 time.Duration
 	exporter                               *exporters.AwsExporter
 	clientFactory                          SecretsManagerClientFactory
@@ -39,20 +41,21 @@ func defaultClientFactory(region string) (secretsmanageriface.SecretsManagerAPI,
 }
 
 // NewCertChecker is a factory method that returns a new AwsCertChecker
-func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
-	return NewAwsCheckerWithClientFactory(awsAccount, awsRegion, awsKeySubString, awsSecrets, period, e, defaultClientFactory)
+func NewAwsChecker(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, awsIncludeFileInMetrics bool, period time.Duration, e *exporters.AwsExporter) *PeriodicAwsChecker {
+	return NewAwsCheckerWithClientFactory(awsAccount, awsRegion, awsKeySubString, awsSecrets, awsIncludeFileInMetrics, period, e, defaultClientFactory)
 }
 
 // NewAwsCheckerWithClientFactory creates a checker with a custom client factory for testing
-func NewAwsCheckerWithClientFactory(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, period time.Duration, e *exporters.AwsExporter, clientFactory SecretsManagerClientFactory) *PeriodicAwsChecker {
+func NewAwsCheckerWithClientFactory(awsAccount, awsRegion, awsKeySubString string, awsSecrets []string, awsIncludeFileInMetrics bool, period time.Duration, e *exporters.AwsExporter, clientFactory SecretsManagerClientFactory) *PeriodicAwsChecker {
 	return &PeriodicAwsChecker{
-		awsAccount:      awsAccount,
-		awsRegion:       awsRegion,
-		awsKeySubString: awsKeySubString,
-		awsSecrets:      awsSecrets,
-		period:          period,
-		exporter:        e,
-		clientFactory:   clientFactory,
+		awsAccount:              awsAccount,
+		awsRegion:               awsRegion,
+		awsKeySubString:         awsKeySubString,
+		awsSecrets:              awsSecrets,
+		awsIncludeFileInMetrics: awsIncludeFileInMetrics,
+		period:                  period,
+		exporter:                e,
+		clientFactory:           clientFactory,
 	}
 }
 
@@ -147,5 +150,5 @@ func (p *PeriodicAwsChecker) processCertificateKey(secretName, key string, value
 	}
 
 	slog.Info("Exporting metrics from key", "key", key)
-	return p.exporter.ExportMetrics(stringValue, secretName, key)
+	return p.exporter.ExportMetrics(stringValue, secretName, key, p.awsIncludeFileInMetrics)
 }
