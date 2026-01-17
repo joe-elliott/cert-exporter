@@ -123,6 +123,8 @@ cert-exporter is able to check secrets in AWS Secret Manager. The following argu
         AWS region to search for secrets in
   -aws-secret value
         AWS secrets to export
+  -aws-include-file-in-metrics
+        Include the file name as a label in exported metrics, (default true)
 ```
 
 Multiple `-aws-secret` arguments can be provided to monitor more than 1 secret. Example of 2 possible cases when using AWS Secret Manager:

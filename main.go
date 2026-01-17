@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -57,6 +58,7 @@ var (
 	awsRegion                         string
 	awsKeySubString                   string
 	awsSecrets                        args.GlobArgs
+	awsIncludeFileInMetrics           bool
 	certRequestsEnabled               bool
 	certRequestsLabelSelector         args.GlobArgs
 	certRequestsAnnotationSelector    args.GlobArgs
@@ -101,6 +103,7 @@ func init() {
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
 	flag.StringVar(&awsKeySubString, "aws-key-substring", ".pem", "Substring to search for in the key name. Matched keys are parsed as certs.")
 	flag.Var(&awsSecrets, "aws-secret", "AWS secrets to export")
+	flag.BoolVar(&awsIncludeFileInMetrics, "aws-include-file-in-metrics", true, "Include the PEM file content in the exported metrics.")
 
 	flag.BoolVar(&certRequestsEnabled, "enable-certrequests-check", false, "Enable certrequests check.")
 	flag.Var(&certRequestsLabelSelector, "certrequests-label-selector", "Label selector to find certrequests to publish as metrics.")
@@ -113,7 +116,11 @@ func init() {
 
 func main() {
 	flag.Parse()
+<<<<<<< HEAD
 	metrics.Init(prometheusExporterMetricsDisabled, nil)
+=======
+	metrics.Init(prometheusExporterMetricsDisabled, awsIncludeFileInMetrics)
+>>>>>>> andy/core-1257-upstream-fixes
 
 	// Check if --logtostderr was explicitly set
 	flag.Visit(func(f *flag.Flag) {
@@ -154,8 +161,14 @@ func main() {
 	}
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
+<<<<<<< HEAD
 		slog.Info("Starting check for AWS Secrets Manager", "account", awsAccount, "region", awsRegion, "secrets", awsSecrets)
 		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
+=======
+		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
+		fmt.Println(awsIncludeFileInMetrics, " is the value of awsIncludeFileInMetrics")
+		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, awsIncludeFileInMetrics, pollingPeriod, &exporters.AwsExporter{})
+>>>>>>> andy/core-1257-upstream-fixes
 		go awsChecker.StartChecking()
 	}
 
