@@ -85,9 +85,9 @@ func TestMetricsNamespace(t *testing.T) {
 func TestMetricsDefinitions(t *testing.T) {
 	// Test that all metric variables are defined and not nil
 	metrics := map[string]interface{}{
-		"BuildInfo":			                 BuildInfo,
-    "Discovered":                      Discovered,
-    "ErrorTotal":                      ErrorTotal,
+		"BuildInfo":                       BuildInfo,
+        "Discovered":                      Discovered,
+    	"ErrorTotal":                      ErrorTotal,
 		"CertExpirySeconds":               CertExpirySeconds,
 		"CertNotAfterTimestamp":           CertNotAfterTimestamp,
 		"CertNotBeforeTimestamp":          CertNotBeforeTimestamp,
