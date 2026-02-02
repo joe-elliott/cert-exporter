@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
+	"log/slog"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -48,22 +48,22 @@ func NewConfigMapChecker(period time.Duration, labelSelectors, includeConfigMaps
 func (p *PeriodicConfigMapChecker) StartChecking() {
 	config, err := clientcmd.BuildConfigFromFlags("", p.kubeconfigPath)
 	if err != nil {
-		glog.Fatalf("Error building kubeconfig: %s", err.Error())
+		slog.Error("Error building kubeconfig", "error", err)
 	}
 
 	// creates the clientset
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("kubernetes.NewForConfig failed: %v", err)
+		slog.Error("kubernetes.NewForConfig failed", "error", err)
 	}
 
 	periodChannel := time.Tick(p.period)
 
 	if strings.Join(p.namespaces, ", ") != "" {
-		glog.Infof("Scan configMaps in %v", strings.Join(p.namespaces, ", "))
+		slog.Info("Scan configMaps", "target", strings.Join(p.namespaces, ", "))
 	}
 	for {
-		glog.Info("Begin periodic check")
+		slog.Info("Begin periodic check")
 
 		p.exporter.ResetMetrics()
 
@@ -77,13 +77,13 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 					LabelSelector: nsLabelSelector,
 				})
 				if err != nil {
-					glog.Errorf("Error requesting namespaces %v", err)
+					slog.Error("Error requesting namespaces", "error", err)
 					metrics.ErrorTotal.Inc()
 				}
 
 				for _, ns := range nss.Items {
 					namespacesToCheck = append(namespacesToCheck, ns.GetObjectMeta().GetName())
-					glog.Infof("Adding namespace %v to check", ns.GetObjectMeta().GetName())
+					slog.Info("Adding namespace to check", "namespace", ns.GetObjectMeta().GetName())
 				}
 			}
 		} else {
@@ -98,7 +98,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 						LabelSelector: labelSelector,
 					})
 					if err != nil {
-						glog.Errorf("Error requesting configMaps %v", err)
+						slog.Error("Error requesting configMaps", "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -108,7 +108,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 				var c *corev1.ConfigMapList
 				c, err = client.CoreV1().ConfigMaps(ns).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
-					glog.Errorf("Error requesting configMaps %v", err)
+					slog.Error("Error requesting configMaps", "error", err)
 					metrics.ErrorTotal.Inc()
 					continue
 				}
@@ -118,7 +118,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 
 		for _, configMap := range configMaps {
 			include, exclude := false, false
-			glog.Infof("Reviewing configMap %v in %v", configMap.GetName(), configMap.GetNamespace())
+			slog.Info("Reviewing configMap", "name", configMap.GetName(), "namespace", configMap.GetNamespace())
 
 			if len(p.annotationSelectors) > 0 {
 				matches := false
@@ -135,7 +135,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 					continue
 				}
 			}
-			glog.Infof("Annotations matched. Parsing configMap.")
+			slog.Info("Annotations matched. Parsing configMap.")
 
 			for name, data := range configMap.Data {
 				include, exclude = false, false
@@ -143,7 +143,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 				for _, glob := range p.includeConfigMapsDataGlobs {
 					include, err = filepath.Match(glob, name)
 					if err != nil {
-						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						slog.Error("Error matching glob", "glob", glob, "name", name, "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -156,7 +156,7 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 				for _, glob := range p.excludeConfigMapsDataGlobs {
 					exclude, err = filepath.Match(glob, name)
 					if err != nil {
-						glog.Errorf("Error matching %v to %v: %v", glob, name, err)
+						slog.Error("Error matching glob", "glob", glob, "name", name, "error", err)
 						metrics.ErrorTotal.Inc()
 						continue
 					}
@@ -167,14 +167,14 @@ func (p *PeriodicConfigMapChecker) StartChecking() {
 				}
 
 				if include && !exclude {
-					glog.Infof("Publishing %v/%v metrics %v", configMap.Name, configMap.Namespace, name)
+					slog.Info("Publishing metrics", "secret", configMap.Name, "namespace", configMap.Namespace, "key", name)
 					err = p.exporter.ExportMetrics([]byte(data), name, configMap.Name, configMap.Namespace)
 					if err != nil {
-						glog.Errorf("Error exporting configMap %v", err)
+						slog.Error("Error exporting configMap", "error", err)
 						metrics.ErrorTotal.Inc()
 					}
 				} else {
-					glog.Infof("Ignoring %v. Does not match %v or matches %v.", name, p.includeConfigMapsDataGlobs, p.excludeConfigMapsDataGlobs)
+					slog.Info("Ignoring key - does not match filters", "key", name, "include_globs", p.includeConfigMapsDataGlobs, "exclude_globs", p.excludeConfigMapsDataGlobs)
 				}
 			}
 		}

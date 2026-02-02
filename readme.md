@@ -1,6 +1,6 @@
 # cert-exporter
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![binary version](https://img.shields.io/badge/binary%20version-2.15.1-blue) ![helm version](https://img.shields.io/badge/helm%20version-3.12.0-blue)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joe-elliott/cert-exporter)](https://goreportcard.com/report/github.com/joe-elliott/cert-exporter) ![binary version](https://img.shields.io/badge/binary%20version-2.18.0-blue) ![helm version](https://img.shields.io/badge/helm%20version-3.15.0-blue)
 
 Kubernetes uses PKI certificates for authentication between all major components.  These certs are critical for the operation of your cluster but are often opaque to an administrator.  This application is designed to parse certificates and export expiration information for Prometheus to scrape.
 
@@ -18,7 +18,7 @@ cert-exporter can publish metrics about
     - support for password-protected certificates
   - configmaps
   - [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
-  - cert-manager [CertificateRequest] (https://cert-manager.io/docs/usage/certificaterequest/)
+  - cert-manager [CertificateRequest](https://cert-manager.io/docs/usage/certificaterequest/)
 - Certs stored in [AWS Secrets manager](https://aws.amazon.com/secrets-manager/)
 
 See [deployment](./docs/deploy.md) for detailed information on running cert-exporter and examples of running it in a [kops](https://github.com/kubernetes/kops) cluster.
@@ -63,8 +63,13 @@ cert-exporter exports the following metrics
 
 ```
 # HELP cert_exporter_error_total Cert Exporter Errors
+# TYPE cert_exporter_build_info gauge
+cert_exporter_build_info{branch="feat-add-build-info-metric",goarch="arm64",goos="darwin",goversion="go1.23.3",revision="7e7d2c6b1e757394375e3cd5918e61d37d3234bd",tags="unknown",version="2.17.0"} 1
 # TYPE cert_exporter_error_total counter
 cert_exporter_error_total 0
+# HELP cert_exporter_discovered Cert Exporter Discovered Certificates
+# TYPE cert_exporter_discovered gauge
+cert_exporter_discovered 0
 # HELP cert_exporter_cert_expires_in_seconds Number of seconds til the cert expires.
 # TYPE cert_exporter_cert_expires_in_seconds gauge
 cert_exporter_cert_expires_in_seconds{filename="certsSibling/client.crt",issuer="root",nodename="master0"} 8.639964560021e+06
@@ -86,6 +91,9 @@ cert_exporter_certrequest_not_after_timestamp{cert_request="example-crt-gn762",c
 # TYPE certrequest_not_before_timestamp gauge
 cert_exporter_certrequest_not_before_timestamp{cert_request="example-crt-gn762",certrequest_namespace="cert-manager-test",cn="example.com",issuer="example.com"}
 ```
+
+**cert_exporter_discovered**
+The number of discovered certs after the include and exclude globs are factored in. The `nodename` can be used as a label to compare values.
 
 **cert_exporter_error_total**  
 The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.

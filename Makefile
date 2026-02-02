@@ -9,6 +9,14 @@ $(GORELEASER):
 build: $(GORELEASER)
 	$(GORELEASER) build --skip-validate --rm-dist
 
+test:
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+test-integration:
+	go test -v -tags=integration ./integration_test.go
+
+test-all: test test-integration
+
 release-snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --skip-publish --rm-dist
 
@@ -17,5 +25,6 @@ release: $(GORELEASER)
 
 clean:
 	rm -rf dist
+	rm -f coverage.txt
 
-.PHONY: all build release-snapshot release clean
+.PHONY: all build test test-integration test-all release-snapshot release clean

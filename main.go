@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"log"
+	"log/slog"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -54,6 +55,7 @@ var (
 	webhooksAnnotationSelector        args.GlobArgs
 	awsAccount                        string
 	awsRegion                         string
+	awsKeySubString                   string
 	awsSecrets                        args.GlobArgs
 	certRequestsEnabled               bool
 	certRequestsLabelSelector         args.GlobArgs
@@ -65,6 +67,7 @@ var (
 	excludeCertCNGlobs                args.GlobArgs
 	excludeCertAliasGlobs             args.GlobArgs
 	excludeCertIssuerGlobs            args.GlobArgs
+	deprecatedLogtostderr             bool
 )
 
 func init() {
@@ -106,6 +109,7 @@ func init() {
 
 	flag.StringVar(&awsAccount, "aws-account", "", "AWS account to search for secrets in")
 	flag.StringVar(&awsRegion, "aws-region", "", "AWS region to search for secrets in")
+	flag.StringVar(&awsKeySubString, "aws-key-substring", ".pem", "Substring to search for in the key name. Matched keys are parsed as certs.")
 	flag.Var(&awsSecrets, "aws-secret", "AWS secrets to export")
 
 	flag.BoolVar(&certRequestsEnabled, "enable-certrequests-check", false, "Enable certrequests check.")
@@ -114,13 +118,22 @@ func init() {
 	flag.StringVar(&certRequestsNamespace, "certrequests-namespace", "", "Kubernetes namespace to list certrequests.")
 	flag.StringVar(&certRequestsListOfNamespaces, "certrequests-namespaces", "", "Kubernetes comma-delimited list of namespaces to search for certrequests.")
 
+	flag.BoolVar(&deprecatedLogtostderr, "logtostderr", true, "DEPRECATED: This flag is no longer used. Logs are always written to stderr.")
 }
 
 func main() {
 	flag.Parse()
-	metrics.Init(prometheusExporterMetricsDisabled)
+	metrics.Init(prometheusExporterMetricsDisabled, nil)
 
-	glog.Infof("Starting cert-exporter (version %s; commit %s; date %s)", version, commit, date)
+	// Check if --logtostderr was explicitly set
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "logtostderr" {
+			slog.Warn("Flag --logtostderr is deprecated and has no effect. Logs are always written to stderr. This flag will be removed in a future version.")
+		}
+	})
+
+	slog.Info("Starting cert-exporter", "version", version, "commit", commit, "date", date)
+	slog.Info("pprof profiling endpoints available at /debug/pprof/")
 
 	if len(includeCertGlobs) > 0 {
 		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), exporters.NewCertExporter(passwordSpecs, defaultCertFilePassword, excludeCertCNGlobs, excludeCertAliasGlobs, excludeCertIssuerGlobs))
@@ -151,8 +164,8 @@ func main() {
 	}
 
 	if len(awsAccount) > 0 && len(awsRegion) > 0 && len(awsSecrets) > 0 {
-		glog.Infof("Starting check for AWS Secrets Manager in Account %s and Region %s and Secrets %s", awsAccount, awsRegion, awsSecrets)
-		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
+		slog.Info("Starting check for AWS Secrets Manager", "account", awsAccount, "region", awsRegion, "secrets", awsSecrets)
+		awsChecker := checkers.NewAwsChecker(awsAccount, awsRegion, awsKeySubString, awsSecrets, pollingPeriod, &exporters.AwsExporter{})
 		go awsChecker.StartChecking()
 	}
 

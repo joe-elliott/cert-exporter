@@ -17,13 +17,12 @@ spec:
         name: cert-exporter-nodes
     spec:
       containers:
-      - image: joeelliott/cert-exporter:v2.15.1
+      - image: joeelliott/cert-exporter:v2.18.0
         name: cert-exporter-nodes
         command: ["./app"]
         args:
         - --include-kubeconfig-glob=/var/lib/*/kubeconfig
         - --include-cert-glob=/srv/kubernetes/*.crt
-        - --logtostderr
         env:
         - name: NODE_NAME
           valueFrom:

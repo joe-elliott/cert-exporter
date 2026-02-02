@@ -210,11 +210,20 @@ func parseAsJKS(certBytes []byte, certPassword string) (bool, []certMetric, erro
 
 func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 	var metrics []certMetric
-	var pemBlockDecoded bool // Tracks if at least one PEM block was successfully decoded
+	var blocks []*pem.Block
 
-	data := certBytes
-	for len(data) > 0 {
-		block, rest := pem.Decode(data)
+	block, rest := pem.Decode(certBytes)
+	if block == nil {
+		return false, metrics, fmt.Errorf("Failed to parse as a pem")
+	}
+	// Remove trailing whitespaces to prevent possible error in loop
+	rest = []byte(strings.TrimRightFunc(string(rest), unicode.IsSpace))
+	if block.Type == "CERTIFICATE" {
+		blocks = append(blocks, block)
+	}
+	// Export the remaining certificates in the certificate chain
+	for len(rest) != 0 {
+		block, rest = pem.Decode(rest)
 		if block == nil {
 			// No more PEM blocks can be decoded from the remaining data.
 			// If 'rest' is not empty here, it means there was trailing non-PEM data,

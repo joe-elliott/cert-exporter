@@ -1,6 +1,7 @@
 package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
+import versioncollector "github.com/prometheus/client_golang/prometheus/collectors/version"
 
 const (
 	namespace = "cert_exporter"
@@ -13,6 +14,15 @@ var (
 			Namespace: namespace,
 			Name:      "error_total",
 			Help:      "Cert Exporter Errors",
+		},
+	)
+
+	// Discovered is a prometheus guage that indicates the sum of discovered certificates after taking into account include and exclude globs
+	Discovered = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "discovered",
+			Help:      "Cert Exporter Discovered Certificates",
 		},
 	)
 
@@ -205,33 +215,45 @@ var (
 		},
 		[]string{"type_name", "issuer", "cn", "webhook_name", "admission_review_version_name"},
 	)
+
+	// BuildInfo is a prometheus gauge that shows build information about the cert-exporter 
+	BuildInfo = versioncollector.NewCollector("cert_exporter")
 )
 
-func Init(prometheusExporterMetricsDisabled bool) {
-	if prometheusExporterMetricsDisabled {
+func Init(prometheusExporterMetricsDisabled bool, registry *prometheus.Registry) {
+	var registerer prometheus.Registerer
+
+	if registry != nil {
+		registerer = registry
+	} else if prometheusExporterMetricsDisabled {
 		emptyRegistry := prometheus.NewRegistry()
 		prometheus.DefaultRegisterer = emptyRegistry
 		prometheus.DefaultGatherer = emptyRegistry
+		registerer = emptyRegistry
+	} else {
+		registerer = prometheus.DefaultRegisterer
 	}
 
-	prometheus.MustRegister(ErrorTotal)
-	prometheus.MustRegister(CertExpirySeconds)
-	prometheus.MustRegister(CertNotAfterTimestamp)
-	prometheus.MustRegister(CertNotBeforeTimestamp)
-	prometheus.MustRegister(KubeConfigExpirySeconds)
-	prometheus.MustRegister(KubeConfigNotAfterTimestamp)
-	prometheus.MustRegister(KubeConfigNotBeforeTimestamp)
-	prometheus.MustRegister(SecretExpirySeconds)
-	prometheus.MustRegister(SecretNotAfterTimestamp)
-	prometheus.MustRegister(SecretNotBeforeTimestamp)
-	prometheus.MustRegister(CertRequestExpirySeconds)
-	prometheus.MustRegister(CertRequestNotAfterTimestamp)
-	prometheus.MustRegister(CertRequestNotBeforeTimestamp)
-	prometheus.MustRegister(ConfigMapExpirySeconds)
-	prometheus.MustRegister(ConfigMapNotAfterTimestamp)
-	prometheus.MustRegister(ConfigMapNotBeforeTimestamp)
-	prometheus.MustRegister(WebhookExpirySeconds)
-	prometheus.MustRegister(WebhookNotAfterTimestamp)
-	prometheus.MustRegister(WebhookNotBeforeTimestamp)
-	prometheus.MustRegister(AwsCertExpirySeconds)
+	registerer.MustRegister(Discovered)
+	registerer.MustRegister(ErrorTotal)
+	registerer.MustRegister(CertExpirySeconds)
+	registerer.MustRegister(CertNotAfterTimestamp)
+	registerer.MustRegister(CertNotBeforeTimestamp)
+	registerer.MustRegister(KubeConfigExpirySeconds)
+	registerer.MustRegister(KubeConfigNotAfterTimestamp)
+	registerer.MustRegister(KubeConfigNotBeforeTimestamp)
+	registerer.MustRegister(SecretExpirySeconds)
+	registerer.MustRegister(SecretNotAfterTimestamp)
+	registerer.MustRegister(SecretNotBeforeTimestamp)
+	registerer.MustRegister(CertRequestExpirySeconds)
+	registerer.MustRegister(CertRequestNotAfterTimestamp)
+	registerer.MustRegister(CertRequestNotBeforeTimestamp)
+	registerer.MustRegister(ConfigMapExpirySeconds)
+	registerer.MustRegister(ConfigMapNotAfterTimestamp)
+	registerer.MustRegister(ConfigMapNotBeforeTimestamp)
+	registerer.MustRegister(WebhookExpirySeconds)
+	registerer.MustRegister(WebhookNotAfterTimestamp)
+	registerer.MustRegister(WebhookNotBeforeTimestamp)
+	registerer.MustRegister(AwsCertExpirySeconds)
+	registerer.MustRegister(BuildInfo)
 }

@@ -61,8 +61,7 @@ $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-annotation-selector='test' \
-    --secrets-include-glob='*.crt' \
-    --logtostderr &
+    --secrets-include-glob='*.crt' &
 pid=$!
 sleep 10
 
@@ -79,8 +78,7 @@ $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
-    --secrets-include-glob='*.crt' \
-    --logtostderr &
+    --secrets-include-glob='*.crt' &
 pid=$!
 sleep 10
 
@@ -96,8 +94,7 @@ $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-annotation-selector='cert-manager.io/certificate-name' \
     --secrets-namespace='cert-manager-test' \
-    --secrets-exclude-glob='*.key' \
-    --logtostderr &
+    --secrets-exclude-glob='*.key' &
 pid=$!
 sleep 10
 
@@ -112,8 +109,7 @@ echo "** Testing Secret checker"
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --secrets-include-glob='*.p12' \
-    --secrets-namespace='cert-manager-test' \
-    --logtostderr &
+    --secrets-namespace='cert-manager-test' &
 pid=$!
 sleep 10
 
@@ -128,8 +124,7 @@ echo "** Testing ConfigMap checker"
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --configmaps-annotation-selector='test' \
-    --configmaps-include-glob='*.crt' \
-    --logtostderr &
+    --configmaps-include-glob='*.crt' &
 pid=$!
 sleep 10
 
@@ -143,8 +138,7 @@ echo "** Testing Webhook checker"
 # run exporter
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
-    --enable-webhook-cert-check=true \
-    --logtostderr &
+    --enable-webhook-cert-check=true &
 pid=$!
 sleep 10
 
@@ -159,8 +153,7 @@ echo "** Testing Certrequest Annotation and Namespace Selector"
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
     --certrequests-annotation-selector='cert-manager.io/certificate-name' \
-    --certrequests-namespace='cert-manager-test' \
-    --logtostderr &
+    --certrequests-namespace='cert-manager-test' &
 pid=$!
 sleep 10
 
@@ -174,8 +167,7 @@ echo "** Testing Certrequest Label Selector"
 # run exporter
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
-    --certrequests-label-selector='testlabel=test' \
-    --logtostderr &
+    --certrequests-label-selector='testlabel=test' &
 pid=$!
 sleep 10
 
@@ -189,8 +181,7 @@ echo "** Testing Certrequest bool"
 # run exporter
 $CERT_EXPORTER_PATH \
     --kubeconfig=$CONFIG_PATH \
-    --enable-certrequests-check=true \
-    --logtostderr &
+    --enable-certrequests-check=true &
 pid=$!
 sleep 10
 
