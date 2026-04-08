@@ -5,6 +5,21 @@
 
 set -o errexit
 
+waitForMetrics() {
+    for i in $(seq 1 10); do
+        if curl --silent --fail http://localhost:8080/metrics > /dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+    echo "ERROR: metrics endpoint not ready after 10 seconds"
+    exit 1
+}
+
+fetchMetrics() {
+    curl --silent http://localhost:8080/metrics
+}
+
 fetchMetricsTimestampValue() {
     local metrics
     metrics="$1"
@@ -85,10 +100,11 @@ mkdir certs
 # run exporter
 $CERT_EXPORTER_PATH -include-cert-glob=certs/*.crt  -include-kubeconfig-glob=certs/kubeconfig &
 
-sleep 2
+waitForMetrics
 
-curl --silent http://localhost:8080/metrics | grep 'cert_exporter_discovered 5'
-curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
+metrics=$(fetchMetrics)
+echo "$metrics" | grep 'cert_exporter_discovered 5'
+echo "$metrics" | grep 'cert_exporter_error_total 0'
 
 activation=$(date +%s) # this timestamp is at least 2 seconds off from the actual cert NotBefore attribute ...
 validateTimestampBefore 'cert_exporter_cert_not_before_timestamp{cn="client",filename="certs/client.crt",issuer="root",nodename="master0"}' $activation
@@ -134,9 +150,9 @@ mkdir kubeConfigSibling
 # run exporter
 $CERT_EXPORTER_PATH -include-cert-glob=certsSibling/*.crt  -include-kubeconfig-glob=kubeConfigSibling/kubeconfig &
 
-sleep 2
+waitForMetrics
 
-curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 0'
+echo "$(fetchMetrics)" | grep 'cert_exporter_error_total 0'
 
 activation=$(date +%s) # this timestamp is at least 2 seconds off from the actual cert NotBefore attribute ...
 validateTimestampBefore 'cert_exporter_cert_not_after_timestamp{cn="client",filename="certsSibling/client.crt",issuer="root",nodename="master0"}' $activation
@@ -169,9 +185,9 @@ echo 'asdfasdf' > certs/client.crt
 # run exporter
 $CERT_EXPORTER_PATH -include-cert-glob=certs/client.crt &
 
-sleep 2
+waitForMetrics
 
-curl --silent http://localhost:8080/metrics | grep 'cert_exporter_error_total 1'
+echo "$(fetchMetrics)" | grep 'cert_exporter_error_total 1'
 
 # kill exporter
 kill $!
