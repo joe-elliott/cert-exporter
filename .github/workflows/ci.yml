@@ -10,12 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Go ^1.26
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: ^1.26
 
