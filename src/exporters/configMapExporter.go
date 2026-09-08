@@ -6,6 +6,8 @@ import (
 
 // ConfigMapExporter exports PEM file certs
 type ConfigMapExporter struct {
+	ExcludeCNGlobs     []string
+	ExcludeIssuerGlobs []string
 }
 
 // ExportMetrics exports the provided PEM file
@@ -14,6 +16,7 @@ func (c *ConfigMapExporter) ExportMetrics(bytes []byte, keyName, configMapName, 
 	if err != nil {
 		return err
 	}
+	metricCollection = filterMetrics(metricCollection, c.ExcludeCNGlobs, c.ExcludeIssuerGlobs)
 
 	for _, metric := range metricCollection {
 		labels := metrics.AppendSerial([]string{keyName, metric.issuer, metric.cn, configMapName, configMapNamespace}, metric.serial)

@@ -6,6 +6,8 @@ import (
 
 // AwsExporter exports AWS PEM file certs
 type AwsExporter struct {
+	ExcludeCNGlobs     []string
+	ExcludeIssuerGlobs []string
 }
 
 // ExportMetrics exports the provided PEM file
@@ -14,6 +16,7 @@ func (c *AwsExporter) ExportMetrics(file, secretName, key string) error {
 	if err != nil {
 		return err
 	}
+	metricCollection = filterMetrics(metricCollection, c.ExcludeCNGlobs, c.ExcludeIssuerGlobs)
 
 	for _, metric := range metricCollection {
 		labels := metrics.AppendSerial([]string{secretName, key, file, metric.issuer, metric.cn}, metric.serial)

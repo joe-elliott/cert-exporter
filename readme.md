@@ -86,6 +86,23 @@ The number of files matched by include/exclude globs across all file-based check
 **cert_exporter_error_total**  
 The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.
 
+**`--exclude-cert-cn-glob` / `--exclude-cert-issuer-glob` (optional)**  
+Glob patterns matched against the `cn` and `issuer` labels of the exported metrics; matching certificates are dropped from every certificate metric, whatever the source (files, kubeconfigs, secrets, configmaps, webhooks, certrequests and AWS secrets alike). Both flags can be repeated. Useful when a watched file or secret bundles certificates you do not care about (e.g. vendored CA chains):
+
+```
+--exclude-cert-cn-glob='*.internal' --exclude-cert-issuer-glob='Internal CA'
+```
+
+What exactly is matched:
+
+- `cn` is the certificate's **subject Common Name** and `issuer` is the **issuer's Common Name**, the same values exported as metric labels. Subject Alternative Names are not matched, and neither is the full issuer DN, so a string copied out of `openssl x509 -issuer -noout` (which prints the whole DN, e.g. `issuer=O=Acme, CN=Internal CA`) will not match.
+- A certificate is dropped if **either** flag matches; the two are OR'd. Only certificate metrics are filtered: `cert_exporter_discovered` counts files and is unaffected.
+- Patterns are [doublestar](https://github.com/bmatcuk/doublestar) globs, and matching is case-sensitive. `*.example.com` is a prefix wildcard rather than a DNS wildcard, so it also matches `a.b.example.com`.
+- Names are matched as flat strings, not paths. `/` is not a separator, so `*` matches a URI-style CN such as `spiffe://cluster.local/ns/foo` in full, `**` behaves the same as `*`, and `?` matches `/` too.
+- `*`, `?`, `[`, `{`, `}` and `\` are metacharacters, so a CN containing one has to be escaped: `Acme \[CA]` matches `Acme [CA]`. A lone `]` is literal and needs no escape. Mind `{a,b}` alternation in particular, because `--exclude-cert-cn-glob='{*}'` is an alternation whose single branch is `*` and therefore drops **every** certificate.
+- A certificate with no CN (or no issuer CN) is matched only by a pattern that itself matches the empty string, such as `""`, `*`, `**` or `{,internal}`.
+- A malformed pattern is rejected at startup: cert-exporter logs the offending pattern and exits rather than silently ignoring the flag. Validation is stricter than matching, so an unescaped `}` is rejected even where it would have matched as a literal.
+
 **`--include-serial-label` (optional)**  
 Default **false** (no series identity change). When **true**, every certificate metric gains a `serial` label (lowercase hex). Enable this when a single file/secret/configmap key holds multiple PEMs that share the same `cn`/`issuer`, otherwise Prometheus collapses them into one series. Enabling this will cause churn, so check your dashboards and alerts beforehand.
 

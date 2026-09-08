@@ -6,6 +6,8 @@ import (
 
 // CertRequestExporter exports PEM file certs
 type CertRequestExporter struct {
+	ExcludeCNGlobs     []string
+	ExcludeIssuerGlobs []string
 }
 
 // ExportMetrics exports the provided PEM file
@@ -14,6 +16,7 @@ func (c *CertRequestExporter) ExportMetrics(bytes []byte, certrequest, certreque
 	if err != nil {
 		return err
 	}
+	metricCollection = filterMetrics(metricCollection, c.ExcludeCNGlobs, c.ExcludeIssuerGlobs)
 
 	for _, metric := range metricCollection {
 		labels := metrics.AppendSerial([]string{metric.issuer, metric.cn, certrequest, certrequestNamespace}, metric.serial)

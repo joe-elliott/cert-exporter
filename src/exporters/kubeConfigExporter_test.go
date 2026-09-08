@@ -319,3 +319,87 @@ func TestKubeConfigExporter_MetricsLabels(t *testing.T) {
 		}
 	}
 }
+
+// TestKubeConfigExporter_ExcludeGlobs covers both the cluster and the user loop,
+// in both directions, so dropping filterMetrics from either one fails the test.
+// The CNs are URI-style on purpose: the wildcard has to cross slashes.
+func TestKubeConfigExporter_ExcludeGlobs(t *testing.T) {
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry, false)
+
+	tmpDir := testutil.CreateTempCertDir(t)
+	kubeConfigFile := filepath.Join(tmpDir, "kubeconfig")
+	certDir := filepath.Join(tmpDir, "certs")
+
+	keptCA := testutil.GenerateCertificate(t, testutil.CertConfig{
+		CommonName: "internal-ca",
+		Days:       365,
+		IsCA:       true,
+	})
+	droppedCA := testutil.GenerateCertificate(t, testutil.CertConfig{
+		CommonName: "spiffe://cluster.local/ca",
+		Days:       365,
+		IsCA:       true,
+	})
+	keptClient := testutil.GenerateSignedCertificate(t, testutil.CertConfig{
+		CommonName: "internal-client",
+		Days:       365,
+	}, keptCA)
+	droppedClient := testutil.GenerateSignedCertificate(t, testutil.CertConfig{
+		CommonName: "spiffe://cluster.local/ns/foo",
+		Days:       365,
+	}, keptCA)
+
+	testutil.WriteCertToFile(t, keptCA.CertPEM, filepath.Join(certDir, "kept-ca.crt"))
+	testutil.WriteCertToFile(t, droppedCA.CertPEM, filepath.Join(certDir, "dropped-ca.crt"))
+	testutil.WriteCertToFile(t, keptClient.CertPEM, filepath.Join(certDir, "kept-client.crt"))
+	testutil.WriteKeyToFile(t, keptClient.PrivateKeyPEM, filepath.Join(certDir, "kept-client.key"))
+	testutil.WriteCertToFile(t, droppedClient.CertPEM, filepath.Join(certDir, "dropped-client.crt"))
+	testutil.WriteKeyToFile(t, droppedClient.PrivateKeyPEM, filepath.Join(certDir, "dropped-client.key"))
+
+	builder := testutil.NewKubeConfigBuilder()
+	builder.AddClusterWithFile("kept-cluster", "https://example.com", "certs/kept-ca.crt")
+	builder.AddClusterWithFile("dropped-cluster", "https://example.com", "certs/dropped-ca.crt")
+	builder.AddUserWithFile("kept-user", "certs/kept-client.crt", "certs/kept-client.key")
+	builder.AddUserWithFile("dropped-user", "certs/dropped-client.crt", "certs/dropped-client.key")
+	builder.Build(t, kubeConfigFile)
+
+	exporter := &KubeConfigExporter{ExcludeCNGlobs: []string{"spiffe://*"}}
+	exporter.ResetMetrics()
+
+	if err := exporter.ExportMetrics(kubeConfigFile, "exclude-node"); err != nil {
+		t.Fatalf("ExportMetrics() failed: %v", err)
+	}
+
+	mfs, err := testRegistry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	exported := make(map[string]string)
+	for _, mf := range mfs {
+		if mf.GetName() != "cert_exporter_kubeconfig_expires_in_seconds" {
+			continue
+		}
+		for _, metric := range mf.GetMetric() {
+			labels := make(map[string]string)
+			for _, label := range metric.GetLabel() {
+				labels[label.GetName()] = label.GetValue()
+			}
+			if labels["nodename"] == "exclude-node" {
+				exported[labels["name"]] = labels["cn"]
+			}
+		}
+	}
+
+	for _, name := range []string{"kept-cluster", "kept-user"} {
+		if _, found := exported[name]; !found {
+			t.Errorf("Expected %q to be exported, got entries for %v", name, exported)
+		}
+	}
+	for _, name := range []string{"dropped-cluster", "dropped-user"} {
+		if cn, found := exported[name]; found {
+			t.Errorf("Expected %q to be excluded, but it was exported with cn=%q", name, cn)
+		}
+	}
+}

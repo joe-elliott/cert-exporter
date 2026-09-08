@@ -10,6 +10,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"software.sslmate.com/src/go-pkcs12"
 )
 
@@ -131,4 +132,73 @@ func parseAsPEM(certBytes []byte) (bool, []certMetric, error) {
 		metrics = append(metrics, metric)
 	}
 	return true, metrics, nil
+}
+
+// certGlobSeparator stands in for "/" while glob matching CNs and issuers.
+// See flattenGlobPath.
+const certGlobSeparator = "\x00"
+
+// flattenGlobPath folds "/" to a sentinel so that it stops acting as a glob
+// separator.
+//
+// Certificate CNs are not paths, so an operator writing "*" means "any CN",
+// including URI-style names such as "spiffe://cluster.local/ns/foo". Both
+// doublestar and filepath.Match refuse to let "*" cross a separator, so
+// pattern and value are folded alike before matching. As a result "*" and
+// "**" match anything, and "?" matches "/" as well.
+//
+// NUL does not occur in an X.509 name in practice, but Go does decode one from
+// a UTF8String, so it is remapped first: without that, a "/"-bearing pattern
+// would match a CN containing NUL.
+func flattenGlobPath(s string) string {
+	s = strings.ReplaceAll(s, certGlobSeparator, "\uFFFD")
+	return strings.ReplaceAll(s, "/", certGlobSeparator)
+}
+
+// ValidateCertGlobs reports an error for the first malformed pattern in globs.
+//
+// Validity depends only on the pattern, so patterns are checked once at
+// startup and matching never has to report a syntax error per certificate.
+// Note that "{" and "}" are metacharacters: a literal brace in a CN has to be
+// escaped as "\{" or "\}", and an unescaped one is rejected here.
+func ValidateCertGlobs(globs []string) error {
+	for _, pattern := range globs {
+		if !doublestar.ValidatePattern(flattenGlobPath(pattern)) {
+			return fmt.Errorf("malformed glob pattern %q; escape glob metacharacters such as [ { } with a backslash", pattern)
+		}
+	}
+	return nil
+}
+
+// matchGlobs reports whether s matches any of the given glob patterns.
+//
+// Patterns are expected to have passed ValidateCertGlobs. A certificate with
+// no CN (or no issuer CN) is matched only by a pattern that matches the empty
+// string, that is "", "*", "**", or an alternation carrying an empty branch.
+func matchGlobs(s string, globs []string) bool {
+	value := flattenGlobPath(s)
+	for _, pattern := range globs {
+		if doublestar.MatchUnvalidated(flattenGlobPath(pattern), value) {
+			return true
+		}
+	}
+	return false
+}
+
+// filterMetrics drops metrics whose CN or issuer matches the exclude globs.
+func filterMetrics(metrics []certMetric, excludeCNGlobs, excludeIssuerGlobs []string) []certMetric {
+	if len(excludeCNGlobs) == 0 && len(excludeIssuerGlobs) == 0 {
+		return metrics
+	}
+	filtered := make([]certMetric, 0, len(metrics))
+	for _, m := range metrics {
+		if len(excludeCNGlobs) > 0 && matchGlobs(m.cn, excludeCNGlobs) {
+			continue
+		}
+		if len(excludeIssuerGlobs) > 0 && matchGlobs(m.issuer, excludeIssuerGlobs) {
+			continue
+		}
+		filtered = append(filtered, m)
+	}
+	return filtered
 }

@@ -271,6 +271,82 @@ func TestEndToEnd_ErrorMetric(t *testing.T) {
 	}
 }
 
+// TestEndToEnd_ExcludeCertGlobs exercises the exclude flags through
+// ExportMetrics, including a URI-style CN whose slashes a wildcard has to
+// cross.
+func TestEndToEnd_ExcludeCertGlobs(t *testing.T) {
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(false, testRegistry, false)
+
+	tmpDir := testutil.CreateTempCertDir(t)
+
+	certFiles := map[string]string{
+		"web.example.com":               filepath.Join(tmpDir, "web.crt"),
+		"spiffe://cluster.local/ns/foo": filepath.Join(tmpDir, "spiffe.crt"),
+		"internal.corp.local":           filepath.Join(tmpDir, "internal.crt"),
+	}
+
+	for cn, file := range certFiles {
+		cert := testutil.GenerateCertificate(t, testutil.CertConfig{
+			CommonName:   cn,
+			Organization: "test-org",
+			Country:      "US",
+			Province:     "CA",
+			Days:         30,
+		})
+		testutil.WriteCertToFile(t, cert.CertPEM, file)
+	}
+
+	// The generated certificates are self-signed, so the issuer CN equals the
+	// subject CN and the issuer glob picks internal.corp.local.
+	exporter := &exporters.CertExporter{
+		ExcludeCNGlobs:     []string{"spiffe://*"},
+		ExcludeIssuerGlobs: []string{"*.corp.local"},
+	}
+	exporter.ResetMetrics()
+
+	for _, file := range certFiles {
+		if err := exporter.ExportMetrics(file, "test-node-exclude"); err != nil {
+			t.Fatalf("Error exporting %s: %v", file, err)
+		}
+	}
+
+	// Wait a bit for metrics to be registered
+	time.Sleep(50 * time.Millisecond)
+
+	mfs, err := testRegistry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	exported := make(map[string]float64)
+	for _, mf := range mfs {
+		if mf.GetName() == "cert_exporter_cert_expires_in_seconds" {
+			for _, metric := range mf.GetMetric() {
+				labels := make(map[string]string)
+				for _, label := range metric.GetLabel() {
+					labels[label.GetName()] = label.GetValue()
+				}
+				if labels["nodename"] == "test-node-exclude" {
+					exported[labels["cn"]] = metric.GetGauge().GetValue()
+				}
+			}
+		}
+	}
+
+	if _, found := exported["web.example.com"]; !found {
+		t.Errorf("Expected a metric for web.example.com, found metrics for: %v", getKeys(exported))
+	}
+	for _, cn := range []string{"spiffe://cluster.local/ns/foo", "internal.corp.local"} {
+		if _, found := exported[cn]; found {
+			t.Errorf("Expected %s to be excluded, but a metric was exported", cn)
+		}
+	}
+	if len(exported) != 1 {
+		t.Errorf("Expected exactly 1 exported metric, got %d: %v", len(exported), getKeys(exported))
+	}
+}
+
 // Helper function to get map keys
 func getKeys(m map[string]float64) []string {
 	keys := make([]string, 0, len(m))

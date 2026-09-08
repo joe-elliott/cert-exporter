@@ -6,6 +6,8 @@ import (
 
 // WebhookExporter exports PEM file certs
 type WebhookExporter struct {
+	ExcludeCNGlobs     []string
+	ExcludeIssuerGlobs []string
 }
 
 // ExportMetrics exports the provided PEM file
@@ -14,6 +16,7 @@ func (c *WebhookExporter) ExportMetrics(bytes []byte, typeName, webhookName, adm
 	if err != nil {
 		return err
 	}
+	metricCollection = filterMetrics(metricCollection, c.ExcludeCNGlobs, c.ExcludeIssuerGlobs)
 
 	for _, metric := range metricCollection {
 		labels := metrics.AppendSerial([]string{typeName, metric.issuer, metric.cn, webhookName, admissionReviewVersionName}, metric.serial)
