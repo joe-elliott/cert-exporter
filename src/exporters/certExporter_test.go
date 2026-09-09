@@ -406,3 +406,59 @@ func TestCertExporter_ResetMetrics(t *testing.T) {
 		t.Errorf("Expected metrics to be reset, but found %d metrics", metricsAfter)
 	}
 }
+
+// TestCertExporter_PasswordProtectedKeystore pins the path from the exporter's
+// Password field, which --cert-password-file feeds, down into the parser.
+// Without it, passing an empty password there would go unnoticed.
+func TestCertExporter_PasswordProtectedKeystore(t *testing.T) {
+	testRegistry := prometheus.NewRegistry()
+	metrics.Init(true, testRegistry, false)
+
+	const password = "store-password"
+	bundle := testutil.GenerateCertificate(t, testutil.CertConfig{
+		CommonName: "keystore-cert",
+		Days:       30,
+		IsCA:       true,
+	})
+	store := jksWithTrustedCerts(t, password, map[string]*testutil.CertBundle{"only": bundle})
+
+	certFile := filepath.Join(testutil.CreateTempCertDir(t), "store.jks")
+	if err := os.WriteFile(certFile, store, 0o600); err != nil {
+		t.Fatalf("Failed to write keystore: %v", err)
+	}
+
+	exporter := &CertExporter{Password: password}
+	exporter.ResetMetrics()
+
+	if err := exporter.ExportMetrics(certFile, "test-node"); err != nil {
+		t.Fatalf("ExportMetrics() failed for a password-protected keystore: %v", err)
+	}
+
+	mfs, err := testRegistry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	found := false
+	for _, mf := range mfs {
+		if mf.GetName() != "cert_exporter_cert_expires_in_seconds" {
+			continue
+		}
+		for _, metric := range mf.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if label.GetName() == "cn" && label.GetValue() == "keystore-cert" {
+					found = true
+				}
+			}
+		}
+	}
+	if !found {
+		t.Error("Expected a metric for keystore-cert; the password did not reach the parser")
+	}
+
+	// Without the password the same file must fail rather than export nothing
+	// quietly.
+	if err := (&CertExporter{}).ExportMetrics(certFile, "test-node"); err == nil {
+		t.Error("ExportMetrics() with no password returned nil, want an error")
+	}
+}

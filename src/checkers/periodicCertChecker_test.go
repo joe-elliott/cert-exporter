@@ -307,7 +307,7 @@ func TestPeriodicCertChecker_ErrorHandling(t *testing.T) {
 	if exportErr == nil {
 		t.Fatal("Expected ExportMetrics to fail for invalid certificate text")
 	}
-	if !strings.Contains(exportErr.Error(), "failed to parse as pem and pkcs12") {
+	if !strings.Contains(exportErr.Error(), "failed to parse as pem, pkcs12 or jks") {
 		t.Errorf("Expected parse failure wrapper, got: %v", exportErr)
 	}
 }

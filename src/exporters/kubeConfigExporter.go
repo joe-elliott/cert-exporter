@@ -31,7 +31,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 			}
 		} else if c.Cluster.CertificateAuthority != "" {
 			certFile := pathToFileFromKubeConfig(c.Cluster.CertificateAuthority, file)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, "")
 
 			if err != nil {
 				return err
@@ -59,7 +59,7 @@ func (c *KubeConfigExporter) ExportMetrics(file, nodeName string) error {
 			}
 		} else if u.User.ClientCertificate != "" {
 			certFile := pathToFileFromKubeConfig(u.User.ClientCertificate, file)
-			metricCollection, err = secondsToExpiryFromCertAsFile(certFile)
+			metricCollection, err = secondsToExpiryFromCertAsFile(certFile, "")
 
 			if err != nil {
 				return err

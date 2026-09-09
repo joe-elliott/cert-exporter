@@ -10,7 +10,8 @@ Kubernetes uses PKI certificates for authentication between all major components
 
 cert-exporter can publish metrics about 
 
-- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail) and [PKCS12 format](https://en.wikipedia.org/wiki/PKCS_12)
+- x509 certificates on disk encoded in the [PEM format](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail), [PKCS12 format](https://en.wikipedia.org/wiki/PKCS_12) or as a [Java KeyStore](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#KeystoreImplementation) (JKS)
+  - password-protected keystores via `--cert-password-file`
 - Certs embedded or referenced from kubeconfig files.
 - Certs stored in Kubernetes 
   - secrets 
@@ -85,6 +86,19 @@ The number of files matched by include/exclude globs across all file-based check
 
 **cert_exporter_error_total**  
 The total number of unexpected errors encountered by cert-exporter.  A good metric to watch to feel comfortable certs are being exported properly.
+
+**`--cert-password-file` (optional)**  
+File holding the password used to open password-protected certificate files found by `--include-cert-glob`, that is PKCS#12 (`.p12`, `.pfx`) and JKS keystores. A trailing newline is stripped, so `echo -n` is not required. The password is read from a file rather than taken as a flag value because process arguments are readable by anyone who can run `ps` on the host.
+
+```
+--include-cert-glob='/etc/pki/*.jks' --cert-password-file=/etc/cert-exporter/keystore-password
+```
+
+Only certificates are read out of a keystore, and a JKS keeps the certificate chain of a private key entry in the clear, so an entry whose key carries a password of its own is exported like any other. Certificates in Kubernetes secrets keep taking their password from the `password` key of the secret, unchanged.
+
+The password applies to every file `--include-cert-glob` matches, so a password-less PKCS#12 in the same set will stop parsing once the flag is set; keep protected and unprotected keystores in separate globs. The file is read once at startup, which means a rotated password needs a restart. A JKS always needs its store password, even one holding nothing but trusted certificates.
+
+Note that a keystore commonly holds several certificates sharing a `cn` and `issuer`, which Prometheus collapses into a single series. Enable `--include-serial-label` alongside this flag to keep them apart.
 
 **`--include-serial-label` (optional)**  
 Default **false** (no series identity change). When **true**, every certificate metric gains a `serial` label (lowercase hex). Enable this when a single file/secret/configmap key holds multiple PEMs that share the same `cn`/`issuer`, otherwise Prometheus collapses them into one series. Enabling this will cause churn, so check your dashboards and alerts beforehand.

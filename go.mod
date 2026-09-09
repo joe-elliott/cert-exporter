@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/cert-manager/cert-manager v1.13.0
+	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
 	gopkg.in/yaml.v2 v2.4.0

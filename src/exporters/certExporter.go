@@ -6,11 +6,13 @@ import (
 
 // CertExporter exports PEM file certs
 type CertExporter struct {
+	// Password unlocks password-protected keystore files (PKCS#12, JKS).
+	Password string
 }
 
 // ExportMetrics exports the provided PEM file
 func (c *CertExporter) ExportMetrics(file, nodeName string) error {
-	metricCollection, err := secondsToExpiryFromCertAsFile(file)
+	metricCollection, err := secondsToExpiryFromCertAsFile(file, c.Password)
 	if err != nil {
 		return err
 	}

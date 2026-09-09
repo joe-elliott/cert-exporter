@@ -63,12 +63,14 @@ var (
 	certRequestsNamespace             string
 	certRequestsListOfNamespaces      string
 	deprecatedLogtostderr             bool
-	includeSerialLabel          bool
+	certPasswordFile                  string
+	includeSerialLabel                bool
 )
 
 func init() {
 	flag.Var(&includeCertGlobs, "include-cert-glob", "File globs to include when looking for certs.")
 	flag.Var(&excludeCertGlobs, "exclude-cert-glob", "File globs to exclude when looking for certs.")
+	flag.StringVar(&certPasswordFile, "cert-password-file", "", "File holding the password for password-protected cert files (PKCS#12, JKS).")
 	flag.Var(&includeKubeConfigGlobs, "include-kubeconfig-glob", "File globs to include when looking for kubeconfigs.")
 	flag.Var(&excludeKubeConfigGlobs, "exclude-kubeconfig-glob", "File globs to exclude when looking for kubeconfigs.")
 	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
@@ -115,6 +117,21 @@ func init() {
 
 func main() {
 	flag.Parse()
+
+	// Read the keystore password up front so a bad path fails immediately
+	// rather than once per polling cycle.
+	certPassword := ""
+	if certPasswordFile != "" {
+		contents, err := os.ReadFile(certPasswordFile)
+		if err != nil {
+			slog.Error("Cannot read --cert-password-file", "error", err)
+			os.Exit(1)
+		}
+		// A password file written with a shell redirect ends in a newline,
+		// which is not part of the password.
+		certPassword = strings.TrimRight(string(contents), "\r\n")
+	}
+
 	metrics.Init(prometheusExporterMetricsDisabled, nil, includeSerialLabel)
 
 	// Check if --logtostderr was explicitly set
@@ -128,7 +145,7 @@ func main() {
 	slog.Info("pprof profiling endpoints available at /debug/pprof/")
 
 	if len(includeCertGlobs) > 0 {
-		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{})
+		certChecker := checkers.NewCertChecker(pollingPeriod, includeCertGlobs, excludeCertGlobs, os.Getenv("NODE_NAME"), &exporters.CertExporter{Password: certPassword})
 		go certChecker.StartChecking()
 	}
 
