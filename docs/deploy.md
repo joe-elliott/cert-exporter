@@ -28,9 +28,43 @@ cert-exporter also supports certificates stored in Kubernetes secrets and config
 `--secrets-annotation-selector=cert-manager.io/certificate-name`
 
 ### flags
-The following 17 flags are the most commonly used to control cert-exporter behavior.  They allow you to use file globs to include and exclude certs and kubeconfig files.
+These are all the flags cert-exporter accepts, as printed by `--help`.  The glob flags include and exclude certs and kubeconfig files; the selector and namespace flags pick the Kubernetes objects to check.
 
 ```
+  -aws-account string
+    	AWS account to search for secrets in
+  -aws-key-substring string
+    	Substring to search for in the key name. Matched keys are parsed as certs. (default ".pem")
+  -aws-region string
+    	AWS region to search for secrets in
+  -aws-secret value
+    	AWS secrets to export
+  -certrequests-annotation-selector value
+    	Annotation selector to find certrequests to publish as metrics.
+  -certrequests-label-selector value
+    	Label selector to find certrequests to publish as metrics.
+  -certrequests-namespace string
+    	Kubernetes namespace to list certrequests.
+  -certrequests-namespaces string
+    	Kubernetes comma-delimited list of namespaces to search for certrequests.
+  -configmaps-annotation-selector value
+    	Annotation selector to find configmaps to publish as metrics.
+  -configmaps-exclude-glob value
+    	Configmap globs to exclude when looking for configmap data keys.
+  -configmaps-include-glob value
+    	Configmap globs to include when looking for configmap data keys (Default "*").
+  -configmaps-label-selector value
+    	Label selector to find configmaps to publish as metrics.
+  -configmaps-namespace string # (Deprecated) Use `-configmaps-namespaces`.
+    	Kubernetes namespace to list configmaps.
+  -configmaps-namespace-label-selector value
+    	Label selector to find namespaces in which to find configmaps to publish as metrics.
+  -configmaps-namespaces string
+    	Kubernetes comma-delimited list of namespaces to search for configmaps.
+  -enable-certrequests-check
+    	Enable certrequests check.
+  -enable-webhook-cert-check
+    	Enable webhook cert check.
   -exclude-cert-glob value
     	File globs to exclude when looking for certs.
   -exclude-kubeconfig-glob value
@@ -39,45 +73,41 @@ The following 17 flags are the most commonly used to control cert-exporter behav
     	File globs to include when looking for certs.
   -include-kubeconfig-glob value
     	File globs to include when looking for kubeconfigs.
-  -secrets-annotation-selector string
+  -include-serial-label
+    	Add serial label to certificate metrics (disambiguates multi-PEM bundles).
+  -kubeconfig string
+    	Path to a kubeconfig. Only required if out-of-cluster.
+  -logtostderr
+    	DEPRECATED: This flag is no longer used. Logs are always written to stderr. (default true)
+  -polling-period duration
+    	Periodic interval in which to check certs. (default 1h0m0s)
+  -prometheus-disable-exporter-metrics
+    	Exclude metrics about the exporter itself (promhttp_*, process_*, go_*).
+  -prometheus-listen-address string
+    	The address to listen on for Prometheus scrapes. (default ":8080")
+  -prometheus-path string
+    	The path to publish Prometheus metrics to. (default "/metrics")
+  -secret-include-types value
+    	Select only specific a secret type (Default nil).
+  -secrets-annotation-selector value
     	Annotation selector to find secrets to publish as metrics.
   -secrets-exclude-glob value
-    	Globs to match against secret data keys.
+    	Secret globs to exclude when looking for secret data keys.
   -secrets-include-glob value
-    	Globs to match against secret data keys (Default "*").
+    	Secret globs to include when looking for secret data keys (Default "*").
   -secrets-label-selector value
     	Label selector to find secrets to publish as metrics.
   -secrets-namespace string # (Deprecated) Use `-secrets-namespaces`.
     	Kubernetes namespace to list secrets.
-  -secrets-namespaces string
-        Kubernetes comma-delimited list of namespaces to search for secrets.
   -secrets-namespace-label-selector value
-        Label selector to find namespaces in which to find secrets to publish as metrics.
-  -configmaps-annotation-selector string
-    	Annotation selector to find configmaps to publish as metrics.
-  -configmaps-exclude-glob value
-    	Globs to match against configmap data keys.
-  -configmaps-include-glob value
-    	Globs to match against configmap data keys (Default "*").
-  -configmaps-label-selector value
-    	Label selector to find configmaps to publish as metrics.
-  -configmaps-namespace string # (Deprecated) Use `-configmaps-namespaces`.
-    	Kubernetes namespace to list configmaps.
-  -configmaps-namespaces
-        Kubernetes comma-delimited list of namespaces to search for configmaps.
-  -configmaps-namespace-label-selector value
-        Label selector to find namespaces in which to find configmaps to publish as metrics.
-  -enable-webhook-cert-check bool
-        Enable webhook client config CABundle cert check (Default "false").
-  -webhooks-label-selector
-        Label selector to find webhooks to publish as metrics.
-  -webhooks-annotation-selector
-        Annotation selector to find webhooks to publish as metrics.
-  -polling-period duration
-    	Periodic interval in which to check certs. (default 1h0m0s)
+    	Label selector to find namespaces in which to find secrets to publish as metrics.
+  -secrets-namespaces string
+    	Kubernetes comma-delimited list of namespaces to search for secrets.
+  -webhooks-annotation-selector value
+    	Annotation selector to find webhooks to publish as metrics.
+  -webhooks-label-selector value
+    	Label selector to find webhooks to publish as metrics.
 ```
-
-For a full flag listing run the application with the `--help` parameter.
 
 ### profiling
 
